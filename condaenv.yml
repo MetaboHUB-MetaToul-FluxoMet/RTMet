@@ -1,0 +1,18 @@
+name: metabonline
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.9
+  - bioconductor-profia=1.23.0
+  - bioconductor-plasfia=1.26.0
+  - bioconductor-rawrr=1.6.0
+  - cylc-flow=8.2
+  - cylc-uiserver
+
+# rawrr requires MONO on non-Windows systems.
+# rawrr requires a first run to download ThermoFisher API which can't be bundled (license agreement)
+# rawrr::installRawFileReaderDLLs()
+# rawrr::installRawrrExe()
+
+# cylc requires `bash`, GNU `coreutils` and `mail` (optional) which are not installed by conda.

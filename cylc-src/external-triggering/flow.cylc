@@ -1,0 +1,9 @@
+[scheduling]
+    initial cycle point = now
+    [[xtriggers]]
+        echo_1 = echo(hello, 99, qux=True, point=%(point)s, foo=10)
+    [[graph]]
+        PT1H = "@echo_1 => foo"
+[runtime]
+    [[foo]]
+        script = exit 1

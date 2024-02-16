@@ -4,6 +4,7 @@ channels:
   - bioconda
 dependencies:
   - python=3.9
+  - pytest=8.0
   - bioconductor-profia=1.23.0
   - bioconductor-plasfia=1.26.0
   - bioconductor-rawrr=1.6.0

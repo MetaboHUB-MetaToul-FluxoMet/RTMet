@@ -9,7 +9,8 @@
         """
         P1 = """
             catch_raw => raw_to_peaks => annotation => quantif
-            catch_fermenter_params & quantif => append_table
+            catch_fermenter_params => process_fermenter_params
+            process_fermenter_params & quantif => append_table
             catch_raw[-P1] => catch_raw
             catch_fermenter_params[-P1] => catch_fermenter_params
         """

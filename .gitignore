@@ -156,3 +156,7 @@ Desktop.ini
 .Spotlight-V100
 .Trashes
 *.pyc
+
+# tutorials
+cylc-src/runtime-introduction/
+cylc-src/datetime-cycling/

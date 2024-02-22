@@ -1,9 +1,19 @@
 [scheduling]
-    initial cycle point = now
+    cycling mode = integer
+    initial cycle point = 1
     [[xtriggers]]
-        catch_raw_1 = catch_raw(hello, 99, qux=True, point=%(point)s, foo=10)
+        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s')
     [[graph]]
-        PT1H = "@catch_raw_1 => foo"
+        P1 = """
+            @catch_raw & baz => foo => bar
+            foo[-P1] => foo
+        """
 [runtime]
     [[foo]]
-        script = exit 1
+        script = echo 'FOO!!!! 👹 ' $catch_raw_file; touch foo.txt
+    [[bar]]
+        script = bar
+    [[baz]]
+        script = echo 'BAZ!!!! 👽 '
+    [[catch_raw_dummy]]
+        script = echo 'catch_raw_dummy!!!! 👻 '

@@ -17,3 +17,6 @@ dependencies:
 # rawrr::installRawrrExe()
 
 # cylc requires `bash`, GNU `coreutils` and `mail` (optional) which are not installed by conda.
+
+# conda config --set auto_activate_base false
+# Needed for cylc subprocesses to not get the "cylc: command not found" error.

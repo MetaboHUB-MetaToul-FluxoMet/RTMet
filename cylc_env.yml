@@ -1,0 +1,14 @@
+name: cylc
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pytest=8.0
+  - cylc-flow=8.2
+  - cylc-uiserver
+
+# cylc requires `bash`, GNU `coreutils` and `mail` (optional) which are not installed by conda.
+
+# MAKE THE WRAPPER SCRIPT
+# cylc get-resources cylc /path/to/cylc  # should be in $PATH
+# chmod +x /path/to/cylc

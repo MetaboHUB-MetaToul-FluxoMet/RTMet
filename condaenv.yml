@@ -10,6 +10,7 @@ dependencies:
   - bioconductor-rawrr=1.6.0
   - cylc-flow=8.2
   - cylc-uiserver
+  - thermorawfileparser=1.4.3
 
 # rawrr requires MONO on non-Windows systems.
 # rawrr requires a first run to download ThermoFisher API which can't be bundled (license agreement)

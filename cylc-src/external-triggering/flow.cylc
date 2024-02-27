@@ -5,15 +5,23 @@
         catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s')
     [[graph]]
         P1 = """
-            @catch_raw & baz => foo => bar
-            foo[-P1] => foo
+            @catch_raw => raw_to_mzml => mzml_to_features => annotation
+            @catch_raw => catch_raw_dummy => raw_to_mzml
         """
 [runtime]
-    [[foo]]
-        script = echo 'FOO!!!! 👹 ' $catch_raw_file; touch foo.txt
-    [[bar]]
-        script = bar
-    [[baz]]
+    [[R_ENV]]
+            env-script = """
+                set +eu
+                conda activate metabonline
+                set -eu
+            """
+    [[raw_to_mzml]]
+        inherit = R_ENV
+        script = thermorawfileparser --format=mzml --input=$catch_raw_file
+    [[mzml_to_features]]
+        inherit = R_ENV
+        script = Rscript $CYLC_WORKFLOW_RUN_DIR/bin/mzml_to_features
+    [[annotation]]
         script = echo 'BAZ!!!! 👽 '
     [[catch_raw_dummy]]
         script = echo 'catch_raw_dummy!!!! 👻 '

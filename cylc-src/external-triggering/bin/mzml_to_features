@@ -1,0 +1,7 @@
+file.path(R.home("bin"), "R")
+
+library("proFIA")
+a = proFIA::proFIAset()
+
+x <- data.frame()
+write.table(x, file='empty', col.names=FALSE)

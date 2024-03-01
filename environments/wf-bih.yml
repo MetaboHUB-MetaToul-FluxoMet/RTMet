@@ -1,0 +1,14 @@
+name: wf-bih
+channels:
+  - conda-forge
+dependencies:
+  - compilers=1.7.0
+  - perl=5.32.1
+  - perl-app-cpanminus=1.7047
+
+# Manually install the required Perl modules:
+# cpanm SOAP::Lite@1.27 --force       #installs URI, LWP::Simple as well
+# cpanm HTML::Template@2.97
+# cpanm List::MoreUtils@0.430
+# cpanm JSON@4.10
+# cpanm Text::CSV@2.04

@@ -1,0 +1,9 @@
+name: wf-trfp
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - mono=6.12.0
+  - thermorawfileparser=1.4.3
+
+# Needs license agreement acceptance ?   -> No.

@@ -1,0 +1,14 @@
+name: wf-binner
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-base=4.3.1
+  - r-essentials=4.3
+  - r-remotes=2.4
+  - r-furrr=0.3.1
+  - r-ggthemes=5.1.0
+  - bioconductor-mzr=2.36
+
+# Inside R, install the binneR package from GitHub
+# remotes::install_github('aberHRML/binneR')

@@ -160,3 +160,5 @@ Desktop.ini
 # tutorials
 cylc-src/runtime-introduction/
 cylc-src/datetime-cycling/
+
+cylc-src/external-triggering/lib/bank_inhouse

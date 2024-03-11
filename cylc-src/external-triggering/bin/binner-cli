@@ -1,0 +1,90 @@
+#!/usr/bin/env Rscript
+
+suppressWarnings(library("optparse", quietly = TRUE))
+
+# binneR guard. Install it if not already present, then load the package.
+if (!suppressWarnings(require("binneR", quietly = TRUE))) {
+  cat("BinneR not installed, getting it from GitHub (without dependencies).")
+  remotes::install_github("aberHRML/binneR")
+  library(binneR, quietly = TRUE)
+}
+
+# CLI options parsing
+option_list <- list(
+  make_option(c("-f", "--file"), type = "character", default = NULL,
+              help = "Single .mzML file path", metavar = "character"),
+  make_option(c("-d", "--dir"), type = "character", default = NULL,
+              help = "Directory path containing .mzML files", metavar = "character"),
+  make_option(c("-o", "--outdir"), type = "character", default = NULL,
+              help = "Output directory path [default = input location]", metavar = "character"),
+  make_option(c("-t", "--threshold"), type = "numeric", default = 0.5,
+              help = "Threshold for feature detection, value between 0 and 1 [default=%default]", metavar = "numeric"),
+  make_option(c("-p", "--precision"), type = "integer", default = 2,
+              help = "Number of decimal places for spectral binning [default=%default]", metavar = "integer")
+)
+opt_parser <- OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+
+# Check input arguments
+if (is.null(opt$file) && is.null(opt$dir)) {
+  print_help(opt_parser)
+  stop("At least one argument must be supplied (input file or directory).",
+       call. = FALSE)
+} else if (!is.null(opt$file) && !is.null(opt$dir)) {
+  print_help(opt_parser)
+  stop("Only one input argument must be supplied (input file OR directory).",
+       call. = FALSE)
+} else {
+  input_type <- ifelse(is.null(opt$file), "dir", "file")
+}
+
+# Check that input .mzML file/directory exists
+if (input_type == "file") {
+  if (!file.exists(opt$file)) {
+    stop("Input file not found: ", opt$file, call. = FALSE)
+  } else if (!grepl("\\.mzML$", opt$file, ignore.case = TRUE)) {
+    stop("Input isn't a .mzML file: ", opt$file, call. = FALSE)
+  }
+  mzml_files <- c(opt$file)
+} else {
+  if (!dir.exists(opt$dir)) {
+    stop("Input directory not found: ", opt$dir, call. = FALSE)
+  }
+  mzml_files = list.files(opt$dir, pattern = "\\.mzML$", full.names = TRUE, ignore.case = TRUE)
+  if (length(mzml_files) == 0) {
+    stop("No .mzML files found in directory: ", opt$dir, call. = FALSE)
+  }
+}
+
+# Set default output directory if not specified, or check if it exists
+if (is.null(opt$outdir)) {
+  opt$outdir <- ifelse(input_type == "file", dirname(opt$file), opt$dir)
+} else {
+  if (!dir.exists(opt$outdir)) {
+    stop("Output directory not found: ", opt$outdir, call. = FALSE)
+  }
+}
+
+cat("mzML files to be processed:\n")
+for (file in mzml_files) {
+  cat("• ", file, "\n")
+}
+
+# To implement: try-catch for feature detection (blame binneR)
+# and data wrangling (blame Elliot Fontaine)
+
+for (file in mzml_files) {
+  # Feature detection
+  infusion_scans <- detectInfusionScans(file, thresh = opt$threshold)
+  res <- readFiles(file, dp = opt$precision, scans = infusion_scans)
+
+  # Data wrangling
+  res_t <- res[["n"]] %>% t()
+  res_t <- data.frame(MZ = row.names(res_t), res_t)
+  res_t$MZ <- as.numeric(sub("n", "", res_t$MZ))
+  res_t <- res_t[order(res_t$MZ), ]
+  colnames(res_t) <- c("MZ", "INTENSITY")
+  out_file <- paste0(opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv")
+  write.table(res_t, out_file, quote = FALSE, sep = "\t",
+              col.names = TRUE, row.names = FALSE)
+}

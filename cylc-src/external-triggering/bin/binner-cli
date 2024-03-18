@@ -1,6 +1,9 @@
 #!/usr/bin/env Rscript
 
 suppressWarnings(library("optparse", quietly = TRUE))
+suppressWarnings(library("readr", quietly = TRUE))
+suppressWarnings(library("magrittr", quietly = TRUE))
+suppressWarnings(library("dplyr", quietly = TRUE))
 
 # binneR guard. Install it if not already present, then load the package.
 if (!suppressWarnings(require("binneR", quietly = TRUE))) {
@@ -20,7 +23,9 @@ option_list <- list(
   make_option(c("-t", "--threshold"), type = "numeric", default = 0.5,
               help = "Threshold for feature detection, value between 0 and 1 [default=%default]", metavar = "numeric"),
   make_option(c("-p", "--precision"), type = "integer", default = 2,
-              help = "Number of decimal places for spectral binning [default=%default]", metavar = "integer")
+              help = "Number of decimal places for spectral binning [default=%default]", metavar = "integer"),
+  make_option(c("-b", "--binnerlyse"), type = "logical", default = FALSE,
+              help = "Number of decimal places for spectral binning [default=%default]", metavar = "logical")
 )
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
@@ -72,19 +77,44 @@ for (file in mzml_files) {
 
 # To implement: try-catch for feature detection (blame binneR)
 # and data wrangling (blame Elliot Fontaine)
+if (!opt$binnerlyse) {
+  for (file in mzml_files) {
+    out_file <- paste0(opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv")
+    # Feature detection
+    infusion_scans <- detectInfusionScans(file, thresh = opt$threshold)
+    res <- readFiles(file, dp = opt$precision, scans = infusion_scans)
 
-for (file in mzml_files) {
-  # Feature detection
-  infusion_scans <- detectInfusionScans(file, thresh = opt$threshold)
-  res <- readFiles(file, dp = opt$precision, scans = infusion_scans)
+    # Data wrangling
+    res_t <- res[["n"]] %>% t()
+    res_t <- data.frame(MZ = row.names(res_t), res_t)
+    res_t$MZ <- as.numeric(sub("n", "", res_t$MZ))
+    res_t <- res_t[order(res_t$MZ), ]
+    colnames(res_t) <- c("MZ", "INTENSITY")
+    write.table(res_t, out_file, quote = FALSE, sep = "\t",
+                col.names = TRUE, row.names = FALSE)
+  }
+} else {
+  for (file in mzml_files) {
+    out_file <- paste0(opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv")
+    # Feature detection
+    infusion_scans <- detectInfusionScans(file, thresh = opt$threshold)
+    parameters <- binParameters(infusion_scans)
+    info <- tibble::as_tibble(
+      data.frame(
+        fileOrder = 1,
+        injOrder = 1,
+        fileName = basename(file),
+        batch = 1,
+        block = 1,
+        name = basename(file),
+        class = 1
+      )
+    )
 
-  # Data wrangling
-  res_t <- res[["n"]] %>% t()
-  res_t <- data.frame(MZ = row.names(res_t), res_t)
-  res_t$MZ <- as.numeric(sub("n", "", res_t$MZ))
-  res_t <- res_t[order(res_t$MZ), ]
-  colnames(res_t) <- c("MZ", "INTENSITY")
-  out_file <- paste0(opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv")
-  write.table(res_t, out_file, quote = FALSE, sep = "\t",
-              col.names = TRUE, row.names = FALSE)
+    analysis <- binneRlyse(file, info, parameters)
+    mz_precis <- accurateData(analysis)
+    mz_precis %>%
+      relocate(mz, .before = idx) %>%
+      write_tsv(out_file)
+  }
 }

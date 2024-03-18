@@ -1,0 +1,6 @@
+name: wf-datamunging
+channels:
+  - conda-forge
+dependencies:
+  - pandas=2.2
+  - numpy=1.26

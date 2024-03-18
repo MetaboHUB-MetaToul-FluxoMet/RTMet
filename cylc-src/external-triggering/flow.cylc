@@ -4,9 +4,13 @@
     [[xtriggers]]
         catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s')
     [[graph]]
+        R1 = """
+            setup_timeseries => append_timeseries
+        """
         P1 = """
-            @catch_raw => raw_to_mzml => mzml_to_features => annotation => filter
+            @catch_raw => raw_to_mzml => mzml_to_features => annotation => filter => append_timeseries
             @catch_raw => catch_raw_dummy => raw_to_mzml
+            append_timeseries[-P1] => append_timeseries
         """
 [runtime]
     [[TRFP_ENV]]
@@ -33,6 +37,12 @@
             conda activate wf-bih
             set -eu
         """
+    [[DATAMUNGING_ENV]]
+        env-script = """
+            set +eu
+            conda activate wf-datamunging
+            set -eu
+        """
     [[raw_to_mzml]]
         inherit = TRFP_ENV
         script = """
@@ -52,8 +62,8 @@
         script = """
             binner-cli \
                 --file ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.mzML \
-                --outdir ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
-                --precision 3
+                --outdir ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT} \
+                --binnerlyse TRUE
         """
     [[annotation]]
         inherit = BIH_ENV
@@ -65,18 +75,23 @@
                 -bank_in $CYLC_WORKFLOW_RUN_DIR/db/Central_metabolites_DB_formatted.tsv \
                 -bank_name central_mtb -mzdb 4 \
                 -mz_delta ppm \
-                -mass_delta 100 \
-                -outputXls ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/results_bih.tsv \
-                -outputTab ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/input_dataMatrix_annotated.tsv
+                -mass_delta 10 \
+                -outputXls ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated.tsv \
+                -outputTab ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv
         """
     [[filter]]
         script = """
             sed '/No_match_in_bank/d' \
-                ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/results_bih.tsv \
-                > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/results_bih_matches.tsv
+                ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated.tsv \
+                > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated_matches.tsv
             sed '/No_match_in_bank/d' \
-                ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/input_dataMatrix_annotated.tsv \
-                > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/input_dataMatrix_annotated_matches.tsv
+                ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv \
+                > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated_matches.tsv
         """
+    [[setup_timeseries]]
+        script = cp $CYLC_WORKFLOW_RUN_DIR/db/Central_metabolites_DB_formatted.tsv ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
+    [[append_timeseries]]
+        inherit = DATAMUNGING_ENV
+        script = python -c 'import append_timeseries; append_timeseries.append()'
     [[catch_raw_dummy]]
         script = echo 'catch_raw_dummy!!!! 👻 '

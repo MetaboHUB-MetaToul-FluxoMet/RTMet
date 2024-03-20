@@ -2,7 +2,7 @@
     cycling mode = integer
     initial cycle point = 1
     [[xtriggers]]
-        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s')
+        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "t15_naming")
     [[graph]]
         R1 = """
             setup_timeseries => append_timeseries
@@ -13,6 +13,13 @@
             append_timeseries[-P1] => append_timeseries
         """
 [runtime]
+    [[root]]
+        [[[environment]]]
+            DATABASE_FILE = Central_metabolites_DB_formatted.tsv
+            MZ_DB = 4
+            NAMES_DB = 2
+            DELTA_TYPE = ppm
+            DELTA = 10
     [[TRFP_ENV]]
         env-script = """
             set +eu
@@ -72,10 +79,10 @@
                 -input ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.tsv \
                 -nbHeader 1 \
                 -colmass 1 \
-                -bank_in $CYLC_WORKFLOW_RUN_DIR/db/Central_metabolites_DB_formatted.tsv \
-                -bank_name central_mtb -mzdb 4 \
-                -mz_delta ppm \
-                -mass_delta 10 \
+                -bank_in $CYLC_WORKFLOW_RUN_DIR/db/$DATABASE_FILE \
+                -bank_name user_defined_bank -mzdb $MZ_DB \
+                -mz_delta $DELTA_TYPE \
+                -mass_delta $DELTA \
                 -outputXls ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated.tsv \
                 -outputTab ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv
         """
@@ -89,7 +96,7 @@
                 > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated_matches.tsv
         """
     [[setup_timeseries]]
-        script = cp $CYLC_WORKFLOW_RUN_DIR/db/Central_metabolites_DB_formatted.tsv ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
+        script = cp $CYLC_WORKFLOW_RUN_DIR/db/$DATABASE_FILE ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
     [[append_timeseries]]
         inherit = DATAMUNGING_ENV
         script = python -c 'import append_timeseries; append_timeseries.append()'

@@ -62,8 +62,8 @@
         script = echo 'catch_raw_dummy!!!! 👻 '
     [[setup_timeseries]]
         script = """
-            cp $CYLC_WORKFLOW_RUN_DIR/db/$DATABASE_FILE ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
-            cp $CYLC_WORKFLOW_RUN_DIR/db/$DATABASE_FILE ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries_mzmatch.tsv
+            cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
+            cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries_mzmatch.tsv
         """
     [[raw_to_mzml]]
         inherit = TRFP_ENV
@@ -94,10 +94,10 @@
                 -input ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.tsv \
                 -nbHeader 1 \
                 -colmass 1 \
-                -bank_in $CYLC_WORKFLOW_RUN_DIR/db/$DATABASE_FILE \
-                -bank_name user_defined_bank -mzdb $MZ_DB \
-                -mz_delta $DELTA_TYPE \
-                -mass_delta $DELTA \
+                -bank_in ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} \
+                -bank_name user_defined_bank -mzdb ${MZ_DB} \
+                -mz_delta ${DELTA_TYPE} \
+                -mass_delta ${DELTA} \
                 -outputXls ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated.tsv \
                 -outputTab ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv
         """

@@ -5,21 +5,29 @@
         catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "t15_naming")
     [[graph]]
         R1 = """
-            setup_timeseries => append_timeseries
+            setup_timeseries => append_mzmatch #& append_timeseries
         """
         P1 = """
-            @catch_raw => raw_to_mzml => mzml_to_features => annotation => filter => append_timeseries
             @catch_raw => catch_raw_dummy => raw_to_mzml
-            append_timeseries[-P1] => append_timeseries
+            @catch_raw => raw_to_mzml => mzml_to_features # => annotation => filter => append_timeseries
+            mzml_to_features => mzmatch_annotation => append_mzmatch
+            # append_timeseries[-P1] => append_timeseries
+            append_mzmatch[-P1] => append_mzmatch
         """
+    [[queues]]
+        [[[default]]]
+            limit = 10
+        [[[large_jobs]]]
+            limit = 4
+            members = mzml_to_features, mzmatch_annotation
 [runtime]
     [[root]]
         [[[environment]]]
-            DATABASE_FILE = Central_metabolites_DB_formatted.tsv
-            MZ_DB = 4
-            NAMES_DB = 2
-            DELTA_TYPE = ppm
-            DELTA = 10
+            DATABASE_FILE = online_12C_NEG_SK.tsv # should be in the db folder
+            MZ_DB = 3 # column number for masses in the database file
+            NAMES_DB = 1 # column number for compound names in the database file
+            DELTA_TYPE = ppm # either ppm or dalton
+            DELTA = 5 # mass tolerance for annotation
     [[TRFP_ENV]]
         env-script = """
             set +eu
@@ -50,6 +58,13 @@
             conda activate wf-datamunging
             set -eu
         """
+    [[catch_raw_dummy]]
+        script = echo 'catch_raw_dummy!!!! 👻 '
+    [[setup_timeseries]]
+        script = """
+            cp $CYLC_WORKFLOW_RUN_DIR/db/$DATABASE_FILE ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
+            cp $CYLC_WORKFLOW_RUN_DIR/db/$DATABASE_FILE ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries_mzmatch.tsv
+        """
     [[raw_to_mzml]]
         inherit = TRFP_ENV
         script = """
@@ -58,7 +73,7 @@
                 --format=mzml \
                 --input=$catch_raw_file \
                 --output ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
-            
+
             RAWFILE_STEM=$(basename "$catch_raw_file" .raw)
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
                 -p "${CYLC_TASK_CYCLE_POINT}" \
@@ -95,10 +110,12 @@
                 ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv \
                 > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated_matches.tsv
         """
-    [[setup_timeseries]]
-        script = cp $CYLC_WORKFLOW_RUN_DIR/db/$DATABASE_FILE ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
+    [[mzmatch_annotation]]
+        inherit = DATAMUNGING_ENV
+        script = python -c 'import mzmatch; mzmatch.match()'
     [[append_timeseries]]
         inherit = DATAMUNGING_ENV
         script = python -c 'import append_timeseries; append_timeseries.append()'
-    [[catch_raw_dummy]]
-        script = echo 'catch_raw_dummy!!!! 👻 '
+    [[append_mzmatch]]
+        inherit = DATAMUNGING_ENV
+        script = python -c 'import append_timeseries; append_timeseries.append_mzmatch()'

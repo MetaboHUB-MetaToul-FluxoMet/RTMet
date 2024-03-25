@@ -2,32 +2,34 @@
     cycling mode = integer
     initial cycle point = 1
     [[xtriggers]]
-        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "t15_naming")
+        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "integer_naming")
     [[graph]]
         R1 = """
             setup_timeseries => append_mzmatch #& append_timeseries
         """
         P1 = """
             @catch_raw => catch_raw_dummy => raw_to_mzml
-            @catch_raw => raw_to_mzml => mzml_to_features # => annotation => filter => append_timeseries
-            mzml_to_features => mzmatch_annotation => append_mzmatch
-            # append_timeseries[-P1] => append_timeseries
+            @catch_raw => raw_to_mzml => mzml_to_features =>
+            mzmatch_annotation => append_mzmatch
+            # mzml_to_features => annotation => filter => append_timeseries
             append_mzmatch[-P1] => append_mzmatch
+            # append_timeseries[-P1] => append_timeseries
         """
     [[queues]]
         [[[default]]]
             limit = 10
         [[[large_jobs]]]
-            limit = 4
+            limit = 5
             members = mzml_to_features, mzmatch_annotation
 [runtime]
     [[root]]
         [[[environment]]]
-            DATABASE_FILE = online_12C_NEG_SK.tsv # should be in the db folder
+            BINNER_THRES = 0.85
+            DATABASE_FILE = online_12C_NEG_SK_nodup.tsv # should be in the db folder
             MZ_DB = 3 # column number for masses in the database file
-            NAMES_DB = 1 # column number for compound names in the database file
+            NAMES_DB = 1 # column number for compounds names in the database
             DELTA_TYPE = ppm # either ppm or dalton
-            DELTA = 5 # mass tolerance for annotation
+            DELTA = 10 # mass tolerance for annotation
     [[TRFP_ENV]]
         env-script = """
             set +eu
@@ -62,8 +64,10 @@
         script = echo 'catch_raw_dummy!!!! 👻 '
     [[setup_timeseries]]
         script = """
-            cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
-            cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries_mzmatch.tsv
+            cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} \
+                ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
+            cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} \
+                ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries_mzmatch.tsv
         """
     [[raw_to_mzml]]
         inherit = TRFP_ENV
@@ -85,7 +89,8 @@
             binner-cli \
                 --file ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.mzML \
                 --outdir ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT} \
-                --binnerlyse TRUE
+                --binnerlyse TRUE \
+                --threshold ${BINNER_THRES}
         """
     [[annotation]]
         inherit = BIH_ENV

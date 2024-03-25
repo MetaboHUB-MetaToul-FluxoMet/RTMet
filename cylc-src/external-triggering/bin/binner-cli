@@ -4,6 +4,7 @@ suppressWarnings(library("optparse", quietly = TRUE))
 suppressWarnings(library("readr", quietly = TRUE))
 suppressWarnings(library("magrittr", quietly = TRUE))
 suppressWarnings(library("dplyr", quietly = TRUE))
+suppressWarnings(library("ggplot2", quietly = TRUE))
 
 # binneR guard. Install it if not already present, then load the package.
 if (!suppressWarnings(require("binneR", quietly = TRUE))) {
@@ -96,6 +97,11 @@ if (!opt$binnerlyse) {
 } else {
   for (file in mzml_files) {
     out_file <- paste0(opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv")
+    out_plot <- paste0(opt$outdir, "/", sub("\\..*$", "", basename(file)), "_infusion_scans.png")
+    cat("Processing file: ", file, "\n")
+    cat("Feature table file: ", out_file, "\n")
+    cat("Infusion scans plot: ", out_plot, "\n")
+    
     # Feature detection
     infusion_scans <- detectInfusionScans(file, thresh = opt$threshold)
     parameters <- binParameters(infusion_scans)
@@ -116,5 +122,8 @@ if (!opt$binnerlyse) {
     mz_precis %>%
       relocate(mz, .before = idx) %>%
       write_tsv(out_file)
+
+    p <- plotChromatogram(analysis)
+    ggsave(out_plot, p)
   }
 }

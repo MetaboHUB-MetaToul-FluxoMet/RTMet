@@ -2,7 +2,7 @@
 
 🏗 **[WORK IN PROGRESS]** 🏗
 
-RTMet is a data workflow to process FIA-MS data coming from a fermenter, find metabolites and fluxes, and send feedback commands to the fermenter.
+RTMet is a data workflow to process FIA-MS data coming from a fermenter, find metabolites and fluxes, and send a feedback command to the fermenter.
 
 ![Workflow Diagram](/workflow.png?raw=true "RTMet Workflow")
 
@@ -48,3 +48,13 @@ User defined variables are in `external-triggering/flow.cylc` for now :
             DELTA = 10 # mass tolerance for annotation
 ```
 
+## 🕹 How to use
+
+**[TO BE WRITTEN]**
+
+## 🚀 Roadmap
+
+- Move user config from `flow.cylc` to a [Rose](https://github.com/cylc/cylc-rose "Cylc-Rose Plugin") Suite Configuration for usability.
+- Try building a [Docker](https://www.docker.com/) image for the whole workflow.
+- Validate user input when launching the workflow (and assume it is clean in subsequent tasks).
+- Clearly define data template for I/O of each tasks, to lower coupling and increase modularity.

@@ -1,3 +1,10 @@
+#!Jinja2
+
+{% set environments = {'TRFP_ENV': 'wf-trfp',
+                       'BINNER_ENV': 'wf-binner',
+                       'BIH_ENV': 'wf-bih',
+                       'DATAMUNGING_ENV': 'wf-datamunging'} %}
+
 [scheduling]
     cycling mode = integer
     initial cycle point = 1
@@ -8,7 +15,7 @@
             setup_timeseries => append_mzmatch #& append_timeseries
         """
         P1 = """
-            @catch_raw => catch_raw_dummy => raw_to_mzml
+            @catch_raw => _catch_raw => raw_to_mzml
             @catch_raw => raw_to_mzml => mzml_to_features =>
             mzmatch_annotation => append_mzmatch
             # mzml_to_features => annotation => filter => append_timeseries
@@ -24,50 +31,31 @@
 [runtime]
     [[root]]
         [[[environment]]]
-            BINNER_THRES = 0.85
+            BINNER_THRES = 0.50
             DATABASE_FILE = online_12C_NEG_SK_nodup.tsv # should be in the db folder
             MZ_DB = 3 # column number for masses in the database file
             NAMES_DB = 1 # column number for compounds names in the database
             DELTA_TYPE = ppm # either ppm or dalton
             DELTA = 10 # mass tolerance for annotation
-    [[TRFP_ENV]]
+{% for env, conda_env_name in environments.items() %}    
+    [[{{env}}]]
         env-script = """
             set +eu
-            conda activate wf-trfp
+            conda activate {{ conda_env_name }}
             set -eu
         """
-    [[PROFIA_ENV]]
-        env-script = """
-            set +eu
-            conda activate wf-profia
-            set -eu
-        """
-    [[BINNER_ENV]]
-        env-script = """
-            set +eu
-            conda activate wf-binner
-            set -eu
-        """
-    [[BIH_ENV]]
-        env-script = """
-            set +eu
-            conda activate wf-bih
-            set -eu
-        """
-    [[DATAMUNGING_ENV]]
-        env-script = """
-            set +eu
-            conda activate wf-datamunging
-            set -eu
-        """
-    [[catch_raw_dummy]]
-        script = echo 'catch_raw_dummy!!!! 👻 '
+{% endfor %}
     [[setup_timeseries]]
         script = """
             cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} \
                 ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
             cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} \
                 ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries_mzmatch.tsv
+        """
+    [[_catch_raw]]
+        script = """
+            echo 'The _catch_raw task is there to see the catch_raw \
+            external trigger in the graph and GUI. It does not do anything.'
         """
     [[raw_to_mzml]]
         inherit = TRFP_ENV

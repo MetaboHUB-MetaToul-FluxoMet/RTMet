@@ -1,50 +1,103 @@
 #!/usr/bin/env Rscript
 
-suppressWarnings(library("optparse", quietly = TRUE))
-suppressWarnings(library("readr", quietly = TRUE))
-suppressWarnings(library("magrittr", quietly = TRUE))
-suppressWarnings(library("dplyr", quietly = TRUE))
-suppressWarnings(library("ggplot2", quietly = TRUE))
+# suppressPackageStartupMessages(library("optparse"))
+# suppressPackageStartupMessages(library("readr"))
+# suppressPackageStartupMessages(library("magrittr"))
+# suppressPackageStartupMessages(library("dplyr"))
+# suppressPackageStartupMessages(library("ggplot2"))
 
-# binneR guard. Install it if not already present, then load the package.
-if (!suppressWarnings(require("binneR", quietly = TRUE))) {
-  cat("BinneR not installed, getting it from GitHub (without dependencies).")
-  remotes::install_github("aberHRML/binneR")
-  library(binneR, quietly = TRUE)
+################################################################################
+# Dependencies check
+################################################################################
+
+required_packages <- c(
+  "dplyr", "magrittr", "mzR", "tidyr", "methods", "purrr", "stringr", "tibble",
+  "crayon", "cli", "lubridate", "ggplot2", "ggthemes", "yaml", "future",
+  "furrr", "remotes"
+)
+
+missing_packages <- setdiff(
+  required_packages,
+  installed.packages()[, "Package"]
+)
+
+if (length(missing_packages) > 0) {
+  cat("\nThe following dependencies are required but not installed:\n")
+  cat(paste("- ", missing_packages, "\n", sep = ""))
+  cat("\nYou can install them by running:\n")
+  cat(
+    "  install.packages(c(",
+    paste0('"', missing_packages, '"', collapse = ", "), "))"
+  )
+  cat("\nin your R console.\n\n")
+  quit(status = 1)
 }
 
-# CLI options parsing
-option_list <- list(
-  make_option(c("-f", "--file"), type = "character", default = NULL,
-              help = "Single .mzML file path", metavar = "character"),
-  make_option(c("-d", "--dir"), type = "character", default = NULL,
-              help = "Directory path containing .mzML files", metavar = "character"),
-  make_option(c("-o", "--outdir"), type = "character", default = NULL,
-              help = "Output directory path [default = input location]", metavar = "character"),
-  make_option(c("-t", "--threshold"), type = "numeric", default = 0.5,
-              help = "Threshold for feature detection, value between 0 and 1 [default=%default]", metavar = "numeric"),
-  make_option(c("-p", "--precision"), type = "integer", default = 2,
-              help = "Number of decimal places for spectral binning [default=%default]", metavar = "integer"),
-  make_option(c("-b", "--binnerlyse"), type = "logical", default = FALSE,
-              help = "Number of decimal places for spectral binning [default=%default]", metavar = "logical")
-)
-opt_parser <- OptionParser(option_list = option_list)
-opt <- parse_args(opt_parser)
+is_binner_installed <- "binneR" %in% installed.packages()[, "Package"]
 
-# Check input arguments
+if (!is_binner_installed) {
+  cat("\nBinneR not installed, you can install it by running:\n")
+  cat("  remotes::install_github('aberHRML/binneR@v2.6.4', upgrade = 'never')\n")
+  cat("in your R console.\n\n")
+  quit(status = 1)
+}
+
+
+################################################################################
+# Argument parsing
+################################################################################
+
+option_list <- list(
+  optparse::make_option(c("-f", "--file"),
+    type = "character", default = NULL,
+    help = "Single .mzML file path",
+    metavar = "character"
+  ),
+  optparse::make_option(c("-d", "--dir"),
+    type = "character", default = NULL,
+    help = "Directory path containing .mzML files",
+    metavar = "character"
+  ),
+  optparse::make_option(c("-o", "--outdir"),
+    type = "character", default = NULL,
+    help = "Output directory path [default = input location]",
+    metavar = "character"
+  ),
+  optparse::make_option(c("-t", "--threshold"),
+    type = "numeric", default = 0.5,
+    help = "Threshold for feature detection, value between 0 and 1 [default=%default]",
+    metavar = "numeric"
+  ),
+  optparse::make_option(c("-p", "--precision"),
+    type = "integer", default = 2,
+    help = "Number of decimal places for spectral binning [default=%default]",
+    metavar = "integer"
+  ),
+  optparse::make_option(c("-b", "--binnerlyse"),
+    type = "logical", default = FALSE,
+    help = "Number of decimal places for spectral binning [default=%default]",
+    metavar = "logical"
+  )
+)
+opt_parser <- optparse::OptionParser(option_list = option_list)
+opt <- optparse::parse_args(opt_parser)
+
+# input arguments handling
 if (is.null(opt$file) && is.null(opt$dir)) {
-  print_help(opt_parser)
-  stop("At least one argument must be supplied (input file or directory).",
-       call. = FALSE)
+  optparse::print_help(opt_parser)
+  stop("At least one input argument must be supplied (input file or directory).",
+    call. = FALSE
+  )
 } else if (!is.null(opt$file) && !is.null(opt$dir)) {
-  print_help(opt_parser)
+  optparse::print_help(opt_parser)
   stop("Only one input argument must be supplied (input file OR directory).",
-       call. = FALSE)
+    call. = FALSE
+  )
 } else {
   input_type <- ifelse(is.null(opt$file), "dir", "file")
 }
 
-# Check that input .mzML file/directory exists
+# Check that input .mzML file/directory exists and put filepaths in a list
 if (input_type == "file") {
   if (!file.exists(opt$file)) {
     stop("Input file not found: ", opt$file, call. = FALSE)
@@ -56,13 +109,17 @@ if (input_type == "file") {
   if (!dir.exists(opt$dir)) {
     stop("Input directory not found: ", opt$dir, call. = FALSE)
   }
-  mzml_files = list.files(opt$dir, pattern = "\\.mzML$", full.names = TRUE, ignore.case = TRUE)
+  mzml_files <- list.files(opt$dir,
+    pattern = "\\.mzML$",
+    full.names = TRUE,
+    ignore.case = TRUE
+  )
   if (length(mzml_files) == 0) {
     stop("No .mzML files found in directory: ", opt$dir, call. = FALSE)
   }
 }
 
-# Set default output directory if not specified, or check if it exists
+# outdir argument handling
 if (is.null(opt$outdir)) {
   opt$outdir <- ifelse(input_type == "file", dirname(opt$file), opt$dir)
 } else {
@@ -71,19 +128,35 @@ if (is.null(opt$outdir)) {
   }
 }
 
-cat("mzML files to be processed:\n")
-for (file in mzml_files) {
-  cat("• ", file, "\n")
+
+################################################################################
+# Main script
+################################################################################
+
+if (length(mzml_files) > 5) {
+  cat(
+    length(mzml_files),
+    "mzML files found in directory: ",
+    opt$dir,
+    "\n"
+  )
+} else {
+  cat("mzML files to be processed:\n")
+  for (file in mzml_files) {
+    cat("• ", file, "\n")
+  }
 }
 
 # To implement: try-catch for feature detection (blame binneR)
 # and data wrangling (blame Elliot Fontaine)
 if (!opt$binnerlyse) {
   for (file in mzml_files) {
-    out_file <- paste0(opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv")
+    out_file <- paste0(
+      opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv"
+    )
     # Feature detection
-    infusion_scans <- detectInfusionScans(file, thresh = opt$threshold)
-    res <- readFiles(file, dp = opt$precision, scans = infusion_scans)
+    infusion_scans <- binneR::detectInfusionScans(file, thresh = opt$threshold)
+    res <- binneR::readFiles(file, dp = opt$precision, scans = infusion_scans)
 
     # Data wrangling
     res_t <- res[["n"]] %>% t()
@@ -91,20 +164,28 @@ if (!opt$binnerlyse) {
     res_t$MZ <- as.numeric(sub("n", "", res_t$MZ))
     res_t <- res_t[order(res_t$MZ), ]
     colnames(res_t) <- c("MZ", "INTENSITY")
-    write.table(res_t, out_file, quote = FALSE, sep = "\t",
-                col.names = TRUE, row.names = FALSE)
+    write.table(res_t, out_file,
+      quote = FALSE, sep = "\t",
+      col.names = TRUE, row.names = FALSE
+    )
   }
 } else {
   for (file in mzml_files) {
-    out_file <- paste0(opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv")
-    out_plot <- paste0(opt$outdir, "/", sub("\\..*$", "", basename(file)), "_infusion_scans.png")
+    out_file <- paste0(
+      opt$outdir,
+      "/", sub("\\..*$", "", basename(file)), ".tsv"
+    )
+    out_plot <- paste0(
+      opt$outdir,
+      "/", sub("\\..*$", "", basename(file)), "_infusion_scans.png"
+    )
     cat("Processing file: ", file, "\n")
     cat("Feature table file: ", out_file, "\n")
     cat("Infusion scans plot: ", out_plot, "\n")
-    
+
     # Feature detection
-    infusion_scans <- detectInfusionScans(file, thresh = opt$threshold)
-    parameters <- binParameters(infusion_scans)
+    infusion_scans <- binneR::detectInfusionScans(file, thresh = opt$threshold)
+    parameters <- binneR::binParameters(infusion_scans)
     info <- tibble::as_tibble(
       data.frame(
         fileOrder = 1,
@@ -117,13 +198,13 @@ if (!opt$binnerlyse) {
       )
     )
 
-    analysis <- binneRlyse(file, info, parameters)
-    mz_precis <- accurateData(analysis)
+    analysis <- binneR::binneRlyse(file, info, parameters)
+    mz_precis <- binneR::accurateData(analysis)
     mz_precis %>%
-      relocate(mz, .before = idx) %>%
-      write_tsv(out_file)
+      dplyr::relocate(mz, .before = idx) %>%
+      readr::write_tsv(out_file)
 
-    p <- plotChromatogram(analysis)
-    ggsave(out_plot, p)
+    p <- binneR::plotChromatogram(analysis)
+    ggplot2::ggsave(out_plot, p)
   }
 }

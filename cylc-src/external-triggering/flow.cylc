@@ -19,6 +19,7 @@
             @catch_raw => raw_to_mzml => mzml_to_features =>
             mzmatch_annotation => append_mzmatch
             append_mzmatch[-P1] => append_mzmatch
+            raw_to_mzml => get_run_timestamp
         """
     [[queues]]
         [[[default]]]
@@ -62,9 +63,17 @@
             thermorawfileparser \
                 --format=mzml \
                 --input=$catch_raw_file \
-                --output ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
+                --output=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
+                --metadata=json
         """
-    [[mzml_to_features]]
+    [[get_run_timestamp]] # regex should be replaced with XML parsing
+    script = """
+        RUN_TIMESTAMP=$(grep '<run' ${RAWFILE_STEM}.mzML | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
+        cylc broadcast "${CYLC_WORKFLOW_ID}" \
+            -p "${CYLC_TASK_CYCLE_POINT}" \
+            -s "[environment]RUN_TIMESTAMP=${RUN_TIMESTAMP}"
+    """
+    [[mzml_to_peaks]]
         inherit = None, BINNER_ENV
         script = """
             binner-cli \

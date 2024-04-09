@@ -56,7 +56,7 @@
                 -s "[environment]RAWFILE_STEM=${RAWFILE_STEM}"
         """
     [[raw_to_mzml]]
-        inherit = TRFP_ENV
+        inherit = None, TRFP_ENV
         script = """
             mkdir -p ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
             thermorawfileparser \
@@ -65,7 +65,7 @@
                 --output ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
         """
     [[mzml_to_features]]
-        inherit = BINNER_ENV
+        inherit = None, BINNER_ENV
         script = """
             binner-cli \
                 --file ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.mzML \
@@ -74,7 +74,7 @@
                 --threshold ${BINNER_THRES}
         """
     [[annotation]]
-        inherit = BIH_ENV
+        inherit = None, BIH_ENV
         script = """
             ${CYLC_WORKFLOW_RUN_DIR}/lib/bank_inhouse/bank_inhouse.pl \
                 -input ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.tsv \
@@ -97,11 +97,11 @@
     #             > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated_matches.tsv
     #     """
     [[mzmatch_annotation]]
-        inherit = DATAMUNGING_ENV
+        inherit = None, DATAMUNGING_ENV
         script = python -c 'import mzmatch; mzmatch.match()'
     [[append_timeseries]]
-        inherit = DATAMUNGING_ENV
+        inherit = None, DATAMUNGING_ENV
         script = python -c 'import append_timeseries; append_timeseries.append()'
     [[append_mzmatch]]
-        inherit = DATAMUNGING_ENV
+        inherit = None, DATAMUNGING_ENV
         script = python -c 'import append_timeseries; append_timeseries.append_mzmatch()'

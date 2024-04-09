@@ -15,7 +15,7 @@
             setup_timeseries => append_mzmatch
         """
         P1 = """
-            @catch_raw => _catch_raw => raw_to_mzml => mzml_to_peaks =>
+            @catch_raw => _catch_raw & raw_to_mzml => mzml_to_peaks =>
             peaks_to_matches => append_mzmatch
             append_mzmatch[-P1] => append_mzmatch
             raw_to_mzml => get_run_timestamp
@@ -62,12 +62,13 @@
             thermorawfileparser \
                 --format=mzml \
                 --input=$catch_raw_file \
-                --output=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
+                --output=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT} \
                 --metadata=json
         """
     [[get_run_timestamp]] # regex should be replaced with XML parsing
     script = """
-        RUN_TIMESTAMP=$(grep '<run' ${RAWFILE_STEM}.mzML | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
+        MZML_FILE=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.mzML
+        RUN_TIMESTAMP=$(grep '<run' ${MZML_FILE} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
         cylc broadcast "${CYLC_WORKFLOW_ID}" \
             -p "${CYLC_TASK_CYCLE_POINT}" \
             -s "[environment]RUN_TIMESTAMP=${RUN_TIMESTAMP}"

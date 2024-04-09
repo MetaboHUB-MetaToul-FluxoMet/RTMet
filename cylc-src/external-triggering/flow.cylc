@@ -1,6 +1,6 @@
 #!Jinja2
 
-{% set environments = {'TRFP_ENV': 'wf-trfp',
+{% set conda_envs = {'TRFP_ENV': 'wf-trfp',
                        'BINNER_ENV': 'wf-binner',
                        'BIH_ENV': 'wf-bih',
                        'DATAMUNGING_ENV': 'wf-datamunging'} %}
@@ -12,15 +12,13 @@
         catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "integer_naming")
     [[graph]]
         R1 = """
-            setup_timeseries => append_mzmatch #& append_timeseries
+            setup_timeseries => append_mzmatch
         """
         P1 = """
             @catch_raw => _catch_raw => raw_to_mzml
             @catch_raw => raw_to_mzml => mzml_to_features =>
             mzmatch_annotation => append_mzmatch
-            # mzml_to_features => annotation => filter => append_timeseries
             append_mzmatch[-P1] => append_mzmatch
-            # append_timeseries[-P1] => append_timeseries
         """
     [[queues]]
         [[[default]]]
@@ -31,13 +29,13 @@
 [runtime]
     [[root]]
         [[[environment]]]
-            BINNER_THRES = 0.50
+            BINNER_THRES = 0.50 # ratio of max(TIC), to filter injection scans
             DATABASE_FILE = online_12C_NEG_SK_nodup.tsv # should be in the db folder
             MZ_DB = 3 # column number for masses in the database file
             NAMES_DB = 1 # column number for compounds names in the database
             DELTA_TYPE = ppm # either ppm or dalton
             DELTA = 10 # mass tolerance for annotation
-{% for env, conda_env_name in environments.items() %}    
+{% for env, conda_env_name in conda_envs.items() %}    
     [[{{env}}]]
         env-script = """
             set +eu
@@ -47,8 +45,6 @@
 {% endfor %}
     [[setup_timeseries]]
         script = """
-            cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} \
-                ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries.tsv
             cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} \
                 ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries_mzmatch.tsv
         """
@@ -94,15 +90,15 @@
                 -outputXls ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated.tsv \
                 -outputTab ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv
         """
-    [[filter]]
-        script = """
-            sed '/No_match_in_bank/d' \
-                ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated.tsv \
-                > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated_matches.tsv
-            sed '/No_match_in_bank/d' \
-                ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv \
-                > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated_matches.tsv
-        """
+    # [[filter]]
+    #     script = """
+    #         sed '/No_match_in_bank/d' \
+    #             ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated.tsv \
+    #             > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated_matches.tsv
+    #         sed '/No_match_in_bank/d' \
+    #             ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv \
+    #             > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated_matches.tsv
+    #     """
     [[mzmatch_annotation]]
         inherit = DATAMUNGING_ENV
         script = python -c 'import mzmatch; mzmatch.match()'

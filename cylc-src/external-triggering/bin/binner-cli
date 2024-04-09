@@ -65,7 +65,8 @@ option_list <- list(
   ),
   optparse::make_option(c("-t", "--threshold"),
     type = "numeric", default = 0.5,
-    help = "Threshold for feature detection, value between 0 and 1 [default=%default]",
+    help = "Ratio of max(TIC) for injection scans detection. \
+    \t\tValue between 0 and 1 [default=%default]",
     metavar = "numeric"
   ),
   optparse::make_option(c("-p", "--precision"),
@@ -141,7 +142,7 @@ if (length(mzml_files) > 5) {
     "\n"
   )
 } else {
-  cat("mzML files to be processed:\n")
+  cat("mzML file(s) to be processed:\n")
   for (file in mzml_files) {
     cat("• ", file, "\n")
   }
@@ -180,10 +181,10 @@ if (!opt$binnerlyse) {
       "/", sub("\\..*$", "", basename(file)), "_infusion_scans.png"
     )
     cat("Processing file: ", file, "\n")
-    cat("Feature table file: ", out_file, "\n")
+    cat("Peaks table file: ", out_file, "\n")
     cat("Infusion scans plot: ", out_plot, "\n")
 
-    # Feature detection
+    # Peaks detection
     infusion_scans <- binneR::detectInfusionScans(file, thresh = opt$threshold)
     parameters <- binneR::binParameters(infusion_scans)
     info <- tibble::as_tibble(

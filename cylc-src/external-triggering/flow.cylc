@@ -15,9 +15,8 @@
             setup_timeseries => append_mzmatch
         """
         P1 = """
-            @catch_raw => _catch_raw => raw_to_mzml
-            @catch_raw => raw_to_mzml => mzml_to_features =>
-            mzmatch_annotation => append_mzmatch
+            @catch_raw => _catch_raw => raw_to_mzml => mzml_to_peaks =>
+            peaks_to_matches => append_mzmatch
             append_mzmatch[-P1] => append_mzmatch
             raw_to_mzml => get_run_timestamp
         """
@@ -26,7 +25,7 @@
             limit = 10
         [[[large_jobs]]]
             limit = 5
-            members = mzml_to_features, mzmatch_annotation
+            members = mzml_to_peaks, peaks_to_matches
 [runtime]
     [[root]]
         [[[environment]]]
@@ -105,7 +104,7 @@
     #             ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv \
     #             > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated_matches.tsv
     #     """
-    [[mzmatch_annotation]]
+    [[peaks_to_matches]]
         inherit = None, DATAMUNGING_ENV
         script = python -c 'import mzmatch; mzmatch.match()'
     [[append_timeseries]]

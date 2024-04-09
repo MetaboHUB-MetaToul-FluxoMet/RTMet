@@ -50,8 +50,10 @@
         """
     [[_catch_raw]]
         script = """
-            echo 'The _catch_raw task is there to see the catch_raw \
-            external trigger in the graph and GUI. It does not do anything.'
+            RAWFILE_STEM=$(basename "$catch_raw_file" .raw)
+            cylc broadcast "${CYLC_WORKFLOW_ID}" \
+                -p "${CYLC_TASK_CYCLE_POINT}" \
+                -s "[environment]RAWFILE_STEM=${RAWFILE_STEM}"
         """
     [[raw_to_mzml]]
         inherit = TRFP_ENV
@@ -61,11 +63,6 @@
                 --format=mzml \
                 --input=$catch_raw_file \
                 --output ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
-
-            RAWFILE_STEM=$(basename "$catch_raw_file" .raw)
-            cylc broadcast "${CYLC_WORKFLOW_ID}" \
-                -p "${CYLC_TASK_CYCLE_POINT}" \
-                -s "[environment]RAWFILE_STEM=${RAWFILE_STEM}"
         """
     [[mzml_to_features]]
         inherit = BINNER_ENV

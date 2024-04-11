@@ -15,10 +15,9 @@
             setup_timeseries => append_mzmatch
         """
         P1 = """
-            @catch_raw => _catch_raw & raw_to_mzml => mzml_to_peaks =>
-            peaks_to_matches => append_mzmatch
+            @catch_raw => _catch_raw & raw_to_mzml => get_run_timestamp => 
+            mzml_to_peaks => peaks_to_matches => append_mzmatch
             append_mzmatch[-P1] => append_mzmatch
-            raw_to_mzml => get_run_timestamp
         """
     [[queues]]
         [[[default]]]
@@ -35,6 +34,7 @@
             NAMES_DB = 1 # column number for compounds names in the database
             DELTA_TYPE = ppm # either ppm or dalton
             DELTA = 10 # mass tolerance for annotation
+            SPECTROMETER_ID = orbitrap_01
 {% for env, conda_env_name in conda_envs.items() %}    
     [[{{env}}]]
         env-script = """
@@ -66,21 +66,29 @@
                 --metadata=json
         """
     [[get_run_timestamp]] # regex should be replaced with XML parsing
-    script = """
-        MZML_FILE=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.mzML
-        RUN_TIMESTAMP=$(grep '<run' ${MZML_FILE} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
-        cylc broadcast "${CYLC_WORKFLOW_ID}" \
-            -p "${CYLC_TASK_CYCLE_POINT}" \
-            -s "[environment]RUN_TIMESTAMP=${RUN_TIMESTAMP}"
-    """
+        script = """
+            MZML_FILE=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.mzML
+            RUN_TIMESTAMP=$(grep '<run' ${MZML_FILE} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
+            cylc broadcast "${CYLC_WORKFLOW_ID}" \
+                -p "${CYLC_TASK_CYCLE_POINT}" \
+                -s "[environment]RUN_TIMESTAMP=${RUN_TIMESTAMP}"
+        """
     [[mzml_to_peaks]]
         inherit = None, BINNER_ENV
         script = """
             binner-cli \
                 --file ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.mzML \
-                --outdir ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT} \
+                --outdir ${CYLC_TASK_WORK_DIR} \
                 --binnerlyse TRUE \
                 --threshold ${BINNER_THRES}
+
+            BINNER_OUTFILE=${CYLC_TASK_WORK_DIR}/${RAWFILE_STEM}.tsv
+            SHARED_FEATURES_FILE=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.features.csv
+            sed "1s|^|datetime;instrument_id;|" ${BINNER_OUTFILE} | \
+                sed "2,$ s|^|$RUN_TIMESTAMP;$SPECTROMETER_ID;|" > ${SHARED_FEATURES_FILE}
+
+            mv ${CYLC_TASK_WORK_DIR}/${RAWFILE_STEM}_infusion_scans.png \
+                ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
         """
     [[annotation]]
         inherit = None, BIH_ENV

@@ -202,8 +202,8 @@ if (!opt$binnerlyse) {
     analysis <- binneR::binneRlyse(file, info, parameters)
     mz_precis <- binneR::accurateData(analysis)
     mz_precis %>%
-      dplyr::relocate(mz, .before = idx) %>%
-      readr::write_tsv(out_file)
+      dplyr::select(polarity, mz, intensity, purity, centrality) %>%
+      readr::write_delim(out_file, delim = ";")
 
     p <- binneR::plotChromatogram(analysis)
     ggplot2::ggsave(out_plot, p)

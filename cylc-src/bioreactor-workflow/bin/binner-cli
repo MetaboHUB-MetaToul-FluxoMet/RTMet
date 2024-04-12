@@ -75,7 +75,7 @@ option_list <- list(
     metavar = "integer"
   ),
   optparse::make_option(c("-b", "--binnerlyse"),
-    type = "logical", default = FALSE,
+    type = "logical", default = TRUE,
     help = "Number of decimal places for spectral binning [default=%default]",
     metavar = "logical"
   )
@@ -151,25 +151,26 @@ if (length(mzml_files) > 5) {
 # To implement: try-catch for feature detection (blame binneR)
 # and data wrangling (blame Elliot Fontaine)
 if (!opt$binnerlyse) {
-  for (file in mzml_files) {
-    out_file <- paste0(
-      opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv"
-    )
-    # Feature detection
-    infusion_scans <- binneR::detectInfusionScans(file, thresh = opt$threshold)
-    res <- binneR::readFiles(file, dp = opt$precision, scans = infusion_scans)
+  stop("To refactor. In the meantime, please set --binnerlyse=TRUE.")
+  # for (file in mzml_files) {
+  #   out_file <- paste0(
+  #     opt$outdir, "/", sub("\\..*$", "", basename(file)), ".tsv"
+  #   )
+  #   # Feature detection
+  #   infusion_scans <- binneR::detectInfusionScans(file, thresh = opt$threshold)
+  #   res <- binneR::readFiles(file, dp = opt$precision, scans = infusion_scans)
 
-    # Data wrangling
-    res_t <- res[["n"]] %>% t()
-    res_t <- data.frame(MZ = row.names(res_t), res_t)
-    res_t$MZ <- as.numeric(sub("n", "", res_t$MZ))
-    res_t <- res_t[order(res_t$MZ), ]
-    colnames(res_t) <- c("MZ", "INTENSITY")
-    write.table(res_t, out_file,
-      quote = FALSE, sep = "\t",
-      col.names = TRUE, row.names = FALSE
-    )
-  }
+  #   # Data wrangling
+  #   res_t <- res[["n"]] %>% t()
+  #   res_t <- data.frame(MZ = row.names(res_t), res_t)
+  #   res_t$MZ <- as.numeric(sub("n", "", res_t$MZ))
+  #   res_t <- res_t[order(res_t$MZ), ]
+  #   colnames(res_t) <- c("MZ", "INTENSITY")
+  #   write.table(res_t, out_file,
+  #     quote = FALSE, sep = "\t",
+  #     col.names = TRUE, row.names = FALSE
+  #   )
+  # }
 } else {
   for (file in mzml_files) {
     out_file <- paste0(

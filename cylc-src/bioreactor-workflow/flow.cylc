@@ -94,35 +94,9 @@
             mv ${CYLC_TASK_WORK_DIR}/${RAWFILE_STEM}_infusion_scans.png \
                 ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
         """
-    [[annotation]]
-        inherit = None, BIH_ENV
-        script = """
-            ${CYLC_WORKFLOW_RUN_DIR}/lib/bank_inhouse/bank_inhouse.pl \
-                -input ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.tsv \
-                -nbHeader 1 \
-                -colmass 1 \
-                -bank_in ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} \
-                -bank_name user_defined_bank -mzdb ${MZ_DB} \
-                -mz_delta ${DELTA_TYPE} \
-                -mass_delta ${DELTA} \
-                -outputXls ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated.tsv \
-                -outputTab ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv
-        """
-    # [[filter]]
-    #     script = """
-    #         sed '/No_match_in_bank/d' \
-    #             ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated.tsv \
-    #             > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/mz_annotated_matches.tsv
-    #         sed '/No_match_in_bank/d' \
-    #             ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated.tsv \
-    #             > ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/features_annotated_matches.tsv
-    #     """
     [[peaks_to_matches]]
         inherit = None, DATAMUNGING_ENV
         script = python -c 'import mzmatch; mzmatch.match()'
-    [[append_timeseries]]
-        inherit = None, DATAMUNGING_ENV
-        script = python -c 'import append_timeseries; append_timeseries.append()'
     [[append_mzmatch]]
         inherit = None, DATAMUNGING_ENV
         script = python -c 'import append_timeseries; append_timeseries.append_mzmatch()'

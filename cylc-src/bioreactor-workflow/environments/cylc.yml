@@ -12,3 +12,7 @@ dependencies:
 # MAKE THE WRAPPER SCRIPT
 # cylc get-resources cylc /path/to/cylc  # should be in $PATH
 # chmod +x /path/to/cylc
+
+# MAYBE TRUE, TO INVESTIGATE:
+# conda config --set auto_activate_base false
+# Needed for cylc subprocesses to not get the "cylc: command not found" error.

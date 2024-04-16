@@ -15,9 +15,11 @@
             setup_timeseries => append_mzmatch
         """
         P1 = """
+            setup_cyclepoint_sharedir => raw_to_mzml
             @catch_raw => _catch_raw & raw_to_mzml => get_run_timestamp => 
             mzml_to_peaks => peaks_to_matches => append_mzmatch
             append_mzmatch[-P1] => append_mzmatch
+
         """
     [[queues]]
         [[[default]]]
@@ -55,10 +57,13 @@
                 -p "${CYLC_TASK_CYCLE_POINT}" \
                 -s "[environment]RAWFILE_STEM=${RAWFILE_STEM}"
         """
+    [[setup_cyclepoint_sharedir]]
+        script = """
+            mkdir -p ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
+        """
     [[raw_to_mzml]]
         inherit = None, TRFP_ENV
         script = """
-            mkdir -p ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
             thermorawfileparser \
                 --format=mzml \
                 --input=$catch_raw_file \

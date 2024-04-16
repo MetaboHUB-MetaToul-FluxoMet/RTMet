@@ -202,8 +202,32 @@ if (!opt$binnerlyse) {
 
     analysis <- binneR::binneRlyse(file, info, parameters)
     mz_precis <- binneR::accurateData(analysis)
+
+    # Pour chaque ligne i de mz_precis:
+    # si mz_precis$bin[i] - mz_precis$bin[i+1] < 0.01 alors:
+    # si mz_precis$centrality[i] et de i+1 sont <= 0.1 on ne garde que la ligne ayant la plus grande intensité
+    # implémenter:
+
+    # mz_precis <- mz_precis %>%
+    #   dplyr::arrange(bin, desc(intensity)) %>%
+    #   dplyr::group_by(bin) %>%
+    #   dplyr::mutate(
+    #     keep = ifelse(
+    #       dplyr::lead(bin) - bin < 0.01,
+    #       ifelse(
+    #         centrality <= 0.1 & dplyr::lead(centrality) <= 0.1,
+    #         ifelse(intensity == max(intensity), TRUE, FALSE),
+    #         TRUE
+    #       ),
+    #       TRUE
+    #     )
+    #   ) %>%
+    #   dplyr::filter(keep) %>%
+    #   dplyr::ungroup()
+
+
     mz_precis %>%
-      dplyr::select(polarity, mz, intensity, purity, centrality) %>%
+      dplyr::select(polarity, bin, mz, intensity, purity, centrality) %>%
       readr::write_delim(out_file, delim = ";")
 
     p <- binneR::plotChromatogram(analysis)

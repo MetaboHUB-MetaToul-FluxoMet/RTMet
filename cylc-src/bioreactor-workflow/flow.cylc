@@ -11,6 +11,9 @@
     [[xtriggers]]
         catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "integer_naming")
     [[graph]]
+        R1 = """
+            setup_timeseries => append_mzmatch
+        """
         P1 = """
             setup_cyclepoint_sharedir => raw_to_mzml
             @catch_raw => _catch_raw & raw_to_mzml => get_run_timestamp => 

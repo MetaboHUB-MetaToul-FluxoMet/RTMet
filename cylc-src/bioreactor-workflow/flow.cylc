@@ -17,9 +17,7 @@
         P1 = """
             setup_cyclepoint_sharedir => raw_to_mzml
             @catch_raw => _catch_raw & raw_to_mzml => get_run_timestamp => 
-            mzml_to_peaks => peaks_to_matches => append_mzmatch
-            append_mzmatch[-P1] => append_mzmatch
-
+            mzml_to_peaks => peaks_to_matches
         """
     [[queues]]
         [[[default]]]

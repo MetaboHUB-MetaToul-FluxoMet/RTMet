@@ -18,11 +18,12 @@ class DeltaType(Enum):
 def match():
     # Précondition: les paramètres obtenus par l'environnement sont corrects. Non vérifié ici.
     database = pd.read_csv(f'{CYLC_WORKFLOW_RUN_DIR}/db/{DATABASE_FILE}', sep='\t')
-    queries = pd.read_csv(f'{CYLC_WORKFLOW_SHARE_DIR}/{CYLC_TASK_CYCLE_POINT}/{RAWFILE_STEM}.tsv', sep='\t')
-    output_file = f'{CYLC_WORKFLOW_SHARE_DIR}/{CYLC_TASK_CYCLE_POINT}/{RAWFILE_STEM}_mzmatches.tsv'
+    queries = pd.read_csv(f'{CYLC_WORKFLOW_SHARE_DIR}/{CYLC_TASK_CYCLE_POINT}/{RAWFILE_STEM}.features.csv', sep=';')
+    output_file = f'{CYLC_WORKFLOW_SHARE_DIR}/{CYLC_TASK_CYCLE_POINT}/{RAWFILE_STEM}.matches.csv'
     # column INDEX (0-based) of the mass in the database and query files
     mz_db: int = MZ_DB
-    mz_q: int = 0 # based on binneR output
+    # mz_q: int = 0 # based on binneR output
+    mz_q = queries.columns.get_loc("mz")
     # transform the string into the corresponding enum value
     delta_type: DeltaType = DeltaType.PPM if DELTA_TYPE == 'ppm' else DeltaType.DA
     mass_delta: int = DELTA
@@ -47,4 +48,4 @@ def match():
     #enlever les colonnes MASS_MIN et MASS_MAX
     out = out.drop(columns=['MASS_MIN', 'MASS_MAX'])
 
-    out.to_csv(output_file, sep='\t', index=False, float_format='%.5f')
+    out.to_csv(output_file, sep=';', index=False, float_format='%.5f')

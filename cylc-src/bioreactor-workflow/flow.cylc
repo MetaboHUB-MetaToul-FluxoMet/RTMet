@@ -37,11 +37,6 @@
             set -eu
         """
 {% endfor %}
-    [[setup_timeseries]]
-        script = """
-            cp ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE} \
-                ${CYLC_WORKFLOW_SHARE_DIR}/intensity_timeseries_mzmatch.tsv
-        """
     [[_catch_raw]]
         script = """
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
@@ -99,6 +94,3 @@
             db_path = ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE}
             query_path = ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.features.csv
             mz_tol = ${MZ_TOL}
-    [[append_mzmatch]]
-        inherit = None, DATAMUNGING_ENV
-        script = python -c 'import append_timeseries; append_timeseries.append_mzmatch()'

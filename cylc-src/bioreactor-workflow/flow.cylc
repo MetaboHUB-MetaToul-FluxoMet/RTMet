@@ -27,10 +27,7 @@
         [[[environment]]]
             BINNER_THRES = 0.50 # ratio of max(TIC), to filter injection scans
             DATABASE_FILE = online_12C_NEG_SK_nodup.tsv # should be in the db folder
-            MZ_DB = 3 # column number for masses in the database file
-            NAMES_DB = 1 # column number for compounds names in the database
-            DELTA_TYPE = ppm # either ppm or dalton
-            DELTA = 10 # mass tolerance for annotation
+            MZ_TOL = 10 # m/z tolerance (ppm) for matching
             SPECTROMETER_ID = orbitrap_01
 {% for env, conda_env_name in conda_envs.items() %}    
     [[{{env}}]]
@@ -91,7 +88,11 @@
         """
     [[peaks_to_matches]]
         inherit = None, DATAMUNGING_ENV
-        script = python -c 'import mzmatch; mzmatch.match()'
+        script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("mz_tol"))'
+        [[[environment]]]
+            db_path = ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE}
+            query_path = ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.features.csv
+            mz_tol = ${MZ_TOL}
     [[append_mzmatch]]
         inherit = None, DATAMUNGING_ENV
         script = python -c 'import append_timeseries; append_timeseries.append_mzmatch()'

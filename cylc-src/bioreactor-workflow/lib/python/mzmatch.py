@@ -1,51 +1,63 @@
-import os
-from enum import Enum
+from pathlib import Path
 import pandas as pd
 
-CYLC_WORKFLOW_RUN_DIR: str = os.environ['CYLC_WORKFLOW_RUN_DIR']
-CYLC_WORKFLOW_SHARE_DIR: str = os.environ['CYLC_WORKFLOW_SHARE_DIR']
-CYLC_TASK_CYCLE_POINT: str = os.environ['CYLC_TASK_CYCLE_POINT']
-RAWFILE_STEM: str = os.environ['RAWFILE_STEM']
-DATABASE_FILE: str = os.environ['DATABASE_FILE']
-MZ_DB: int = int(os.environ['MZ_DB']) - 1 # 0-indexed
-DELTA_TYPE: str = os.environ['DELTA_TYPE']
-DELTA: int = int(os.environ['DELTA'])
+pd.set_option("display.max_columns", None)
 
-class DeltaType(Enum):
-    PPM = 1
-    DA = 2
+# Magic strings for columns names. Such good programming practice! :-)
+mz_db: str = "Precursor m/z"
+ids_db: str = "Precursor Name"
+pol_db: str = "Precursor Charge"  # 1 / -1
 
-def match():
-    # Précondition: les paramètres obtenus par l'environnement sont corrects. Non vérifié ici.
-    database = pd.read_csv(f'{CYLC_WORKFLOW_RUN_DIR}/db/{DATABASE_FILE}', sep='\t')
-    queries = pd.read_csv(f'{CYLC_WORKFLOW_SHARE_DIR}/{CYLC_TASK_CYCLE_POINT}/{RAWFILE_STEM}.features.csv', sep=';')
-    output_file = f'{CYLC_WORKFLOW_SHARE_DIR}/{CYLC_TASK_CYCLE_POINT}/{RAWFILE_STEM}.matches.csv'
-    # column INDEX (0-based) of the mass in the database and query files
-    mz_db: int = MZ_DB
-    # mz_q: int = 0 # based on binneR output
-    mz_q = queries.columns.get_loc("mz")
-    # transform the string into the corresponding enum value
-    delta_type: DeltaType = DeltaType.PPM if DELTA_TYPE == 'ppm' else DeltaType.DA
-    mass_delta: int = DELTA
+intensity_q: str = "intensity"
+mz_q: str = "mz"
+pol_q: str = "polarity"  # p / n
 
-    # Dans la base de données, à partir de la colonne MASS, on calcule les masses min et max en fonction du type de delta
-    # et de la valeur. Les résultats sont stockés dans les colonnes MASS_MIN et MASS_MAX
-    if delta_type == DeltaType.PPM:
-        database['MASS_MIN'] = database.iloc[:,mz_db] - database.iloc[:,mz_db] * mass_delta / 1e6
-        database['MASS_MAX'] = database.iloc[:,mz_db] + database.iloc[:,mz_db] * mass_delta / 1e6
-    elif delta_type == DeltaType.DA:
-        database['MASS_MIN'] = database.iloc[:,mz_db] - mass_delta
-        database['MASS_MAX'] = database.iloc[:,mz_db] + mass_delta
 
-    #print(database.head())
+def match(db_path: Path, query_path: Path, mz_tol: float) -> None:
+    query_dir = Path(query_path).parent
+    query_stem = ".".join(
+        Path(query_path).stem.split(".")[:-1]
+    )  # Removes .features.csv
 
-    out = queries.merge(database, how='cross').query('(MASS_MIN <= mz) & (mz <= MASS_MAX)')
-    # Ajouter une colonne DELTA_MZ qui contient la différence entre la masse de la base de données et la masse de la requête.
+    output_file_matches = Path(f"{query_dir}/{query_stem}.matches.csv")
+    output_file_annotated_query = Path(
+        f"{query_dir}/{query_stem}.features.annotated.csv"
+    )
+
+    original_database = pd.read_csv(db_path, sep="\t")
+    original_query = pd.read_csv(query_path, sep=";")
+    tol_ppm = float(mz_tol)
+
+    query = original_query
+    database = original_database
+
+    database[pol_db] = database[pol_db].map({1: "p", -1: "n"})
+    database[mz_db] = database[mz_db].apply(pd.to_numeric)
+    query[[mz_q, intensity_q]] = query[[mz_q, intensity_q]].apply(pd.to_numeric)
+
+    database["MASS_MIN"] = database[mz_db] - database[mz_db] * tol_ppm / 1e6
+    database["MASS_MAX"] = database[mz_db] + database[mz_db] * tol_ppm / 1e6
+
+    print("Database :", database.head())
+
+    combinaisons = query.merge(database, how="cross")
+    print("Combinaisons :", combinaisons.head())
+
+    matches = combinaisons.query(f"(MASS_MIN <= {mz_q}) & ({mz_q} <= MASS_MAX)")
+    matches["delta_ppm"] = (matches[mz_q] - matches[mz_db]) / matches[mz_db] * 1e6
+    print("Matches :", matches.head())
+
+    matches.to_csv(output_file_matches, sep=";", index=False, float_format="%.5f")
+
+    # Ajouter une colonne 'annotated' à query qui contient True quand une ligne de matches contient les mêmes valeurs pour la colonne mz.
+    query["annotated"] = query[mz_q].isin(matches[mz_q])
+
+    print("Annotated query :", query.head(n=20))
+
+    matches = matches[[ids_db, mz_q, "delta_ppm", intensity_q]].rename(
+        columns={ids_db: "isobaric_id", mz_q: "feature_mz", intensity_q: "intensity"}
+    )
+
     # Le résultat est arrondi à 5 chiffres après la virgule. Ne pas utiliser l'écriture scientifique.
-    mz_db_out = len(queries.columns) + mz_db
-    out['DELTA_MZ'] = out.iloc[:,mz_db_out] - out.iloc[:,mz_q]
-
-    #enlever les colonnes MASS_MIN et MASS_MAX
-    out = out.drop(columns=['MASS_MIN', 'MASS_MAX'])
-
-    out.to_csv(output_file, sep=';', index=False, float_format='%.5f')
+    matches.to_csv(output_file_matches, sep=";", index=False, float_format="%.5f")
+    query.to_csv(output_file_annotated_query, sep=";", index=False)

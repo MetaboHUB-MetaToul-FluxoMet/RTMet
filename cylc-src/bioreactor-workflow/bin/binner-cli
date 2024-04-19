@@ -175,11 +175,11 @@ if (!opt$binnerlyse) {
   for (file in mzml_files) {
     out_file <- paste0(
       opt$outdir,
-      "/", sub("\\..*$", "", basename(file)), ".tsv"
+      "/", sub("\\..*$", "", basename(file)), ".features.csv"
     )
     out_plot <- paste0(
       opt$outdir,
-      "/", sub("\\..*$", "", basename(file)), "_infusion_scans.png"
+      "/", sub("\\..*$", "", basename(file)), ".infusion_scans.png"
     )
     cat("Processing file: ", file, "\n")
     cat("Peaks table file: ", out_file, "\n")

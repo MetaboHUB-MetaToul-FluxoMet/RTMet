@@ -40,7 +40,7 @@
     [[root]]
         [[[environment]]]
             BINNER_THRES = 0.50 # ratio of max(TIC), to filter injection scans
-            DATABASE_FILE = online_12C_NEG_SK_nodup.tsv # should be in the db folder
+            DATABASE_FILE = molecules_db.csv # should be in the db folder
             MZ_TOL = 10 # m/z tolerance (ppm) for matching
             SPECTROMETER_ID = orbitrap_01
 {% for env, conda_env_name in conda_envs.items() %}    

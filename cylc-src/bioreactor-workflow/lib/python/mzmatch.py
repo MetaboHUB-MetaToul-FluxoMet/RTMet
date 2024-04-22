@@ -14,6 +14,14 @@ pol_q: str = "polarity"  # p / n
 
 
 def match(db_path: Path, query_path: Path, mz_tol: float) -> None:
+    """
+    Matches peaks from a query file on a database file.
+    Writes the matched molecules in a file and annotates the query file with
+    a boolean column.
+    /!/ Makes a lot of assumptions on the inputs, so only works in the context
+    of the workflow.
+    """
+
     database = pd.read_csv(db_path, sep=";")
     query = pd.read_csv(query_path, sep=";")
     tol_ppm = float(mz_tol)
@@ -30,8 +38,8 @@ def match(db_path: Path, query_path: Path, mz_tol: float) -> None:
     )
 
     database[pol_db] = database[pol_db].map({1: "p", 2: "p", -1: "n", -2: "n"})
-    database[mz_db] = database[mz_db].apply(pd.to_numeric)
-    query[[mz_q, intensity_q]] = query[[mz_q, intensity_q]].apply(pd.to_numeric)
+    # database[mz_db] = database[mz_db].apply(pd.to_numeric)
+    # query[[mz_q, intensity_q]] = query[[mz_q, intensity_q]].apply(pd.to_numeric)
 
     database["MASS_MIN"] = database[mz_db] - database[mz_db] * tol_ppm / 1e6
     database["MASS_MAX"] = database[mz_db] + database[mz_db] * tol_ppm / 1e6
@@ -40,12 +48,12 @@ def match(db_path: Path, query_path: Path, mz_tol: float) -> None:
 
     matches = combinaisons.query(f"(MASS_MIN <= {mz_q}) & ({mz_q} <= MASS_MAX)")
     matches["delta_ppm"] = (matches[mz_q] - matches[mz_db]) / matches[mz_db] * 1e6
+
     matches = matches[[ids_db, mz_q, "delta_ppm", intensity_q]].rename(
         columns={ids_db: "isobaric_id", mz_q: "feature_mz", intensity_q: "intensity"}
     )
 
     query["annotated"] = query[mz_q].isin(matches["feature_mz"])
 
-    # Le résultat est arrondi à 5 chiffres après la virgule. Ne pas utiliser l'écriture scientifique.
     matches.to_csv(output_file_matches, sep=";", index=False, float_format="%.5f")
     query.to_csv(output_file_annotated_query, sep=";", index=False)

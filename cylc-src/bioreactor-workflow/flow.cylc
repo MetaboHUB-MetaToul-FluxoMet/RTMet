@@ -1,9 +1,9 @@
 #!Jinja2
 
-{% set conda_envs = {'TRFP_ENV': 'wf-trfp',
-                       'BINNER_ENV': 'wf-binner',
-                       'BIH_ENV': 'wf-bih',
-                       'DATAMUNGING_ENV': 'wf-datamunging'} %}
+%include 'config/default_config.cylc'
+%include 'config/config.cylc'
+%include 'envs.cylc'
+
 [scheduling]
     cycling mode = integer
     initial cycle point = 1
@@ -37,20 +37,6 @@
             limit = 5
             members = mzml_to_peaks, peaks_to_matches
 [runtime]
-    [[root]]
-        [[[environment]]]
-            BINNER_THRES = 0.50 # ratio of max(TIC), to filter injection scans
-            DATABASE_FILE = molecules_db.csv # should be in the db folder
-            MZ_TOL = 10 # m/z tolerance (ppm) for matching
-            SPECTROMETER_ID = orbitrap_01
-{% for env, conda_env_name in conda_envs.items() %}    
-    [[{{env}}]]
-        env-script = """
-            set +eu
-            conda activate {{ conda_env_name }}
-            set -eu
-        """
-{% endfor %}
     [[_catch_raw]]
         script = """
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
@@ -64,6 +50,7 @@
     [[setup_cyclepoint_sharedir]]
         script = """
             CYCLEPOINT_SHAREDIR=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
+            
             mkdir ${CYCLEPOINT_SHAREDIR}
 
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
@@ -74,11 +61,16 @@
         inherit = None, TRFP_ENV
         script = """
             thermorawfileparser \
-                --format=mzml \
-                --input=${RAWFILE_PATH} \
-                --output=${CYCLEPOINT_SHAREDIR} \
-                --metadata=txt
+                --format=${format} \
+                --input=${input} \
+                --output=${output} \
+                --metadata=${metadata}
         """
+        [[[environment]]]
+            format = mzml
+            metadata = txt
+            input = ${RAWFILE_PATH}
+            output = ${CYCLEPOINT_SHAREDIR}
     [[get_run_timestamp]] # regex should be replaced with XML parsing
         script = """
             MZML_FILE=${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.mzML
@@ -92,27 +84,23 @@
         inherit = None, BINNER_ENV
         script = """
             binner-cli \
-                --file ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.mzML \
-                --outdir ${CYLC_TASK_WORK_DIR} \
-                --threshold ${BINNER_THRES}
-
-            mv ${CYLC_TASK_WORK_DIR}/${RAWFILE_STEM}.features.csv \
-                ${CYCLEPOINT_SHAREDIR}
-
-            mv ${CYLC_TASK_WORK_DIR}/${RAWFILE_STEM}.infusion_scans.png \
-                ${CYCLEPOINT_SHAREDIR}
+                --file ${file} \
+                --outdir ${outdir} \
+                --threshold ${threshold}
         """
-        # BINNER_OUTFILE=${CYLC_TASK_WORK_DIR}/${RAWFILE_STEM}.tsv
-        # SHARED_FEATURES_FILE=${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.features.csv
         # sed "1s|^|datetime;instrument_id;|" ${BINNER_OUTFILE} | \
         #     sed "2,$ s|^|$RUN_TIMESTAMP;$SPECTROMETER_ID;|" > ${SHARED_FEATURES_FILE}
+        [[[environment]]]
+            threshold = ${CONFIG__TIC_THRESHOLD}
+            file = ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.mzML
+            outdir = ${CYCLEPOINT_SHAREDIR}
     [[peaks_to_matches]]
         inherit = None, DATAMUNGING_ENV
-        script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("mz_tol"))'
+        script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("ppm_tol"))'
         [[[environment]]]
-            db_path = ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE}
+            db_path = ${CYLC_WORKFLOW_RUN_DIR}/db/${CONFIG__DATABASE}
             query_path = ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.features.csv
-            mz_tol = ${MZ_TOL}
+            ppm_tol = ${CONFIG__PPM_TOL}
     [[quantify]]
         inherit = None, DATAMUNGING_ENV
         script = echo "quantify TODO"

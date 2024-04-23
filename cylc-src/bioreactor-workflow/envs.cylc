@@ -1,0 +1,16 @@
+#!Jinja2
+
+{% set conda_envs = {'TRFP_ENV': 'wf-trfp',
+                       'BINNER_ENV': 'wf-binner',
+                       'BIH_ENV': 'wf-bih',
+                       'DATAMUNGING_ENV': 'wf-datamunging'} %}
+
+[runtime]
+{% for env, conda_env_name in conda_envs.items() %}    
+    [[{{env}}]]
+        env-script = """
+            set +eu
+            conda activate {{ conda_env_name }}
+            set -eu
+        """
+{% endfor %}

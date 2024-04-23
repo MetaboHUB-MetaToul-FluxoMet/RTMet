@@ -2,7 +2,6 @@
 
 {% set conda_envs = {'TRFP_ENV': 'wf-trfp',
                        'BINNER_ENV': 'wf-binner',
-                       'BIH_ENV': 'wf-bih',
                        'DATAMUNGING_ENV': 'wf-datamunging'} %}
 
 [runtime]

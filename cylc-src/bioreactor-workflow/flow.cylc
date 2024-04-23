@@ -63,7 +63,12 @@
         """
     [[setup_cyclepoint_sharedir]]
         script = """
-            mkdir ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
+            CYCLEPOINT_SHAREDIR=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
+            mkdir ${CYCLEPOINT_SHAREDIR}
+
+            cylc broadcast "${CYLC_WORKFLOW_ID}" \
+                -p "${CYLC_TASK_CYCLE_POINT}" \
+                -s "[environment]CYCLEPOINT_SHAREDIR=${CYCLEPOINT_SHAREDIR}"
         """
     [[raw_to_mzml]]
         inherit = None, TRFP_ENV
@@ -71,12 +76,12 @@
             thermorawfileparser \
                 --format=mzml \
                 --input=${RAWFILE_PATH} \
-                --output=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT} \
+                --output=${CYCLEPOINT_SHAREDIR} \
                 --metadata=txt
         """
     [[get_run_timestamp]] # regex should be replaced with XML parsing
         script = """
-            MZML_FILE=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.mzML
+            MZML_FILE=${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.mzML
             RUN_TIMESTAMP=$(grep '<run' ${MZML_FILE} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
             
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
@@ -87,18 +92,18 @@
         inherit = None, BINNER_ENV
         script = """
             binner-cli \
-                --file ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.mzML \
+                --file ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.mzML \
                 --outdir ${CYLC_TASK_WORK_DIR} \
                 --threshold ${BINNER_THRES}
 
             mv ${CYLC_TASK_WORK_DIR}/${RAWFILE_STEM}.features.csv \
-                ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
+                ${CYCLEPOINT_SHAREDIR}
 
             mv ${CYLC_TASK_WORK_DIR}/${RAWFILE_STEM}.infusion_scans.png \
-                ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
+                ${CYCLEPOINT_SHAREDIR}
         """
         # BINNER_OUTFILE=${CYLC_TASK_WORK_DIR}/${RAWFILE_STEM}.tsv
-        # SHARED_FEATURES_FILE=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.features.csv
+        # SHARED_FEATURES_FILE=${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.features.csv
         # sed "1s|^|datetime;instrument_id;|" ${BINNER_OUTFILE} | \
         #     sed "2,$ s|^|$RUN_TIMESTAMP;$SPECTROMETER_ID;|" > ${SHARED_FEATURES_FILE}
     [[peaks_to_matches]]
@@ -106,7 +111,7 @@
         script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("mz_tol"))'
         [[[environment]]]
             db_path = ${CYLC_WORKFLOW_RUN_DIR}/db/${DATABASE_FILE}
-            query_path = ${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}/${RAWFILE_STEM}.features.csv
+            query_path = ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.features.csv
             mz_tol = ${MZ_TOL}
     [[quantify]]
         inherit = None, DATAMUNGING_ENV

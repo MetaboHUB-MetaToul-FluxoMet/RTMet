@@ -1,9 +1,14 @@
 #!Jinja2
 
-%include 'config/default_config.cylc'
-%include 'config/config.cylc'
 %include 'envs.cylc'
+%include 'config/default_config.cylc'
 
+# overrides default config with user config
+%include 'config/config.cylc'
+
+[task parameters]
+    results_A = peaks, concentrations
+    results_B = fluxes, metadata
 [scheduling]
     cycling mode = integer
     initial cycle point = 1
@@ -17,18 +22,13 @@
             @catch_raw => _catch_raw & setup_cyclepoint_sharedir => 
                 raw_to_mzml => mzml_to_peaks => peaks_to_matches => quantify
             
-            raw_to_mzml => get_run_timestamp => format_peaks & 
-                format_concentrations & format_metadata
-
-            quantify => format_peaks => upload_peaks
-            quantify => format_concentrations => upload_concentrations
-            quantify => format_metadata => upload_metadata
+            raw_to_mzml => get_run_timestamp => format<results_A>
+            quantify => format<results_A> => upload<results_A>
         """
         +P2/P1 = """
             quantify & quantify[-P1] & quantify[-P2] => model_fluxes
-            get_run_timestamp => format_fluxes
-            model_fluxes => format_fluxes => upload_fluxes
-            model_fluxes => format_metadata
+            get_run_timestamp => format<results_B>
+            model_fluxes => format<results_B> => upload<results_B>
         """
     [[queues]]
         [[[default]]]
@@ -37,6 +37,8 @@
             limit = 5
             members = mzml_to_peaks, peaks_to_matches
 [runtime]
+    [[verify_config]]
+        script = echo "Verifying configuration! (TODO)"
     [[_catch_raw]]
         script = """
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
@@ -101,17 +103,21 @@
             db_path = ${CYLC_WORKFLOW_RUN_DIR}/db/${CONFIG__DATABASE}
             query_path = ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.features.csv
             ppm_tol = ${CONFIG__PPM_TOL}
+
+
     [[quantify]]
         inherit = None, DATAMUNGING_ENV
         script = echo "quantify TODO"
-    [[format_peaks]]
-    [[format_concentrations]]
-    [[format_fluxes]]
-    [[format_metadata]]
-    [[upload_peaks]]
-    [[upload_concentrations]]
-    [[upload_fluxes]]
-    [[upload_metadata]]
     [[model_fluxes]]
-    [[verify_config]]
+        script = echo "model_fluxes TODO"
+
     [[ping_influxdb]]
+        script = echo "Pinging InfluxDB! (TODO)"
+    [[format<results_A>]]
+        script = echo "Formatting ${CYLC_TASK_PARAM_result}! (TODO)"
+    [[format<results_B>]]
+        script = echo "Formatting ${CYLC_TASK_PARAM_result}! (TODO)"
+    [[upload<results_A>]]
+        script = echo "Uploading ${CYLC_TASK_PARAM_result} to InfluxDB! (TODO)"
+    [[upload<results_B>]]
+        script = echo "Uploading ${CYLC_TASK_PARAM_result} to InfluxDB! (TODO)"

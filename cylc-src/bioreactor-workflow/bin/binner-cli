@@ -177,13 +177,18 @@ if (!opt$binnerlyse) {
       opt$outdir,
       "/", sub("\\..*$", "", basename(file)), ".features.csv"
     )
-    out_plot <- paste0(
+    out_chrom <- paste0(
       opt$outdir,
       "/", sub("\\..*$", "", basename(file)), ".infusion_scans.png"
     )
+    out_finger <- paste0(
+      opt$outdir,
+      "/", sub("\\..*$", "", basename(file)), ".spectrum_fingerprint.png"
+    )
     cat("Processing file: ", file, "\n")
     cat("Peaks table file: ", out_file, "\n")
-    cat("Infusion scans plot: ", out_plot, "\n")
+    cat("Infusion scans plot: ", out_chrom, "\n")
+    cat("Spectrum fingerprint plot: ", out_finger, "\n")
 
     # Peaks detection
     infusion_scans <- binneR::detectInfusionScans(file, thresh = opt$threshold)
@@ -230,7 +235,10 @@ if (!opt$binnerlyse) {
       dplyr::select(polarity, bin, mz, intensity, purity, centrality) %>%
       readr::write_delim(out_file, delim = ";")
 
-    p <- binneR::plotChromatogram(analysis)
-    ggplot2::ggsave(out_plot, p)
+    chrom <- binneR::plotChromatogram(analysis)
+    ggplot2::ggsave(out_chrom, chrom)
+
+    fingerprint <- binneR::plotFingerprint(analysis)
+    ggplot2::ggsave(out_finger, fingerprint)
   }
 }

@@ -21,13 +21,13 @@
         P1 = """
             @catch_raw => _catch_raw & setup_cyclepoint_sharedir => 
                 raw_to_mzml => mzml_to_peaks => peaks_to_matches => quantify
-            
-            raw_to_mzml => get_run_timestamp => format<results_A>
+            raw_to_mzml => get_run_timestamp => quantify
+
             quantify => format<results_A> => upload<results_A>
         """
         +P2/P1 = """
             quantify & quantify[-P1] & quantify[-P2] => model_fluxes
-            get_run_timestamp => format<results_B>
+
             model_fluxes => format<results_B> => upload<results_B>
         """
     [[queues]]
@@ -70,7 +70,7 @@
         """
         [[[environment]]]
             format = mzml
-            metadata = txt
+            metadata = json
             input = ${RAWFILE_PATH}
             output = ${CYCLEPOINT_SHAREDIR}
     [[get_run_timestamp]] # regex should be replaced with XML parsing
@@ -114,10 +114,10 @@
     [[ping_influxdb]]
         script = echo "Pinging InfluxDB! (TODO)"
     [[format<results_A>]]
-        script = echo "Formatting ${CYLC_TASK_PARAM_result}! (TODO)"
+        script = echo "Formatting ${CYLC_TASK_PARAM_results_A}! (TODO)"
     [[format<results_B>]]
-        script = echo "Formatting ${CYLC_TASK_PARAM_result}! (TODO)"
+        script = echo "Formatting ${CYLC_TASK_PARAM_results_B}! (TODO)"
     [[upload<results_A>]]
-        script = echo "Uploading ${CYLC_TASK_PARAM_result} to InfluxDB! (TODO)"
+        script = echo "Uploading ${CYLC_TASK_PARAM_results_A} to InfluxDB! (TODO)"
     [[upload<results_B>]]
-        script = echo "Uploading ${CYLC_TASK_PARAM_result} to InfluxDB! (TODO)"
+        script = echo "Uploading ${CYLC_TASK_PARAM_results_B} to InfluxDB! (TODO)"

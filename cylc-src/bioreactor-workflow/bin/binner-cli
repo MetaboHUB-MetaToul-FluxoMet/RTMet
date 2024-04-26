@@ -185,10 +185,15 @@ if (!opt$binnerlyse) {
       opt$outdir,
       "/", sub("\\..*$", "", basename(file)), ".spectrum_fingerprint.png"
     )
+    out_purity <- paste0(
+      opt$outdir,
+      "/", sub("\\..*$", "", basename(file)), ".purity_distribution.png"
+    )
     cat("Processing file: ", file, "\n")
     cat("Peaks table file: ", out_file, "\n")
     cat("Infusion scans plot: ", out_chrom, "\n")
     cat("Spectrum fingerprint plot: ", out_finger, "\n")
+    cat("Purity distribution plot: ", out_purity, "\n")
 
     # Peaks detection
     infusion_scans <- binneR::detectInfusionScans(file, thresh = opt$threshold)
@@ -240,5 +245,8 @@ if (!opt$binnerlyse) {
 
     fingerprint <- binneR::plotFingerprint(analysis)
     ggplot2::ggsave(out_finger, fingerprint)
+
+    purity <- binneR::plotPurity(analysis, histBins = 100)
+    ggplot2::ggsave(out_purity, purity)
   }
 }

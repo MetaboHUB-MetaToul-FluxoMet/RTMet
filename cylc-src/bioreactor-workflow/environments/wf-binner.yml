@@ -3,14 +3,14 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - r-base=4.3.2
+  - r-base=4.3.1
   - r-essentials=4.3
   - r-remotes=2.4
   - r-furrr=0.3.1
   - r-ggthemes=5.1.0
   - r-optparse=1.7.4
   - r-tidyselect=1.2.0
-  - r-rcpp=1.0.11
+  - r-rcpp=1.0.12
   - bioconductor-mzr=2.36
   - bioconductor-rhdf5lib=1.24
 

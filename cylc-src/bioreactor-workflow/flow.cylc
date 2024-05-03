@@ -105,7 +105,7 @@
         inherit = None, DATAMUNGING_ENV
         script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("ppm_tol"))'
         [[[environment]]]
-            db_path = ${CYLC_WORKFLOW_RUN_DIR}/db/{{ cfg__mol_database }}
+            db_path = ${CYLC_WORKFLOW_RUN_DIR}/config/{{ cfg__mol_database }}
             query_path = ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.features.csv
             ppm_tol = {{ cfg__ppm_tol }}
 

@@ -1,6 +1,6 @@
 #!Jinja2
 
-%include 'envs.cylc'
+%include 'envs/envs.cylc'
 
 [task parameters]
     results_A = peaks, concentrations

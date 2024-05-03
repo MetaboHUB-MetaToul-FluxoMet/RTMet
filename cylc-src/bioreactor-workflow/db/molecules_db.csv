@@ -1,5 +1,5 @@
 Isobaric ID;Metabolites IDs;Precursor Name;Precursor Formula;Precursor m/z;Precursor Adduct;Precursor Charge;Retention Time;Ref Isobaric ID;Coeff A;Coeff B
-acetate;bigg_001;Acetate;C2H4O2;59.01385;[M-H];-1;0.3;13c-glucose;0.461711288;0.806159876
+acetate;bigg_001;Acetate;C2H4O2;59.01385;[M-H];-1;0.3;13c-acetate;0.461711288;0.806159876
 13c-acetate;;13C-Acetate;C2H4O2;61.02056;[M2C13-H];-1;0.3;13c-acetate;1;0
 propionate;bigg_002;Propionate;C3H6O2;73.0295;[M-H];-1;0.3;13c-glucose;;
 gly;bigg_003;Gly;C2H5NO2;74.02475;[M-H];-1;0.3;13c-glucose;;
@@ -227,3 +227,4 @@ nadph;bigg_223;NADPH;C21H30N7O17P3;744.08382;[M-H];-1;0.3;13c-glucose;;
 coash;bigg_224;CoASH;C21H36N7O16P3S;766.10793;[M-H];-1;0.3;13c-glucose;;
 fad;bigg_225;FAD;C27H33N9O15P2;784.14986;[M-H];-1;0.3;13c-glucose;;
 mcitrate;bigg_226;mCitrate;C7H710O7;910.5129;[M-H];-1;0.3;13c-glucose;;
+thiamine;;Thiamine;C12H17N4OS;266.11958;[M+H];1;0.3;thiamine;;

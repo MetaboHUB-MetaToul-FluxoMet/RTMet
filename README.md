@@ -18,6 +18,7 @@ mamba env create -f environments/cylc.yml
 mamba activate cylc
 cylc get-resources cylc /usr/local/bin/cylc
 chmod +x /usr/local/bin/cylc
+ln -s /usr/local/bin/cylc /usr/local/bin/rose
 mamba deactivate
 
 # cylc requires `bash`, GNU `coreutils` and `mail` (optional) which are not installed by conda. On MacOS, you can install them using brew

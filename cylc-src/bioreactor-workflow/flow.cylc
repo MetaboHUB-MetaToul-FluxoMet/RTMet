@@ -1,10 +1,6 @@
 #!Jinja2
 
 %include 'envs.cylc'
-%include 'config/default_config.cylc'
-
-# overrides default config with user config
-%include 'config/config.cylc'
 
 [task parameters]
     results_A = peaks, concentrations
@@ -19,20 +15,22 @@
             verify_config =>
                 verify_molecules_database
                 & verify_met_model
-                & ping_influxdb
+
         """
         +P1/P1 = """
             @catch_raw => _catch_raw & setup_cyclepoint_sharedir => 
                 raw_to_mzml => mzml_to_peaks => peaks_to_matches => quantify
             raw_to_mzml => get_run_timestamp => quantify
-
-            quantify => format<results_A> => upload<results_A>
         """
         +P3/P1 = """
             quantify & quantify[-P1] & quantify[-P2] => model_fluxes
-
-            model_fluxes => format<results_B> => upload<results_B>
         """
+{% if cfg__toggle_influxdb %}
+        R1 = verify_config => ping_influxdb
+        +P1/P1 = quantify => format<results_A> => upload<results_A>
+        +P3/P1 = model_fluxes => format<results_B> => upload<results_B>
+{% endif %}
+        
     [[queues]]
         [[[default]]]
             limit = 10
@@ -41,7 +39,7 @@
             members = mzml_to_peaks, peaks_to_matches
 [runtime]
     [[verify_config]]
-        script = echo "Verifying configuration! (TODO)"
+        script = rose macro --validate --verbose
     [[verify_molecules_database]]
         script = echo "Verifying molecules database! (TODO)"
     [[verify_met_model]]
@@ -100,16 +98,16 @@
         # sed "1s|^|datetime;instrument_id;|" ${BINNER_OUTFILE} | \
         #     sed "2,$ s|^|$RUN_TIMESTAMP;$SPECTROMETER_ID;|" > ${SHARED_FEATURES_FILE}
         [[[environment]]]
-            threshold = ${CONFIG__TIC_THRESHOLD}
+            threshold = {{ cfg__tic_threshold }}
             file = ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.mzML
             outdir = ${CYCLEPOINT_SHAREDIR}
     [[peaks_to_matches]]
         inherit = None, DATAMUNGING_ENV
         script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("ppm_tol"))'
         [[[environment]]]
-            db_path = ${CYLC_WORKFLOW_RUN_DIR}/db/${CONFIG__DATABASE}
+            db_path = ${CYLC_WORKFLOW_RUN_DIR}/db/{{ cfg__mol_database }}
             query_path = ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.features.csv
-            ppm_tol = ${CONFIG__PPM_TOL}
+            ppm_tol = {{ cfg__ppm_tol }}
 
 
     [[quantify]]

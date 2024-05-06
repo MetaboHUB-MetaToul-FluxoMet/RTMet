@@ -26,7 +26,7 @@
             quantify & quantify[-P1] & quantify[-P2] => model_fluxes
         """
 {% if cfg__toggle_influxdb %}
-        R1 = verify_config => ping_influxdb
+        R1 = verify_config => ping_influxdb => create_run_bucket
         +P1/P1 = quantify => format<results_A> => upload<results_A>
         +P3/P1 = model_fluxes => format<results_B> => upload<results_B>
 {% endif %}
@@ -117,7 +117,14 @@
         script = echo "model_fluxes TODO"
 
     [[ping_influxdb]]
-        script = echo "Pinging InfluxDB! (TODO)"
+        script = influx ping
+    [[create_run_bucket]]
+        script = """
+            echo "Creating InfluxDB bucket for workflow run! (TODO)"
+            influx bucket create --name ${name}
+        """
+        [[[environment]]]
+            name = ${CYLC_WORKFLOW_ID}
     [[format<results_A>]]
         script = echo "Formatting ${CYLC_TASK_PARAM_results_A}! (TODO)"
     [[format<results_B>]]

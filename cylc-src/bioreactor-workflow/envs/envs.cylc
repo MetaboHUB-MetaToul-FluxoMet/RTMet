@@ -7,7 +7,7 @@
 [runtime]
 {% for env, conda_env_name in conda_envs.items() %}    
     [[{{env}}]]
-        env-script = """
+        pre-script = """
             set +eu
             conda activate {{ conda_env_name }}
             set -eu

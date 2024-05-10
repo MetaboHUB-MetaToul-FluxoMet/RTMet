@@ -3,8 +3,7 @@
 %include 'envs/envs.cylc'
 
 [task parameters]
-    results_A = peaks, concentrations
-    results_B = fluxes, metadata
+    main_results = peaks, concentrations, fluxes, metadata
 [scheduling]
     cycling mode = integer
     initial cycle point = 0
@@ -25,10 +24,17 @@
         +P3/P1 = """
             quantify & quantify[-P1] & quantify[-P2] => model_fluxes
         """
+
 {% if cfg__toggle_influxdb %}
         R1 = verify_config => ping_influxdb => create_run_bucket
-        +P1/P1 = quantify => format<results_A> => upload<results_A>
-        +P3/P1 = model_fluxes => format<results_B> => upload<results_B>
+        +P1/P1 = """
+            quantify => format_peaks => upload_peaks
+            quantify => format_concentrations => upload_concentrations
+        """
+        +P3/P1 = """
+            model_fluxes => format_fluxes => upload_fluxes
+            model_fluxes => format_metadata => upload_metadata
+        """
 {% endif %}
         
     [[queues]]
@@ -120,16 +126,20 @@
         script = influx ping
     [[create_run_bucket]]
         script = """
-            echo "Creating InfluxDB bucket for workflow run! (TODO)"
+            echo "Creating InfluxDB bucket for workflow run!"
             influx bucket create --name ${name}
         """
         [[[environment]]]
             name = ${CYLC_WORKFLOW_ID}
-    [[format<results_A>]]
-        script = echo "Formatting ${CYLC_TASK_PARAM_results_A}! (TODO)"
-    [[format<results_B>]]
-        script = echo "Formatting ${CYLC_TASK_PARAM_results_B}! (TODO)"
-    [[upload<results_A>]]
-        script = echo "Uploading ${CYLC_TASK_PARAM_results_A} to InfluxDB! (TODO)"
-    [[upload<results_B>]]
-        script = echo "Uploading ${CYLC_TASK_PARAM_results_B} to InfluxDB! (TODO)"
+    [[INFLUXDB_FORMATTING]]
+        script = echo "Formatting ${input}! (TODO)"
+    [[INFLUXDB_UPLOADING]]
+        script = echo "Uploading ${input}! (TODO)" 
+    [[format<main_results>]]
+        inherit = INFLUXDB_FORMATTING
+        [[[environment]]]
+            input = ${CYLC_TASK_PARAM_main_results}
+    [[upload<main_results>]]
+        inherit = INFLUXDB_UPLOADING
+        [[[environment]]]
+            input = ${CYLC_TASK_PARAM_main_results}

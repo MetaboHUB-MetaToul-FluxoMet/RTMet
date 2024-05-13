@@ -156,10 +156,10 @@
                 --active-config ${config_name}
         """
     [[INFLUXDB_FORMATTING]]
-        inherit = INFLUXDB
+        inherit = INFLUXDB, INFLUX_ENV
         script = echo "Formatting ${input}! (TODO)"
     [[INFLUXDB_UPLOADING]]
-        inherit = INFLUXDB
+        inherit = INFLUXDB, INFLUX_ENV
         script = echo "Uploading ${input}! (TODO)" 
     [[format<main_results>]]
         inherit = INFLUXDB_FORMATTING

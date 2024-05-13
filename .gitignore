@@ -161,5 +161,4 @@ Desktop.ini
 cylc-src/runtime-introduction/
 cylc-src/datetime-cycling/
 
-cylc-src/external-triggering/lib/bank_inhouse
-cylc-src/bioreactor-workflow/lib/bank_inhouse
+cylc-src/bioreactor-workflow/bin/influx

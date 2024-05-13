@@ -14,7 +14,6 @@
             verify_config =>
                 verify_molecules_database
                 & verify_met_model
-
         """
         +P1/P1 = """
             @catch_raw => _catch_raw => raw_to_mzml => mzml_to_peaks &
@@ -25,7 +24,7 @@
         """
 
 {% if cfg__toggle_influxdb %}
-        R1 = verify_config => ping_influxdb => create_run_bucket
+        R1 = verify_config => setup_influxdb_config => ping_influxdb_server => create_run_bucket
         +P1/P1 = """
             quantify => format_peaks => upload_peaks
             quantify => format_concentrations => upload_concentrations
@@ -125,18 +124,42 @@
     [[model_fluxes]]
         script = echo "model_fluxes TODO"
 
-    [[ping_influxdb]]
-        script = influx ping
-    [[create_run_bucket]]
+    [[INFLUXDB]]
+        [[[environment]]]
+            configs_path = ${ROSE_DATA}/influxdb-config.toml
+            config_name = ${CYLC_WORKFLOW_NAME}
+            bucket_name = ${CYLC_WORKFLOW_ID}
+    [[setup_influxdb_config]]
+        inherit = INFLUXDB
         script = """
-            echo "Creating InfluxDB bucket for workflow run!"
-            influx bucket create --name ${name}
+            influx config create \
+                --config-name ${config_name} \
+                --configs-path ${configs_path} \
+                --host-url ${host_url} \
+                --token ${token} \
+                --org ${org}
         """
         [[[environment]]]
-            name = ${CYLC_WORKFLOW_ID}
+            host_url = {{ cfg__influxdb_url }}
+            token = {{ cfg__influxdb_auth_token }}
+            org = {{ cfg__influxdb_org }}
+    [[ping_influxdb_server]]
+        inherit = INFLUXDB
+        script = influx ping --configs-path ${configs_path} --active-config ${config_name}
+    [[create_run_bucket]]
+        inherit = INFLUXDB
+        script = """
+            echo "Creating InfluxDB bucket for workflow run!"
+            influx bucket create \
+                --name ${bucket_name} \
+                --configs-path ${configs_path} \
+                --active-config ${config_name}
+        """
     [[INFLUXDB_FORMATTING]]
+        inherit = INFLUXDB
         script = echo "Formatting ${input}! (TODO)"
     [[INFLUXDB_UPLOADING]]
+        inherit = INFLUXDB
         script = echo "Uploading ${input}! (TODO)" 
     [[format<main_results>]]
         inherit = INFLUXDB_FORMATTING

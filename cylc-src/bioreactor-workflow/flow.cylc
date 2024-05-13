@@ -44,10 +44,14 @@
             members = mzml_to_peaks, peaks_to_matches
 [runtime]
     [[root]]
-        env-script = $(eval rose task-env)
         # See https://cylc.github.io/cylc-doc/latest/html/workflow-design-guide/general-principles.html#shared-task-io-paths
         # ROSE_DATA=$CYLC_WORKFLOW_SHARE_DIR/data
         # ROSE_DATAC=$CYLC_WORKFLOW_SHARE_DIR/cycle/n
+        env-script = $(eval rose task-env)
+        [[[environment]]]
+            # Dir names in ROSE_DATAC
+            MAIN_RESULTS = dataflow
+            QUALITY_CHECKS = qc
     [[verify_config]]
         script = rose macro --validate --verbose
     [[verify_molecules_database]]
@@ -67,6 +71,7 @@
     [[raw_to_mzml]]
         inherit = None, TRFP_ENV
         script = """
+            mkdir -p ${output}
             thermorawfileparser \
                 --format=${format} \
                 --input=${input} \
@@ -77,36 +82,40 @@
             format = mzml
             metadata = json
             input = ${RAWFILE_PATH}
-            output = ${ROSE_DATAC}
+            output = ${ROSE_DATAC}/${MAIN_RESULTS}
     [[get_run_timestamp]] # regex should be replaced with XML parsing
         script = """
-            MZML_FILE=${ROSE_DATAC}/${RAWFILE_STEM}.mzML
+            MZML_FILE=${mzml_file}
             RUN_TIMESTAMP=$(grep '<run' ${MZML_FILE} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
             
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
                 -p "${CYLC_TASK_CYCLE_POINT}" \
                 -s "[environment]RUN_TIMESTAMP=${RUN_TIMESTAMP}"
         """
+        [[[environment]]]
+            mzml_file = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
     [[mzml_to_peaks]]
         inherit = None, BINNER_ENV
         script = """
+            mkdir -p ${outdir}
+            mkdir -p ${plotdir}
             binner-cli \
                 --file ${file} \
                 --outdir ${outdir} \
                 --threshold ${threshold}
+            mv ${outdir}/*.png ${plotdir}
         """
-        # sed "1s|^|datetime;instrument_id;|" ${BINNER_OUTFILE} | \
-        #     sed "2,$ s|^|$RUN_TIMESTAMP;$SPECTROMETER_ID;|" > ${SHARED_FEATURES_FILE}
         [[[environment]]]
             threshold = {{ cfg__tic_threshold }}
-            file = ${ROSE_DATAC}/${RAWFILE_STEM}.mzML
-            outdir = ${ROSE_DATAC}
+            file = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
+            outdir = ${ROSE_DATAC}/${MAIN_RESULTS}
+            plotdir = ${ROSE_DATAC}/${QUALITY_CHECKS}
     [[peaks_to_matches]]
         inherit = None, DATAMUNGING_ENV
         script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("ppm_tol"))'
         [[[environment]]]
             db_path = ${CYLC_WORKFLOW_RUN_DIR}/config/{{ cfg__mol_database }}
-            query_path = ${ROSE_DATAC}/${RAWFILE_STEM}.features.csv
+            query_path = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.features.csv
             ppm_tol = {{ cfg__ppm_tol }}
 
 

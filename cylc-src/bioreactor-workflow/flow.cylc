@@ -17,9 +17,8 @@
 
         """
         +P1/P1 = """
-            @catch_raw => _catch_raw & setup_cyclepoint_sharedir => 
-                raw_to_mzml => mzml_to_peaks => peaks_to_matches => quantify
-            raw_to_mzml => get_run_timestamp => quantify
+            @catch_raw => _catch_raw => raw_to_mzml => mzml_to_peaks &
+                get_run_timestamp => peaks_to_matches => quantify
         """
         +P3/P1 = """
             quantify & quantify[-P1] & quantify[-P2] => model_fluxes
@@ -44,6 +43,11 @@
             limit = 5
             members = mzml_to_peaks, peaks_to_matches
 [runtime]
+    [[root]]
+        env-script = $(eval rose task-env)
+        # See https://cylc.github.io/cylc-doc/latest/html/workflow-design-guide/general-principles.html#shared-task-io-paths
+        # ROSE_DATA=$CYLC_WORKFLOW_SHARE_DIR/data
+        # ROSE_DATAC=$CYLC_WORKFLOW_SHARE_DIR/cycle/n
     [[verify_config]]
         script = rose macro --validate --verbose
     [[verify_molecules_database]]
@@ -60,16 +64,6 @@
                 -p "${CYLC_TASK_CYCLE_POINT}" \
                 -s "[environment]RAWFILE_STEM=$(basename "$catch_raw_file" .raw)"
         """
-    [[setup_cyclepoint_sharedir]]
-        script = """
-            CYCLEPOINT_SHAREDIR=${CYLC_WORKFLOW_SHARE_DIR}/${CYLC_TASK_CYCLE_POINT}
-            
-            mkdir ${CYCLEPOINT_SHAREDIR}
-
-            cylc broadcast "${CYLC_WORKFLOW_ID}" \
-                -p "${CYLC_TASK_CYCLE_POINT}" \
-                -s "[environment]CYCLEPOINT_SHAREDIR=${CYCLEPOINT_SHAREDIR}"
-        """
     [[raw_to_mzml]]
         inherit = None, TRFP_ENV
         script = """
@@ -83,10 +77,10 @@
             format = mzml
             metadata = json
             input = ${RAWFILE_PATH}
-            output = ${CYCLEPOINT_SHAREDIR}
+            output = ${ROSE_DATAC}
     [[get_run_timestamp]] # regex should be replaced with XML parsing
         script = """
-            MZML_FILE=${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.mzML
+            MZML_FILE=${ROSE_DATAC}/${RAWFILE_STEM}.mzML
             RUN_TIMESTAMP=$(grep '<run' ${MZML_FILE} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
             
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
@@ -105,14 +99,14 @@
         #     sed "2,$ s|^|$RUN_TIMESTAMP;$SPECTROMETER_ID;|" > ${SHARED_FEATURES_FILE}
         [[[environment]]]
             threshold = {{ cfg__tic_threshold }}
-            file = ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.mzML
-            outdir = ${CYCLEPOINT_SHAREDIR}
+            file = ${ROSE_DATAC}/${RAWFILE_STEM}.mzML
+            outdir = ${ROSE_DATAC}
     [[peaks_to_matches]]
         inherit = None, DATAMUNGING_ENV
         script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("ppm_tol"))'
         [[[environment]]]
             db_path = ${CYLC_WORKFLOW_RUN_DIR}/config/{{ cfg__mol_database }}
-            query_path = ${CYCLEPOINT_SHAREDIR}/${RAWFILE_STEM}.features.csv
+            query_path = ${ROSE_DATAC}/${RAWFILE_STEM}.features.csv
             ppm_tol = {{ cfg__ppm_tol }}
 
 

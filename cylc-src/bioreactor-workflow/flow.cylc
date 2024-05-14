@@ -11,23 +11,18 @@
     [[xtriggers]]
         catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "integer_naming")
     [[graph]]
-        R1 = """
-            verify_config =>
-                verify_molecules_database
-                & verify_met_model
-        """
+        R1/^ = verify_config => verify_molecules_database & verify_met_model => is_setup
         +P1/P1 = """
             @catch_raw => _catch_raw => raw_to_mzml => get_run_timestamp =>
                 mzml_to_peaks => peaks_to_matches => quantify
+            is_setup[^] => _catch_raw
         """
-        +P3/P1 = """
-            quantify & quantify[-P1] & quantify[-P2] => model_fluxes
-        """
+        +P3/P1 = quantify & quantify[-P1] & quantify[-P2] => model_fluxes
 
 {% if cfg__toggle_influxdb %}
-        R1 = verify_config => setup_influxdb_config => ping_influxdb_server => create_run_bucket
+        R1/^ = verify_config => setup_influxdb_config => ping_influxdb_server => create_run_bucket => is_setup
         +P1/P1 = """
-            quantify => upload_features
+            mzml_to_peaks => upload_features
             quantify => upload_concentrations
         """
         # +P3/P1 = """
@@ -60,6 +55,8 @@
         script = echo "Verifying molecules database! (TODO)"
     [[verify_met_model]]
         script = echo "Verifying metabolic model! (TODO)"
+    [[is_setup]]
+        script = echo "The workflow has been set up, ready to run!"
     [[_catch_raw]]
         script = """
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
@@ -109,7 +106,7 @@
                 ${results_dir}/${table}
         """
         [[[environment]]]
-            table = NULL
+            table = _ # Defined in child tasks
             results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
             timestamp = ${RUN_TIMESTAMP}
             cycle = ${CYLC_TASK_CYCLE_POINT}
@@ -123,8 +120,7 @@
                 --file ${mzml} \
                 --threshold ${threshold}
             mv *.png ${qc_dir}
-            # FORMAT_TABLE post-script
-        """
+        """ # FORMAT_TABLE post-script
         [[[environment]]]
             threshold = {{ cfg__tic_threshold }}
             mzml = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
@@ -139,8 +135,7 @@
                 --query ${query_path} \
                 --ppm ${ppm_tol}
             mv ${annotated_features} ${results_dir}
-            # FORMAT_TABLE post-script
-        """
+        """ # FORMAT_TABLE post-script
         [[[environment]]]
             db_path = ${CYLC_WORKFLOW_RUN_DIR}/${USER_DATA}/{{ cfg__mol_database }}
             query_path = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.features.csv
@@ -148,11 +143,13 @@
             results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
             annotated_features = ${RAWFILE_STEM}.features.annotated.csv
             table = ${RAWFILE_STEM}.matches.csv
-
-
     [[quantify]]
         inherit = None, DATAMUNGING_ENV
-        script = echo "quantify TODO"
+        script = cp ${results_dir}/${matches} ${results_dir}/${concentrations}
+        [[[environment]]]
+            matches = ${RAWFILE_STEM}.matches.csv
+            concentrations = ${RAWFILE_STEM}.concentrations.csv
+            results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
     [[model_fluxes]]
         script = echo "model_fluxes TODO"
 
@@ -188,7 +185,7 @@
                 --configs-path ${configs_path} \
                 --active-config ${config_name}
         """
-    [[INFLUXDB_UPLOADING]]
+    [[upload<results>]]
         inherit = INFLUXDB, INFLUX_ENV
         script = """
             influxdb-upload \
@@ -198,8 +195,6 @@
                 --dir ${dir} \
                 --schemas ${schemas} \
         """
-    [[upload<results>]]
-        inherit = INFLUXDB_UPLOADING
         [[[environment]]]
             table = ${CYLC_TASK_PARAM_results}
             dir = ${ROSE_DATAC}/${MAIN_RESULTS}

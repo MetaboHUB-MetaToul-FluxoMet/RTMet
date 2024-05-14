@@ -126,7 +126,7 @@
 
     [[INFLUXDB]]
         [[[environment]]]
-            configs_path = ${ROSE_DATA}/influxdb-config.toml
+            configs_path = ${ROSE_DATA}/influxdb-config.ini
             config_name = ${CYLC_WORKFLOW_NAME}
             bucket_name = ${CYLC_WORKFLOW_ID}
     [[setup_influxdb_config]]

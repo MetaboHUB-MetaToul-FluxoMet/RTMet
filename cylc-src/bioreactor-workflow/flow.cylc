@@ -3,12 +3,13 @@
 %include 'envs/envs.cylc'
 
 [task parameters]
-    main_results = peaks, concentrations, fluxes, metadata
+    #main_results = peaks, concentrations, fluxes, metadata
+    results = features, concentrations
 [scheduling]
     cycling mode = integer
     initial cycle point = 0
     [[xtriggers]]
-        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "integer_naming")
+        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "t15_naming")
     [[graph]]
         R1 = """
             verify_config =>
@@ -16,8 +17,8 @@
                 & verify_met_model
         """
         +P1/P1 = """
-            @catch_raw => _catch_raw => raw_to_mzml => mzml_to_peaks &
-                get_run_timestamp => peaks_to_matches => quantify
+            @catch_raw => _catch_raw => raw_to_mzml => get_run_timestamp =>
+                mzml_to_peaks => peaks_to_matches => quantify
         """
         +P3/P1 = """
             quantify & quantify[-P1] & quantify[-P2] => model_fluxes
@@ -26,15 +27,15 @@
 {% if cfg__toggle_influxdb %}
         R1 = verify_config => setup_influxdb_config => ping_influxdb_server => create_run_bucket
         +P1/P1 = """
-            quantify => format_peaks => upload_peaks
-            quantify => format_concentrations => upload_concentrations
+            quantify => upload_features
+            # quantify => upload_concentrations
         """
-        +P3/P1 = """
-            model_fluxes => format_fluxes => upload_fluxes
-            model_fluxes => format_metadata => upload_metadata
-        """
+        # +P3/P1 = """
+        #    model_fluxes => upload_fluxes
+        #    model_fluxes => upload_metadata
+        # """
 {% endif %}
-        
+
     [[queues]]
         [[[default]]]
             limit = 10
@@ -103,12 +104,17 @@
                 --outdir ${outdir} \
                 --threshold ${threshold}
             mv ${outdir}/*.png ${plotdir}
+
+        sed "1s|^|datetime;instrument_id;|" ${outdir}/${RAWFILE_STEM}.features.csv | \
+            sed "2,$ s|^|$RUN_TIMESTAMP;$spectrometer_id;|" > ${shared_features_file}
         """
         [[[environment]]]
             threshold = {{ cfg__tic_threshold }}
             file = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
-            outdir = ${ROSE_DATAC}/${MAIN_RESULTS}
+            outdir = ${CYLC_TASK_WORK_DIR}
             plotdir = ${ROSE_DATAC}/${QUALITY_CHECKS}
+            shared_features_file = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.features.csv
+            spectrometer_id = {{ cfg__spectrometer_id }}
     [[peaks_to_matches]]
         inherit = None, DATAMUNGING_ENV
         script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("ppm_tol"))'
@@ -127,7 +133,7 @@
     [[INFLUXDB]]
         [[[environment]]]
             configs_path = ${ROSE_DATA}/influxdb-config.ini
-            config_name = ${CYLC_WORKFLOW_NAME}
+            config_name = influx2
             bucket_name = ${CYLC_WORKFLOW_ID}
     [[setup_influxdb_config]]
         inherit = INFLUXDB
@@ -160,12 +166,21 @@
         script = echo "Formatting ${input}! (TODO)"
     [[INFLUXDB_UPLOADING]]
         inherit = INFLUXDB, INFLUX_ENV
-        script = echo "Uploading ${input}! (TODO)" 
-    [[format<main_results>]]
+        script = """
+            influxdb-upload \
+                --ini ${configs_path} \
+                --bucket ${bucket_name} \
+                --table ${table} \
+                --dir ${dir} \
+                --schemas ${schemas} \
+        """
+    [[format<results>]]
         inherit = INFLUXDB_FORMATTING
         [[[environment]]]
-            input = ${CYLC_TASK_PARAM_main_results}
-    [[upload<main_results>]]
+            input = ${CYLC_TASK_PARAM_results}
+    [[upload<results>]]
         inherit = INFLUXDB_UPLOADING
         [[[environment]]]
-            input = ${CYLC_TASK_PARAM_main_results}
+            table = ${CYLC_TASK_PARAM_results}
+            dir = ${ROSE_DATAC}/${MAIN_RESULTS}
+            schemas = ${CYLC_WORKFLOW_RUN_DIR}/meta/data_formats/tables_schemas.json

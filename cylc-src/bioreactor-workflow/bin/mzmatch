@@ -1,4 +1,7 @@
+#! /usr/bin/env python3
+
 import math
+import argparse
 from pathlib import Path
 
 import pandas as pd
@@ -34,10 +37,8 @@ def match(db_path: Path, query_path: Path, mz_tol: float) -> None:
     )  # Removes .features.csv
 
     # Define output files paths
-    output_file_matches = Path(f"{query_dir}/{query_stem}.matches.csv")
-    output_file_annotated_query = Path(
-        f"{query_dir}/{query_stem}.features.annotated.csv"
-    )
+    output_file_matches = Path(f"{query_stem}.matches.csv")
+    output_file_annotated_query = Path(f"{query_stem}.features.annotated.csv")
 
     database[pol_db] = database[pol_db].apply(lambda x: math.copysign(1, x))
     database[pol_db] = database[pol_db].map({1: "p", -1: "n"})
@@ -65,3 +66,32 @@ def match(db_path: Path, query_path: Path, mz_tol: float) -> None:
 
     matches.to_csv(output_file_matches, sep=";", index=False, float_format="%.5f")
     query.to_csv(output_file_annotated_query, sep=";", index=False)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Matches peaks from a query file on a database file."
+    )
+    parser.add_argument(
+        "--db",
+        type=Path,
+        help="Path to the database file (features.csv).",
+    )
+    parser.add_argument(
+        "--query",
+        type=Path,
+        help="Path to the query file (features.csv).",
+    )
+    parser.add_argument(
+        "--ppm",
+        type=float,
+        help="Tolerance in ppm for the m/z matching.",
+    )
+
+    args = parser.parse_args()
+
+    match(args.db, args.query, args.ppm)
+
+
+if __name__ == "__main__":
+    main()

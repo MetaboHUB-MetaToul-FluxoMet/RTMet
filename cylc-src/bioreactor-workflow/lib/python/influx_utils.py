@@ -7,11 +7,10 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from dataclasses import dataclass
-import pandas as pd
 import json
+import pandas as pd
 
 from influxdb_client import InfluxDBClient
-from influxdb_client.extras import np
 
 
 # Enable logging for DataFrame serializer
@@ -49,22 +48,6 @@ class MeasurementDataFrame:
     time_col: str = "datetime"
 
 
-# def data_frame_from_csv(csv_path: str, sep: str = ";", time: datetime = None):
-#     """
-#     Read CSV to DataFrame
-#     """
-#     print()
-#     print("=== Reading CSV to DataFrame ===")
-#     print()
-#     data_frame = pd.read_csv(Path(csv_path), sep=sep)
-#     if time:
-#         data_frame["time"] = time
-#     else:
-#         data_frame["time"] = datetime.now()
-#     print(data_frame)
-#     return data_frame
-
-
 def load_tables_schemas(json_path: str) -> dict:
     """
     Load tables schemas from JSON file
@@ -100,7 +83,9 @@ def measurement_df_from_csv(
     return MeasurementDataFrame(dataframe, table_name, tags, datetime_col)
 
 
-def ingest(measurement_df: MeasurementDataFrame, client: InfluxDBClient, bucket: str):
+def ingest(
+    measurement_df: MeasurementDataFrame, client: InfluxDBClient, bucket: str
+) -> None:
     start_time = datetime.now()
     with client.write_api() as write_api:
         write_api.write(

@@ -9,7 +9,7 @@
     cycling mode = integer
     initial cycle point = 0
     [[xtriggers]]
-        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "t15_naming")
+        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "integer_naming")
     [[graph]]
         R1 = """
             verify_config =>
@@ -28,7 +28,7 @@
         R1 = verify_config => setup_influxdb_config => ping_influxdb_server => create_run_bucket
         +P1/P1 = """
             quantify => upload_features
-            # quantify => upload_concentrations
+            quantify => upload_concentrations
         """
         # +P3/P1 = """
         #    model_fluxes => upload_fluxes
@@ -49,7 +49,9 @@
         # ROSE_DATAC=$CYLC_WORKFLOW_SHARE_DIR/cycle/n
         env-script = $(eval rose task-env)
         [[[environment]]]
-            # Dir names in ROSE_DATAC
+            # Directory (starting from workflow root) where user input should be stored
+            USER_DATA = config
+            # Runtime dir names in ROSE_DATAC
             MAIN_RESULTS = dataflow
             QUALITY_CHECKS = qc
     [[verify_config]]
@@ -69,6 +71,7 @@
                 -s "[environment]RAWFILE_STEM=$(basename "$catch_raw_file" .raw)"
         """
     [[raw_to_mzml]]
+        # Transforms a raw file to mzML
         inherit = None, TRFP_ENV
         script = """
             mkdir -p ${output}
@@ -83,45 +86,68 @@
             metadata = json
             input = ${RAWFILE_PATH}
             output = ${ROSE_DATAC}/${MAIN_RESULTS}
-    [[get_run_timestamp]] # regex should be replaced with XML parsing
+    [[get_run_timestamp]]
+        # Extracts the spectrometer start timestamp from the mzML file
+        # Regex should be replaced with XML parsing.
         script = """
-            MZML_FILE=${mzml_file}
-            RUN_TIMESTAMP=$(grep '<run' ${MZML_FILE} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
+            RUN_TIMESTAMP=$(grep '<run' ${mzml} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
             
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
                 -p "${CYLC_TASK_CYCLE_POINT}" \
                 -s "[environment]RUN_TIMESTAMP=${RUN_TIMESTAMP}"
         """
         [[[environment]]]
-            mzml_file = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
+            mzml = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
+    [[FORMAT_TABLE]]
+        # Add metadata columns (datetime, cycle, instrument_id)
+        # Necessary for InfluxDB
+        post-script = """
+            mkdir -p ${results_dir}
+            cat ${table} | \
+                sed "1s|^|datetime;cycle;instrument_id;|" | \
+                sed "2,$ s|^|$timestamp;$cycle;$spectrometer_id;|" > \
+                ${results_dir}/${table}
+        """
+        [[[environment]]]
+            table = NULL
+            results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
+            timestamp = ${RUN_TIMESTAMP}
+            cycle = ${CYLC_TASK_CYCLE_POINT}
+            spectrometer_id = {{ cfg__spectrometer_id }}
     [[mzml_to_peaks]]
-        inherit = None, BINNER_ENV
+        # Generates a feature table from the mzML file
+        inherit = None, BINNER_ENV, FORMAT_TABLE
         script = """
-            mkdir -p ${outdir}
-            mkdir -p ${plotdir}
+            mkdir -p ${qc_dir}
             binner-cli \
-                --file ${file} \
-                --outdir ${outdir} \
+                --file ${mzml} \
                 --threshold ${threshold}
-            mv ${outdir}/*.png ${plotdir}
-
-        sed "1s|^|datetime;instrument_id;|" ${outdir}/${RAWFILE_STEM}.features.csv | \
-            sed "2,$ s|^|$RUN_TIMESTAMP;$spectrometer_id;|" > ${shared_features_file}
+            mv *.png ${qc_dir}
+            # FORMAT_TABLE post-script
         """
         [[[environment]]]
             threshold = {{ cfg__tic_threshold }}
-            file = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
-            outdir = ${CYLC_TASK_WORK_DIR}
-            plotdir = ${ROSE_DATAC}/${QUALITY_CHECKS}
-            shared_features_file = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.features.csv
-            spectrometer_id = {{ cfg__spectrometer_id }}
+            mzml = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
+            qc_dir = ${ROSE_DATAC}/${QUALITY_CHECKS}
+            table = ${RAWFILE_STEM}.features.csv
     [[peaks_to_matches]]
-        inherit = None, DATAMUNGING_ENV
-        script = python -c 'import os, mzmatch; mzmatch.match(os.getenv("db_path"), os.getenv("query_path"), os.getenv("ppm_tol"))'
+        # Annotates features with a molecular database
+        inherit = None, DATAMUNGING_ENV, FORMAT_TABLE
+        script = """
+            mzmatch \
+                --db ${db_path} \
+                --query ${query_path} \
+                --ppm ${ppm_tol}
+            mv ${annotated_features} ${results_dir}
+            # FORMAT_TABLE post-script
+        """
         [[[environment]]]
-            db_path = ${CYLC_WORKFLOW_RUN_DIR}/config/{{ cfg__mol_database }}
+            db_path = ${CYLC_WORKFLOW_RUN_DIR}/${USER_DATA}/{{ cfg__mol_database }}
             query_path = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.features.csv
             ppm_tol = {{ cfg__ppm_tol }}
+            results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
+            annotated_features = ${RAWFILE_STEM}.features.annotated.csv
+            table = ${RAWFILE_STEM}.matches.csv
 
 
     [[quantify]]
@@ -129,6 +155,7 @@
         script = echo "quantify TODO"
     [[model_fluxes]]
         script = echo "model_fluxes TODO"
+
 
     [[INFLUXDB]]
         [[[environment]]]
@@ -161,9 +188,6 @@
                 --configs-path ${configs_path} \
                 --active-config ${config_name}
         """
-    [[INFLUXDB_FORMATTING]]
-        inherit = INFLUXDB, INFLUX_ENV
-        script = echo "Formatting ${input}! (TODO)"
     [[INFLUXDB_UPLOADING]]
         inherit = INFLUXDB, INFLUX_ENV
         script = """
@@ -174,10 +198,6 @@
                 --dir ${dir} \
                 --schemas ${schemas} \
         """
-    [[format<results>]]
-        inherit = INFLUXDB_FORMATTING
-        [[[environment]]]
-            input = ${CYLC_TASK_PARAM_results}
     [[upload<results>]]
         inherit = INFLUXDB_UPLOADING
         [[[environment]]]

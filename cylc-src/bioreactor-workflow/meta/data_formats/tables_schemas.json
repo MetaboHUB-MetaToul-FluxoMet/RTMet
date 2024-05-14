@@ -19,7 +19,7 @@
             ]
         },
         "concentrations": {
-            "suffix": "matches.csv",
+            "suffix": "concentrations.csv",
             "datetime_column": "datetime",
             "fields": {
                 "cycle": "int",

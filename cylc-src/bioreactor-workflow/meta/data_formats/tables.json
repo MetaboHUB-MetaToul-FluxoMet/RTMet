@@ -1,0 +1,39 @@
+{
+    "sep": ";",
+    "datetime_column": "datetime",
+    "tables": {
+        "features": {
+            "suffix": "features.merged.csv",
+            "fields": {
+                "cycle": "int",
+                "mz": "float",
+                "intensity": "float",
+                "purity": "float",
+                "centrality": "float"
+            },
+            "tags": [
+                "instrument_id",
+                "polarity",
+                "bin",
+                "merged_peak"
+            ]
+        },
+        "concentrations": {
+            "suffix": "matches.quantified.csv",
+            "fields": {
+                "concentration": "float",
+                "feature_mz": "float",
+                "delta_ppm": "float",
+                "intensity": "float",
+                "relative_c": "float",
+                "absolute_c": "float"
+            },
+            "tags": [
+                "instrument_id",
+                "isobaric_id",
+                "std_id",
+                "feature_polarity"
+            ]
+        }
+    }
+}

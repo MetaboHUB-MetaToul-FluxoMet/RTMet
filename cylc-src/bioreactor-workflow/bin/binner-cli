@@ -53,8 +53,8 @@ option_list <- list(
     metavar = "character"
   ),
   optparse::make_option(c("-o", "--outdir"),
-    type = "character", default = NULL,
-    help = "Output directory path [default = input location]",
+    type = "character", default = getwd(),
+    help = "Output directory path [default = working directory]",
     metavar = "character"
   ),
   optparse::make_option(c("-t", "--threshold"),

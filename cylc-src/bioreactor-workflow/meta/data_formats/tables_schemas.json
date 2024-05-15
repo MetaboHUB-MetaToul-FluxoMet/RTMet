@@ -1,0 +1,66 @@
+{
+    "sep": ";",
+    "tables": {
+        "features": {
+            "suffix": "features.csv",
+            "datetime_column": "datetime",
+            "fields": {
+                "cycle": "int",
+                "mz": "float",
+                "intensity": "float",
+                "purity": "float",
+                "centrality": "float"
+            },
+            "tags": [
+                "instrument_id",
+                "polarity",
+                "bin",
+                "merged_peak"
+            ]
+        },
+        "concentrations": {
+            "suffix": "concentrations.csv",
+            "datetime_column": "datetime",
+            "fields": {
+                "cycle": "int",
+                "concentration": "float",
+                "feature_mz": "float",
+                "delta_ppm": "float",
+                "intensity": "float",
+                "relative_c": "float",
+                "absolute_c": "float"
+            },
+            "tags": [
+                "instrument_id",
+                "isobaric_id",
+                "std_id",
+                "feature_polarity"
+            ]
+        },
+        "cycles_metadata": {
+            "suffix": "metadata.csv",
+            "datetime_column": "datetime",
+            "fields": {
+                "cycle": "int",
+                "n_features": "int",
+                "n_matches": "int"
+            }
+        },
+        "workflow_run": {
+            "suffix": "run_metadata.csv",
+            "datetime_column": "datetime",
+            "fields": {
+                "run_directory": "str",
+                "injection_volume": "float",
+                "injection_volume_units": "str",
+                "injection_time": "float",
+                "injection_time_units": "str",
+                "cfg__mol_database": "str",
+                "cfg__spectrometer_id": "str",
+                "cfg__tic_threshold": "float",
+                "cfg__ppm_tolerance": "float",
+                "cfg__keep_mzml": "bool"
+            }
+        }
+    }
+}

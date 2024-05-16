@@ -114,6 +114,10 @@ The raws files you provide should be numbered that way:
 - `yourexperimentname_17.raw`
 - ...
 
+## 🪲 Bugs and feature requests
+
+If you have an idea on how we could improve RTMet please submit a new *issue*
+to [our GitHub issue tracker](https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/issues).
 
 ## 🚀 Roadmap
 
@@ -122,3 +126,7 @@ The raws files you provide should be numbered that way:
 - Try building a [Docker](https://www.docker.com/) image for the whole workflow,
 - Validate user input when launching the workflow (and assume it is clean in subsequent tasks),
 - ...
+
+## 📧 Contact
+
+Elliot Fontaine, fontain@insa-toulouse.fr

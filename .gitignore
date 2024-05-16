@@ -162,4 +162,3 @@ cylc-src/runtime-introduction/
 cylc-src/datetime-cycling/
 
 cylc-src/bioreactor-workflow/bin/influx
-cylc-src/bioreactor-workflow/config/config.ini

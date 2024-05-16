@@ -1,9 +1,9 @@
 #!Jinja2
 
-{% set conda_envs = {'TRFP_ENV': 'wf-trfp',
-                       'BINNER_ENV': 'wf-binner',
-                       'DATAMUNGING_ENV': 'wf-datamunging',
-                       'INFLUX_ENV': 'wf-influx'} %}
+{% set conda_envs = {'CONDA_TRFP': 'wf-trfp',
+                       'CONDA_BINNER': 'wf-binner',
+                       'CONDA_DATAMUNGING': 'wf-datamunging',
+                       'CONDA_INFLUX': 'wf-influx'} %}
 
 [runtime]
 {% for env, conda_env_name in conda_envs.items() %}    

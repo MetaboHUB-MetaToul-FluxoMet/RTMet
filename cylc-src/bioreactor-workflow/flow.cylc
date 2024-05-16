@@ -75,7 +75,7 @@
         """
     [[raw_to_mzml]]
         # Transforms a raw file to mzML
-        inherit = None, TRFP_ENV
+        inherit = None, CONDA_TRFP
         script = """
             mkdir -p ${output}
             thermorawfileparser \
@@ -119,7 +119,7 @@
             spectrometer_id = {{ cfg__spectrometer_id }}
     [[mzml_to_peaks]]
         # Generates a feature table from the mzML file
-        inherit = None, BINNER_ENV, FORMAT_TABLE
+        inherit = None, CONDA_BINNER, FORMAT_TABLE
         script = """
             mkdir -p ${qc_dir}
             binner-cli \
@@ -134,7 +134,7 @@
             table = ${RAWFILE_STEM}.features.csv
     [[peaks_to_matches]]
         # Annotates features with a molecular database
-        inherit = None, DATAMUNGING_ENV, FORMAT_TABLE
+        inherit = None, CONDA_DATAMUNGING, FORMAT_TABLE
         script = """
             mzmatch \
                 --db ${db_path} \
@@ -150,7 +150,7 @@
             annotated_features = ${RAWFILE_STEM}.features.annotated.csv
             table = ${RAWFILE_STEM}.matches.csv
     [[quantify]]
-        inherit = None, DATAMUNGING_ENV
+        inherit = None, CONDA_DATAMUNGING
         script = cp ${results_dir}/${matches} ${results_dir}/${concentrations}
         [[[environment]]]
             matches = ${RAWFILE_STEM}.matches.csv
@@ -192,7 +192,7 @@
                 --active-config ${config_name}
         """
     [[upload<results>]]
-        inherit = INFLUXDB, INFLUX_ENV
+        inherit = INFLUXDB, CONDA_INFLUX
         script = """
             influxdb-upload \
                 --ini ${configs_path} \

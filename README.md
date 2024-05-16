@@ -114,6 +114,8 @@ The raws files you provide should be numbered that way:
 - `yourexperimentname_17.raw`
 - ...
 
+The workflow will automatically detect the files and process them. Results (metabolites, concentrations, etc) are in `share/cycle/N/` of the run directory. 
+
 ## 🪲 Bugs and feature requests
 
 If you have an idea on how we could improve RTMet please submit a new *issue*

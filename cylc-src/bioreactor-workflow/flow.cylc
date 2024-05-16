@@ -6,7 +6,7 @@
 # Rose will loads rose-suite.conf, which is a symlink to the actual user config.
 
 # Create task families for conda environments.
-%include 'envs/envs.cylc'
+%include 'envs/conda.cylc'
 
 [task parameters]
     #main_results = peaks, concentrations, fluxes, metadata

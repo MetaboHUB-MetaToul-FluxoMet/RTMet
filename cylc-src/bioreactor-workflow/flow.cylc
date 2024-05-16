@@ -1,5 +1,11 @@
 #!Jinja2
 
+# This workflow uses Jinja2 templating.
+# It also uses Rose (and cylc-rose) for user configuration.
+
+# Rose will loads rose-suite.conf, which is a symlink to the actual user config.
+
+# Create task families for conda environments.
 %include 'envs/envs.cylc'
 
 [task parameters]

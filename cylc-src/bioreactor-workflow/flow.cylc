@@ -1,9 +1,12 @@
 #!Jinja2
 
-# This workflow uses Jinja2 templating.
-# It also uses Rose (and cylc-rose) for user configuration.
-
-# Rose will loads rose-suite.conf, which is a symlink to the actual user config.
+[meta]
+    title = RTMet: Real-Time Metabolomics using Mass Spectrometry
+    description = """
+        This workflow uses Jinja2 templating. It also uses Rose (and cylc-rose) for user configuration.
+        Rose will loads rose-suite.conf, which is a symlink to the actual user config.
+    """
+    URL = https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet
 
 # Create task families for conda environments.
 %include 'envs/conda.cylc'
@@ -11,6 +14,7 @@
 [task parameters]
     #main_results = peaks, concentrations, fluxes, metadata
     results = features, concentrations
+
 [scheduling]
     cycling mode = integer
     initial cycle point = 0
@@ -24,7 +28,6 @@
             is_setup[^] => _catch_raw
         """
         +P3/P1 = quantify & quantify[-P1] & quantify[-P2] => model_fluxes
-
 {% if cfg__toggle_influxdb %}
         R1/^ = verify_config => setup_influxdb_config => ping_influxdb_server => create_run_bucket => is_setup
         +P1/P1 = """
@@ -36,13 +39,13 @@
         #    model_fluxes => upload_metadata
         # """
 {% endif %}
-
     [[queues]]
         [[[default]]]
             limit = 10
         [[[large_jobs]]]
             limit = 5
             members = mzml_to_peaks, peaks_to_matches
+
 [runtime]
     [[root]]
         # See https://cylc.github.io/cylc-doc/latest/html/workflow-design-guide/general-principles.html#shared-task-io-paths
@@ -55,14 +58,25 @@
             # Runtime dir names in ROSE_DATAC
             MAIN_RESULTS = dataflow
             QUALITY_CHECKS = qc
+
     [[verify_config]]
         script = rose macro --validate --verbose
+        [[[meta]]]
+            title = "Validates the user configuration."
+
     [[verify_molecules_database]]
         script = echo "Verifying molecules database! (TODO)"
+        [[[meta]]]
+            title = "Validates the user-defined molecular database."
+
     [[verify_met_model]]
         script = echo "Verifying metabolic model! (TODO)"
+        [[[meta]]]
+            title = "Validates the user-defined metabolic model."
+
     [[is_setup]]
         script = echo "The workflow has been set up, ready to run!"
+
     [[_catch_raw]]
         script = """
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
@@ -73,8 +87,10 @@
                 -p "${CYLC_TASK_CYCLE_POINT}" \
                 -s "[environment]RAWFILE_STEM=$(basename "$catch_raw_file" .raw)"
         """
+        [[[meta]]]
+            title = "Propagates raw file path and stem to downstream tasks."
+
     [[raw_to_mzml]]
-        # Transforms a raw file to mzML
         inherit = None, CONDA_TRFP
         script = """
             mkdir -p ${output}
@@ -89,8 +105,10 @@
             metadata = json
             input = ${RAWFILE_PATH}
             output = ${ROSE_DATAC}/${MAIN_RESULTS}
+        [[[meta]]]
+            title = "Converts a raw files to mzML and extracts run metadata."
+
     [[get_run_timestamp]]
-        # Extracts the spectrometer start timestamp from the mzML file
         # Regex should be replaced with XML parsing.
         script = """
             RUN_TIMESTAMP=$(grep '<run' ${mzml} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
@@ -101,9 +119,10 @@
         """
         [[[environment]]]
             mzml = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
+        [[[meta]]]
+            title = "Extracts the spectrometer run timestamp from the mzML file."
+
     [[FORMAT_TABLE]]
-        # Add metadata columns (datetime, cycle, instrument_id)
-        # Necessary for InfluxDB
         post-script = """
             mkdir -p ${results_dir}
             cat ${table} | \
@@ -117,8 +136,10 @@
             timestamp = ${RUN_TIMESTAMP}
             cycle = ${CYLC_TASK_CYCLE_POINT}
             spectrometer_id = {{ cfg__spectrometer_id }}
+        [[[meta]]]
+            title = "Add metadata columns (datetime, cycle, instrument_id) prior to their upload to InfluxDB"
+
     [[mzml_to_peaks]]
-        # Generates a feature table from the mzML file
         inherit = None, CONDA_BINNER, FORMAT_TABLE
         script = """
             mkdir -p ${qc_dir}
@@ -132,8 +153,10 @@
             mzml = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
             qc_dir = ${ROSE_DATAC}/${QUALITY_CHECKS}
             table = ${RAWFILE_STEM}.features.csv
+        [[[meta]]]
+            title = "Generates a feature table from the mzML file using spectral binning."
+
     [[peaks_to_matches]]
-        # Annotates features with a molecular database
         inherit = None, CONDA_DATAMUNGING, FORMAT_TABLE
         script = """
             mzmatch \
@@ -149,6 +172,9 @@
             results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
             annotated_features = ${RAWFILE_STEM}.features.annotated.csv
             table = ${RAWFILE_STEM}.matches.csv
+        [[[meta]]]
+            title = "Annotates features using a user-defined molecular database."
+
     [[quantify]]
         inherit = None, CONDA_DATAMUNGING
         script = cp ${results_dir}/${matches} ${results_dir}/${concentrations}
@@ -156,15 +182,23 @@
             matches = ${RAWFILE_STEM}.matches.csv
             concentrations = ${RAWFILE_STEM}.concentrations.csv
             results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
+        [[[meta]]]
+            title = "Relative and absolute quantification of metabolites."
+
     [[model_fluxes]]
         script = echo "model_fluxes TODO"
+        [[[meta]]]
+            title = "[TODO] Models fluxes using the user-defined metabolic model."
 
+###############################################################################
+# InfluxDB tasks
 
     [[INFLUXDB]]
         [[[environment]]]
             configs_path = ${ROSE_DATA}/influxdb-config.ini
             config_name = influx2
             bucket_name = ${CYLC_WORKFLOW_ID}
+
     [[setup_influxdb_config]]
         inherit = INFLUXDB
         script = """
@@ -179,9 +213,15 @@
             host_url = {{ cfg__influxdb_url }}
             token = {{ cfg__influxdb_auth_token }}
             org = {{ cfg__influxdb_org }}
+        [[[meta]]]
+            title = "Creates an InfluxDB configuration file based on user-defined variables."
+
     [[ping_influxdb_server]]
         inherit = INFLUXDB
         script = influx ping --configs-path ${configs_path} --active-config ${config_name}
+        [[[meta]]]
+            title = "Checks the connection to the InfluxDB server defined by the user."
+
     [[create_run_bucket]]
         inherit = INFLUXDB
         script = """
@@ -191,6 +231,9 @@
                 --configs-path ${configs_path} \
                 --active-config ${config_name}
         """
+        [[[meta]]]
+            title = "Creates a bucket in InfluxDB for the current workflow run."
+
     [[upload<results>]]
         inherit = INFLUXDB, CONDA_INFLUX
         script = """
@@ -205,3 +248,5 @@
             table = ${CYLC_TASK_PARAM_results}
             dir = ${ROSE_DATAC}/${MAIN_RESULTS}
             schemas = ${CYLC_WORKFLOW_RUN_DIR}/meta/data_formats/tables_schemas.json
+        [[[meta]]]
+            title = "Uploads results table to InfluxDB."

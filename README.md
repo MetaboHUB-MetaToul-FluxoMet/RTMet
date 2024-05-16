@@ -88,8 +88,7 @@ The file (`molecules_db.csv`) containing metabolites *m/z* for ions to be matche
 
 ## 🕹 How to use
 
-RTMet uses [Cylc](https://github.com/cylc/cylc-flow) as a workflow manager.
-So launching a run of (e.g. for a fed-batch run on your fermenter) is simply launching a run of the `bioreactor-workflow`.
+RTMet uses [Cylc](https://github.com/cylc/cylc-flow) as a workflow manager. So launching a run of the workflow (e.g. for a fed-batch run of your fermenter) is simply launching a run of the `bioreactor-workflow` with Cylc.
 
 ```bash
 # Validate, install, and run the workflow

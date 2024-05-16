@@ -4,13 +4,13 @@
 
 ## ⏱ What is RTMet ?
 
-**RTMet is a scientific software which aims to facilitate real-time monitoring of metabolites and reaction rates in a fermenter.**
+**RTMet is a scientific software which aims to facilitate real-time monitoring of metabolites and reaction rates in a bioreactor.**
 
-At its core, it is a data pipeline for targeted metabolomics that automatically processes raw data coming from a mass spectrometer, find metabolites, estimate fluxes, and send a feedback command to the fermenter.
+At its core, it is a data pipeline for targeted metabolomics that automatically processes raw data coming from a mass spectrometer, find metabolites, estimate fluxes, and send a feedback command to the bioreactor.
 
 The main goals are:
-- Allowing researchers to monitor in real time what is happening in the fermenter, at the chemical level.
-- Better control over the growth of micro-organisms and the bioprocesses at play, by automatically changing the fermenter parameters.
+- Allowing researchers to monitor in real time what is happening in the bioreactor, at the chemical level.
+- Better control over the growth of micro-organisms and the bioprocesses at play, by automatically changing the bioreactor parameters.
 
 ![Workflow Diagram](/workflow.png?raw=true "RTMet Workflow")
 
@@ -22,7 +22,7 @@ The main goals are:
 - 🟠 Process mass spectrometry data to find present metabolites and quantify them,
 - 🔴 Estimate extra-cellular and intra-cellular reaction rates and metabolic fluxes,
 - 🟢 Upload results to an InfluxDB instance (optional) to allow real-time plotting and easy query,
-- 🔴 Send a feedback command to the fermenter.
+- 🔴 Send a feedback command to the bioreactor.
 
 ## 📥 Quick Install
 
@@ -88,7 +88,7 @@ The file (`molecules_db.csv`) containing metabolites *m/z* for ions to be matche
 
 ## 🕹 How to use
 
-RTMet uses [Cylc](https://github.com/cylc/cylc-flow) as a workflow manager. So launching a run of the workflow (e.g. for a fed-batch run of your fermenter) is simply launching a run of the `bioreactor-workflow` with Cylc.
+RTMet uses [Cylc](https://github.com/cylc/cylc-flow) as a workflow manager. So launching a run of the workflow (e.g. for a fed-batch run of your bioreactor) is simply launching a run of the `bioreactor-workflow` with Cylc.
 
 ```bash
 # Validate, install, and run the workflow

@@ -112,7 +112,7 @@
         # Regex should be replaced with XML parsing.
         script = """
             RUN_TIMESTAMP=$(grep '<run' ${mzml} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
-            
+
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
                 -p "${CYLC_TASK_CYCLE_POINT}" \
                 -s "[environment]RUN_TIMESTAMP=${RUN_TIMESTAMP}"

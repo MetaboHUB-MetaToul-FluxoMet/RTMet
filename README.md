@@ -1,4 +1,6 @@
 # RTMet: Real-Time Metabolomics using Mass Spectrometry
+[![Documentation Status](https://readthedocs.org/projects/rtmet/badge/?version=latest)](https://rtmet.readthedocs.io/en/latest/?badge=latest) ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/MetaboHUB-MetaToul-FluxoMet/RTMet/main)
+
 
 🏗 **[WORK IN PROGRESS]** 🏗
 

@@ -2,6 +2,7 @@
 *[🇬🇧] Draft (in french) for documentation.*
 
 La documentation suit les principes décrits par [Diátaxis](https://diataxis.fr/).
+
 <img src="https://diataxis.fr/_images/diataxis.png" alt="Diátaxis Quadrant" width="300" />
 
 ## À quoi sert RTMet? *( Is RTMet for me ?)*

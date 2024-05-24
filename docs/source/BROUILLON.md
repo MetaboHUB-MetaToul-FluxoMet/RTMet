@@ -2,6 +2,7 @@
 *[🇬🇧] Draft (in french) for documentation.*
 
 La documentation suit les principes décrits par [Diátaxis](https://diataxis.fr/).
+
 <img src="https://diataxis.fr/_images/diataxis.png" alt="Diátaxis Quadrant" width="300" />
 
 ## À quoi sert RTMet? *( Is RTMet for me ?)*
@@ -32,11 +33,11 @@ Présupposé pour le real-time: vous avez déjà automatisé le couplage prélè
     - Décrire les données produites
 
 - How-to (ou Tuto?): offline avec vos propres données:
-    - modifier config globale: 
+    - modifier config utilisateur (source): 
         - vos métabolites d'intérêt
         - choix %TIC: décider en traitant manuellement un échantillon avec `binner-cli`
         - Tolérance (ppm) pour l'identification
-    - installer la run
+    - créer la run
     - mettre vos `.raws` (bien nommés) dans raws/
     - puis comme le tuto précédent
 
@@ -46,6 +47,10 @@ Présupposé pour le real-time: vous avez déjà automatisé le couplage prélè
     - Lancer, Arreter, Réinstaller, Logs, ...
 
 - How-To: Comment visualiser ses résultats avec InfluxDB ?
+    - Prérequis: InfluxDB *(redirige vers)*
+    - Filtrer données
+    - Choisir type de graphique
+    - Créer un dashboard
 
 - How-to: automatisation de l'échantillonnage et de l'acquisition. Rediriger vers [Cortada-Garcia et al.](https://doi.org/10.1002%2Fbit.28173) et autres publis
 

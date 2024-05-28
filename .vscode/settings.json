@@ -13,4 +13,7 @@
     "[shellscript]": {
         "editor.rulers": [80]
     },
+    "[cylc]": {
+        "editor.rulers": [100]
+    }
 }

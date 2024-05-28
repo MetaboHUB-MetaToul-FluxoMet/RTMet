@@ -1,92 +1,120 @@
-"""Catch when a ThermoFisher raw file has been created"""
+"""
+Cylc xtrigger script. Monitor the presence of a completed raw file,
+either locally or remotely.
+Catch when a ThermoFisher raw file has been created.
+"""
 
 from pathlib import Path
-from datetime import datetime
-from typing import Callable
-import logging
-#import yaml
+from typing import Callable, Optional
 
-# DO NOT PRINT ANYTHING TO STDOUT, IT'S RESERVED TO THE RESULT OF CATCH_RAW
+from fabric import Connection
+import filenamesutil as fnu
 
-logging.basicConfig(level=logging.DEBUG)
+# Using the logging module won't work because Cylc handles everything
+# behind the scenes.
+# But if you use print() and set the --debug flag when launching
+# `cylc play`, Cylc will show the print() output in the scheduler log.
 
-def catch_raw(point: str, workflow_run_dir: str, filename_rule_input: str, rawfiles_dir_input = None) -> tuple[bool, dict]:
-    """Return {True, {'file': Path, 'time': str} if a raw file following the rule
-    with n the cycle number is present in the rawfiles_dir.
+
+def catch_raw(
+    point: str,
+    workflow_run_dir: str,
+    runs_raw_dir: str = "",
+    remote: bool = False,
+    host: str = None,
+) -> tuple[bool, dict]:
+    """Return {True, ......\n
     Return (False, {}) otherwise.
     """
+    print("Debug: 🟠 `catch_raw` debug statements.")
+
     point: int = int(point)
     workflow_run_dir: Path = Path(workflow_run_dir)
-    
-    if rawfiles_dir_input is not None and Path(rawfiles_dir_input).exists() and Path(rawfiles_dir_input).is_dir():
-        rawfiles_dir: Path = Path(rawfiles_dir_input)
-    else:
+
+    workflow_name: str = workflow_run_dir.name
+
+    self_contained = False
+    if not runs_raw_dir:
+        self_contained = True
         rawfiles_dir: Path = workflow_run_dir / "raws"
         rawfiles_dir.mkdir(exist_ok=True)
+    else:
+        rawfiles_dir: Path = Path(runs_raw_dir) / workflow_name
 
-    try:
-        filename_rule: Callable[[int, Path], bool] = getattr(FilenameRules, filename_rule_input)
-    except AttributeError:
-        # default rule
-        filename_rule: Callable[[int, Path], bool] = FilenameRules.integer_naming
+    if not remote:
+        rawfiles_dir = Path(rawfiles_dir).expanduser().resolve()
+        if not rawfiles_dir.exists() or not rawfiles_dir.is_dir():
+            print(f"Error: {rawfiles_dir} does not exist or is not a directory.")
+            return False, {}
+        filenames = fnu.get_local_filenames(rawfiles_dir)
+    else:
+        with Connection(host) as conn:
+            filenames = fnu.get_remote_filenames(conn, rawfiles_dir)
 
+    fn_components = [fnu.FileNameComponents.from_filename(f) for f in filenames]
 
-    #config_file: Path = workflow_run_dir / "config.yml"
-    #rawfiles_dir: Path = load_input_config(config_file)
-    
+    current_raw: Optional[str] = None
+    next_raw: Optional[str] = None
+    for fn in fn_components:
+        if is_cyclepoint_raw(point, fn):
+            current_raw = fn.to_string()
+        elif is_cyclepoint_raw(point + 1, fn):
+            next_raw = fn.to_string()
+        if current_raw and next_raw:
+            break
 
-    for filepath in rawfiles_dir.iterdir():
-        if (
-                filepath.is_file() and
-                filename_rule(point, filepath) and
-                not (filepath / ".lock").is_dir()
-                # lockdir are created by the scp daemon when the file is being
-                # copied and are removed when the copy is finished
-            ):
-            logging.debug("🛑 RAW FILE FOUND: %s", filepath)
-            return True, {
-                'file': str(filepath),
-                'time': get_file_datetime(filepath).strftime('%Y-%m-%d %H:%M:%S')
-            }
-    # No raw file found
-    logging.debug("🛑 No raw file found in %s", rawfiles_dir)
+    if current_raw:
+        raw_path = rawfiles_dir / Path(current_raw)
+        if next_raw or self_contained:
+            return True, {"raw_name": raw_path}
     return False, {}
 
-# def load_input_config(config_file: Path) -> Path:
-#     """Should be replaced by a call to the Cylc suite's configuration
-#     """
-#     with open(config_file, 'r', encoding='utf-8') as stream:
-#         try:
-#             wfconfig: dict = yaml.safe_load(stream)
-#             logging.debug("🛑 type of wfconfig: %s", type(wfconfig))
-#             rawfiles_dir: Path = Path(wfconfig["input-directory"])
-#         except yaml.YAMLError as exc:
-#             raise exc
-#         return rawfiles_dir
+    # for filepath in rawfiles_dir.iterdir():
+    #     if (
+    #         filepath.is_file()
+    #         and filename_rule(point, filepath)
+    #         and not (filepath / ".lock").is_dir()
+    #         # lockdir are created by the scp daemon when the file is being
+    #         # copied and are removed when the copy is finished
+    #     ):
+    #         return True, {
+    #             "file": str(filepath),
+    #             "working_dir": str(Path.cwd()),
+    #         }
+    # return False, {}
 
-def get_file_datetime(file: Path) -> datetime:
-    """Return the last modification time of the file."""
-    modification_time = file.stat().st_mtime
-    formatted_time: str = datetime.fromtimestamp(modification_time)
-    return formatted_time
 
-class FilenameRules:
-    """A class to store all the filename rules."""
+def is_cyclepoint_raw(point: int, filename: fnu.FileNameComponents) -> bool:
+    """Return True if the file name ends with _n where n is the cycle point
+    number. Zero padding (01, 001, etc. for 1) is supported.
+    """
+    if filename.extension == ".raw" and filename.stem_suffix.isdigit():
+        return int(filename.stem_suffix) == point
+    return False
 
-    @staticmethod
-    def integer_naming(point: int, filepath: Path) -> bool:
-        """Return True if the file name ends with _n.raw where n is the cycle point number.\n
-        Files are named like "file_01.raw" from 01 to 09 and "file_10.raw" from 10 to 99.
-        """
-        f_point: int = f'0{point}' if point <= 9 else point
-        return filepath.stem.endswith(f'_{f_point}') and filepath.suffix == '.raw'
 
-    @staticmethod
-    def t15_naming(point: int, filepath: Path) -> bool:
-        """Return True if the file name ends with _t[15*n-1].raw where n is the cycle point number."""
-        return filepath.stem.endswith(f'_t{15*(point-1)}') and filepath.suffix == '.raw'
+# class FilenameRules:
+#     """A class to store all the filename rules."""
 
-    @staticmethod
-    def t15_naming_210(point: int, filepath: Path) -> bool:
-        """Return True if the file name ends with _t[15*n-1].raw where n is the cycle point number."""
-        return filepath.stem.endswith(f'_t{15*(point-1)+210}') and filepath.suffix == '.raw'
+#     @staticmethod
+#     def is_integer_named(point: int, filestem: str) -> bool:
+#         """Return True if the file stem ends with _n where n is the cycle point
+#         number. Zero padding (01, 001, etc. for 1) is supported.
+#         """
+#         stem_suffix = filestem.split("_")[-1]
+#         return int(stem_suffix) == point if stem_suffix.isdigit() else False
+
+#     @staticmethod
+#     def t15_naming(point: int, filepath: Path) -> bool:
+#         """Return True if the file name ends with _t[15*n-1].raw where n is the cycle point
+#         number."""
+#         return filepath.stem.endswith(f"_t{15*(point-1)}") and filepath.suffix == ".raw"
+
+#     @staticmethod
+#     def t15_naming_210(point: int, filepath: Path) -> bool:
+#         """Return True if the file name ends with _t[15*n-1].raw where n is the cycle point
+#         number."""
+#         return (
+#             filepath.stem.endswith(f"_t{15*(point-1)+210}")
+#             and filepath.suffix == ".raw"
+#         )

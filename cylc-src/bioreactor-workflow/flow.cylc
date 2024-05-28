@@ -19,7 +19,7 @@
     cycling mode = integer
     initial cycle point = 0
     [[xtriggers]]
-        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', "integer_naming")
+        catch_raw = catch_raw('%(point)s', '%(workflow_run_dir)s', {{ cfg__runs_dir }}, {{ cfg__toggle_remote }}, {{ cfg__remote_host }})
     [[graph]]
         R1/^ = verify_config => verify_molecules_database & verify_met_model => is_setup
         +P1/P1 = """

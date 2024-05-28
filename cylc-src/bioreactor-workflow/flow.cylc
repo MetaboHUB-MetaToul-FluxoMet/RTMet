@@ -51,13 +51,17 @@
         # See https://cylc.github.io/cylc-doc/latest/html/workflow-design-guide/general-principles.html#shared-task-io-paths
         # ROSE_DATA=$CYLC_WORKFLOW_SHARE_DIR/data
         # ROSE_DATAC=$CYLC_WORKFLOW_SHARE_DIR/cycle/n
-        env-script = $(eval rose task-env)
+        env-script = """
+            $(eval rose task-env)
+            mkdir -p ${ROSE_DATAC}/dataflow
+            mkdir -p ${ROSE_DATAC}/qc
+        """
         [[[environment]]]
             # Directory (starting from workflow root) where user input should be stored
-            USER_DATA = config
+            USER_CONFIG_DIR = ${CYLC_WORKFLOW_RUN_DIR}/config
             # Runtime dir names in ROSE_DATAC
-            MAIN_RESULTS = dataflow
-            QUALITY_CHECKS = qc
+            MAIN_RESULTS_DIR = ${ROSE_DATAC}/dataflow
+            QC_RESULTS_DIR = ${ROSE_DATAC}/qc
 
     [[verify_config]]
         script = rose macro --validate --verbose
@@ -104,7 +108,7 @@
             format = mzml
             metadata = json
             input = ${RAWFILE_PATH}
-            output = ${ROSE_DATAC}/${MAIN_RESULTS}
+            output = ${MAIN_RESULTS_DIR}
         [[[meta]]]
             title = "Converts a raw files to mzML and extracts run metadata."
 
@@ -118,13 +122,12 @@
                 -s "[environment]RUN_TIMESTAMP=${RUN_TIMESTAMP}"
         """
         [[[environment]]]
-            mzml = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
+            mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
         [[[meta]]]
             title = "Extracts the spectrometer run timestamp from the mzML file."
 
     [[FORMAT_TABLE]]
         post-script = """
-            mkdir -p ${results_dir}
             cat ${table} | \
                 sed "1s|^|datetime;cycle;instrument_id;|" | \
                 sed "2,$ s|^|$timestamp;$cycle;$spectrometer_id;|" > \
@@ -132,7 +135,7 @@
         """
         [[[environment]]]
             table = _ # Defined in child tasks
-            results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
+            results_dir = ${MAIN_RESULTS_DIR}
             timestamp = ${RUN_TIMESTAMP}
             cycle = ${CYLC_TASK_CYCLE_POINT}
             spectrometer_id = {{ cfg__spectrometer_id }}
@@ -142,7 +145,6 @@
     [[mzml_to_peaks]]
         inherit = None, CONDA_BINNER, FORMAT_TABLE
         script = """
-            mkdir -p ${qc_dir}
             binner-cli \
                 --file ${mzml} \
                 --threshold ${threshold}
@@ -150,8 +152,8 @@
         """ # FORMAT_TABLE post-script
         [[[environment]]]
             threshold = {{ cfg__tic_threshold }}
-            mzml = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.mzML
-            qc_dir = ${ROSE_DATAC}/${QUALITY_CHECKS}
+            mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
+            qc_dir = ${QC_RESULTS_DIR}
             table = ${RAWFILE_STEM}.features.csv
         [[[meta]]]
             title = "Generates a feature table from the mzML file using spectral binning."
@@ -166,10 +168,10 @@
             mv ${annotated_features} ${results_dir}
         """ # FORMAT_TABLE post-script
         [[[environment]]]
-            db_path = ${CYLC_WORKFLOW_RUN_DIR}/${USER_DATA}/{{ cfg__mol_database }}
-            query_path = ${ROSE_DATAC}/${MAIN_RESULTS}/${RAWFILE_STEM}.features.csv
+            db_path = ${USER_CONFIG_DIR}/{{ cfg__mol_database }}
+            query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.csv
             ppm_tol = {{ cfg__ppm_tol }}
-            results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
+            results_dir = ${MAIN_RESULTS_DIR}
             annotated_features = ${RAWFILE_STEM}.features.annotated.csv
             table = ${RAWFILE_STEM}.matches.csv
         [[[meta]]]
@@ -177,11 +179,10 @@
 
     [[quantify]]
         inherit = None, CONDA_DATAMUNGING
-        script = cp ${results_dir}/${matches} ${results_dir}/${concentrations}
+        script = cp ${input} ${output}
         [[[environment]]]
-            matches = ${RAWFILE_STEM}.matches.csv
-            concentrations = ${RAWFILE_STEM}.concentrations.csv
-            results_dir = ${ROSE_DATAC}/${MAIN_RESULTS}
+            input = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.matches.csv
+            output = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.concentrations.csv
         [[[meta]]]
             title = "Relative and absolute quantification of metabolites."
 
@@ -198,6 +199,8 @@
             configs_path = ${ROSE_DATA}/influxdb-config.ini
             config_name = influx2
             bucket_name = ${CYLC_WORKFLOW_ID}
+        [[[meta]]]
+            title = "Family task to inherit InfluxDB configuration."
 
     [[setup_influxdb_config]]
         inherit = INFLUXDB
@@ -246,7 +249,7 @@
         """
         [[[environment]]]
             table = ${CYLC_TASK_PARAM_results}
-            dir = ${ROSE_DATAC}/${MAIN_RESULTS}
+            dir = ${MAIN_RESULTS_DIR}
             schemas = ${CYLC_WORKFLOW_RUN_DIR}/meta/data_formats/tables_schemas.json
         [[[meta]]]
             title = "Uploads results table to InfluxDB."

@@ -1,0 +1,16 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.rulers": [
+            {"column": 80, "color": "#99ff0011"},
+            {"column": 88, "color": "#ff660029"}
+        ]
+    },
+    "[r]": {
+        "editor.rulers": [80]
+    },
+    "[shellscript]": {
+        "editor.rulers": [80]
+    },
+}

@@ -5,7 +5,7 @@ Catch when a ThermoFisher raw file has been created.
 """
 
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
 from fabric import Connection
 import filenamesutil as fnu
@@ -44,14 +44,17 @@ def catch_raw(
     if not remote:
         rawfiles_dir = Path(rawfiles_dir).expanduser().resolve()
         if not rawfiles_dir.exists() or not rawfiles_dir.is_dir():
-            print(f"Error: {rawfiles_dir} does not exist or is not a directory.")
+            print(f"Error: 🔴 {rawfiles_dir} does not exist or is not a directory.")
             return False, {}
         filenames = fnu.get_local_filenames(rawfiles_dir)
     else:
         with Connection(host) as conn:
             filenames = fnu.get_remote_filenames(conn, rawfiles_dir)
 
+    print(f"Debug: 🟠 Filenames in {rawfiles_dir}: {filenames}")
+
     fn_components = [fnu.FileNameComponents.from_filename(f) for f in filenames]
+    print(f"Debug: 🟠 Filename components: {fn_components}")
 
     current_raw: Optional[str] = None
     next_raw: Optional[str] = None
@@ -64,9 +67,9 @@ def catch_raw(
             break
 
     if current_raw:
-        raw_path = rawfiles_dir / Path(current_raw)
+        raw_path = str(rawfiles_dir / Path(current_raw))
         if next_raw or self_contained:
-            return True, {"raw_name": raw_path}
+            return True, {"file": raw_path}
     return False, {}
 
     # for filepath in rawfiles_dir.iterdir():

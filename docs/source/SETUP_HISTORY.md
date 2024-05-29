@@ -1,4 +1,4 @@
-## Liste des commandes utilisées pour installer le projet
+## Commands used to install the project to the Debian virtual machine
 
 ```bash
 # Basic utilities not installed by default
@@ -50,3 +50,17 @@ sudo chmod +x ${WRAPPER_DIR}/rose
 for file in wf-*.yml; do conda env create -f $file; done
 ```
 ...
+
+
+## Installation InfluxDB
+[See official Documentation](https://docs.influxdata.com/influxdb/v2/install/?t=Linux#install-influxdb-as-a-service-with-systemd)
+```bash	
+# Ubuntu/Debian AMD64
+curl -LO https://download.influxdata.com/influxdb/releases/influxdb2_2.7.6-1_amd64.deb
+sudo dpkg -i influxdb2_2.7.6-1_amd64.deb
+
+sudo service influxdb start
+sudo service influxdb status
+
+# Create admin user and password and an organization
+```

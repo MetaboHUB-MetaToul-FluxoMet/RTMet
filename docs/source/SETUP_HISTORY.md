@@ -62,5 +62,42 @@ sudo dpkg -i influxdb2_2.7.6-1_amd64.deb
 sudo service influxdb start
 sudo service influxdb status
 
+# Create admin user+password and an organization
+# yourservername:8086
+
+# Enable TSL/SSL encryption (produces error)
+sudo openssl req -x509 -nodes -newkey rsa:2048 \
+  -keyout /etc/ssl/influxdb-selfsigned.key \
+  -out /etc/ssl/influxdb-selfsigned.crt \
+  -days 9999
+
+echo 'tls-cert = "/etc/ssl/influxdb-selfsigned.crt"' | sudo tee -a /etc/influxdb/config.toml
+echo 'tls-key = "/etc/ssl/influxdb-selfsigned.key"' | sudo tee -a /etc/influxdb/config.toml
+sudo service influxdb status # ERROR: doesn't work.
+
 # Create admin user and password and an organization
 ```
+
+## JupyterHub for Cylc
+
+Should work. I recommand using tmux to launch the hub in a persistant session.
+```bash	
+cylc hub
+```
+
+Trying to have tsl/ssl encryption. Doesn't work right now (to investigate)
+```
+sudo mkdir -p /etc/cylc/uiserver && cd $_
+sudo touch jupyter_config.py
+
+# generate certificates (./internal-ssl directory)
+cylc hub --generate-certs
+
+# Find and edit jupyterhub-config.py
+cylc hub --show-config
+#> Loaded config files:
+#/home/yourname/miniforge3/envs/cylc/lib/python3.9/site-packages/cylc/uiserver/jupyterhub_config.py
+
+# Creates errors...
+```
+

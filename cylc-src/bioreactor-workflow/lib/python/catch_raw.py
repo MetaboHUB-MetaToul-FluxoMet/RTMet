@@ -31,7 +31,7 @@ def catch_raw(
     point: int = int(point)
     workflow_run_dir: Path = Path(workflow_run_dir)
 
-    workflow_name: str = workflow_run_dir.name
+    run_name: str = workflow_run_dir.name
 
     self_contained = False
     if not runs_raw_dir:
@@ -39,7 +39,7 @@ def catch_raw(
         rawfiles_dir: Path = workflow_run_dir / "raws"
         rawfiles_dir.mkdir(exist_ok=True)
     else:
-        rawfiles_dir: Path = Path(runs_raw_dir) / workflow_name
+        rawfiles_dir: Path = Path(runs_raw_dir) / run_name
 
     if not remote:
         rawfiles_dir = Path(rawfiles_dir).expanduser().resolve()

@@ -72,20 +72,6 @@ def catch_raw(
             return True, {"file": raw_path}
     return False, {}
 
-    # for filepath in rawfiles_dir.iterdir():
-    #     if (
-    #         filepath.is_file()
-    #         and filename_rule(point, filepath)
-    #         and not (filepath / ".lock").is_dir()
-    #         # lockdir are created by the scp daemon when the file is being
-    #         # copied and are removed when the copy is finished
-    #     ):
-    #         return True, {
-    #             "file": str(filepath),
-    #             "working_dir": str(Path.cwd()),
-    #         }
-    # return False, {}
-
 
 def is_cyclepoint_raw(point: int, filename: fnu.FileNameComponents) -> bool:
     """Return True if the file name ends with _n where n is the cycle point
@@ -94,30 +80,3 @@ def is_cyclepoint_raw(point: int, filename: fnu.FileNameComponents) -> bool:
     if filename.extension == ".raw" and filename.stem_suffix.isdigit():
         return int(filename.stem_suffix) == point
     return False
-
-
-# class FilenameRules:
-#     """A class to store all the filename rules."""
-
-#     @staticmethod
-#     def is_integer_named(point: int, filestem: str) -> bool:
-#         """Return True if the file stem ends with _n where n is the cycle point
-#         number. Zero padding (01, 001, etc. for 1) is supported.
-#         """
-#         stem_suffix = filestem.split("_")[-1]
-#         return int(stem_suffix) == point if stem_suffix.isdigit() else False
-
-#     @staticmethod
-#     def t15_naming(point: int, filepath: Path) -> bool:
-#         """Return True if the file name ends with _t[15*n-1].raw where n is the cycle point
-#         number."""
-#         return filepath.stem.endswith(f"_t{15*(point-1)}") and filepath.suffix == ".raw"
-
-#     @staticmethod
-#     def t15_naming_210(point: int, filepath: Path) -> bool:
-#         """Return True if the file name ends with _t[15*n-1].raw where n is the cycle point
-#         number."""
-#         return (
-#             filepath.stem.endswith(f"_t{15*(point-1)+210}")
-#             and filepath.suffix == ".raw"
-#         )

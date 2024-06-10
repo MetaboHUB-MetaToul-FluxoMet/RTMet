@@ -51,5 +51,7 @@ def catch_raw_local(
             next_raw = str(filename)
         if current_raw and next_raw:
             raw_path = rawfiles_dir / Path(current_raw)
+            print(f"Debug: 🟢 Found raw file: {raw_path}")
             return True, {"file": str(raw_path)}
+    print("Error: 🔴 No corresponding raw file found.")
     return False, {}

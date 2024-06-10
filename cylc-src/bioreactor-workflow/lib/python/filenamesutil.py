@@ -1,6 +1,6 @@
 """
-This module contains utility functions based on the Fabric library.
-Used to run commands on remote servers. 
+This module contains utility functions to process raw files names. It is mainly
+used by the xtriggers in the bioreactor workflow.
 """
 
 from typing import Optional
@@ -8,22 +8,30 @@ from pathlib import Path, PurePath
 from dataclasses import dataclass
 
 
-def get_local_filenames(directory: Path) -> list[str]:
-    """Return a list of all filenames in a local directory."""
-    return [str(f) for f in directory.iterdir() if f.is_file()]
-
-
 @dataclass
 class FileNameComponents:
-    """Dataclass to hold the components of a file name."""
+    """Dataclass to hold the components of a file name.
+    Given that the file name is in the format `prefix_suffix.extension`, it
+    holds the `prefix`, `suffix` and `extension` separately.
+    """
 
     stem_prefix: Optional[str]
     stem_suffix: Optional[str]
     extension: Optional[str]
 
-    def to_string(self):
-        """Return the file name as a string."""
+    def __str__(self):
         return f"{self.stem_prefix}_{self.stem_suffix}{self.extension}"
+
+    def __repr__(self) -> str:
+        return f"FileNameComponents({self.stem_prefix}, {self.stem_suffix}, {self.extension})"
+
+    def is_cyclepoint_raw(self, point: int) -> bool:
+        """Return True if the file name ends with _n where n is the cycle point
+        number. Zero padding (01, 001, etc. for 1) is supported.
+        """
+        if self.extension == ".raw" and self.stem_suffix.isdigit():
+            return int(self.stem_suffix) == point
+        return False
 
     @staticmethod
     def from_path(filepath: PurePath):
@@ -46,3 +54,8 @@ class FileNameComponents:
     def from_filename(filename: str):
         """Return a FileNameComponents object from a string."""
         return FileNameComponents.from_path(PurePath(filename))
+
+
+def get_local_filenames(directory: Path) -> list[str]:
+    """Return a list of all filenames in a local directory."""
+    return [str(f) for f in directory.iterdir() if f.is_file()]

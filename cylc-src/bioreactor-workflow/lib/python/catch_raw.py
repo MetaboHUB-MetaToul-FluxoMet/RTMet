@@ -7,7 +7,6 @@ Catch when a ThermoFisher raw file has been created.
 from pathlib import Path
 from typing import Optional
 
-# from fabric import Connection
 import filenamesutil as fnu
 
 # Using the logging module won't work because Cylc handles everything
@@ -20,8 +19,6 @@ def catch_raw(
     point: str,
     workflow_run_dir: str,
     runs_raw_dir: str = "",
-    remote: bool = False,
-    host: str = None,
 ) -> tuple[bool, dict]:
     """Return {True, ......\n
     Return (False, {}) otherwise.
@@ -40,15 +37,11 @@ def catch_raw(
     else:
         rawfiles_dir: Path = Path(runs_raw_dir) / run_name
 
-    if not remote:
-        rawfiles_dir = Path(rawfiles_dir).expanduser().resolve()
-        if not rawfiles_dir.exists() or not rawfiles_dir.is_dir():
-            print(f"Error: 🔴 {rawfiles_dir} does not exist or is not a directory.")
-            return False, {}
-        filenames = fnu.get_local_filenames(rawfiles_dir)
-    # else:
-    #     with Connection(host) as conn:
-    #         filenames = fnu.get_remote_filenames(conn, rawfiles_dir)
+    rawfiles_dir = Path(rawfiles_dir).expanduser().resolve()
+    if not rawfiles_dir.exists() or not rawfiles_dir.is_dir():
+        print(f"Error: 🔴 {rawfiles_dir} does not exist or is not a directory.")
+        return False, {}
+    filenames = get_local_filenames(rawfiles_dir)
 
     print(f"Debug: 🟠 Filenames in {rawfiles_dir}: {filenames}")
 
@@ -70,6 +63,11 @@ def catch_raw(
         if next_raw or self_contained:
             return True, {"file": raw_path}
     return False, {}
+
+
+def get_local_filenames(directory: Path) -> list[str]:
+    """Return a list of all filenames in a local directory."""
+    return [str(f) for f in directory.iterdir() if f.is_file()]
 
 
 def is_cyclepoint_raw(point: int, filename: fnu.FileNameComponents) -> bool:

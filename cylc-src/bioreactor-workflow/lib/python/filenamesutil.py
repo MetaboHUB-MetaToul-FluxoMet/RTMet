@@ -7,16 +7,6 @@ from typing import Optional
 from pathlib import Path, PurePath
 from dataclasses import dataclass
 
-# from fabric import Connection, Result
-
-
-# def get_remote_filenames(conn: Connection, directory: Path) -> list[str]:
-#     """Return a list of all filenames in a remote directory.\n
-#     Doesn't open connections by itself, but uses the Connection object passed to
-#     it."""
-#     result: Result = conn.run(f"ls -1 -p {directory} | grep -v /", warn=True)
-#     return result.stdout.splitlines()
-
 
 def get_local_filenames(directory: Path) -> list[str]:
     """Return a list of all filenames in a local directory."""
@@ -56,14 +46,3 @@ class FileNameComponents:
     def from_filename(filename: str):
         """Return a FileNameComponents object from a string."""
         return FileNameComponents.from_path(PurePath(filename))
-
-
-if __name__ == "__main__":
-    HOST = "genobioinfo.toulouse.inrae.fr"
-    with Connection(HOST) as c:
-        filelist = get_remote_filenames(c, Path("~/save"))
-        c.get(f"save/{filelist[0]}", "/Users/elliotfontaine/Downloads/")
-    print(filelist)
-    print(type(filelist[0]))
-    a = FileNameComponents.from_path(PurePath("file_1.raw"))
-    print(a)

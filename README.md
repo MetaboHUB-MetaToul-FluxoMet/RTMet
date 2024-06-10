@@ -63,7 +63,7 @@ brew install bash coreutils gnu-sed
 # Create Conda environments used by workflow tasks
 for file in wf-*.yml; do conda env create -n $env_name -f $file; done
 conda activate wf-binner
-Rscript -e 'remotes::install_github('aberHRML/binneR')'
+Rscript -e 'remotes::install_github("aberHRML/binneR")'
 conda deactivate
 ```
 

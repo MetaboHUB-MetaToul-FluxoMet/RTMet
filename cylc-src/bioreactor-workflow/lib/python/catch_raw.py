@@ -7,7 +7,7 @@ Catch when a ThermoFisher raw file has been created.
 from pathlib import Path
 from typing import Optional
 
-from fabric import Connection
+# from fabric import Connection
 import filenamesutil as fnu
 
 # Using the logging module won't work because Cylc handles everything
@@ -28,9 +28,8 @@ def catch_raw(
     """
     print("Debug: 🟠 `catch_raw` debug statements.")
 
-    point: int = int(point)
-    workflow_run_dir: Path = Path(workflow_run_dir)
-
+    point = int(point)
+    workflow_run_dir = Path(workflow_run_dir)
     run_name: str = workflow_run_dir.name
 
     self_contained = False
@@ -47,9 +46,9 @@ def catch_raw(
             print(f"Error: 🔴 {rawfiles_dir} does not exist or is not a directory.")
             return False, {}
         filenames = fnu.get_local_filenames(rawfiles_dir)
-    else:
-        with Connection(host) as conn:
-            filenames = fnu.get_remote_filenames(conn, rawfiles_dir)
+    # else:
+    #     with Connection(host) as conn:
+    #         filenames = fnu.get_remote_filenames(conn, rawfiles_dir)
 
     print(f"Debug: 🟠 Filenames in {rawfiles_dir}: {filenames}")
 

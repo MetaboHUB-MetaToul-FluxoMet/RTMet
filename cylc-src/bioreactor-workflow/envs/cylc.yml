@@ -3,9 +3,8 @@ channels:
   - conda-forge
 dependencies:
   - python=3.9
-  - pytest=8.0
   - cylc-flow=8.2
-  - cylc-uiserver
+  - cylc-uiserver=1.4.4
   - metomi-rose=2.2
   - cylc-rose=1.3
 

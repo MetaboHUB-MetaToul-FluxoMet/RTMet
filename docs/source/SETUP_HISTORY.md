@@ -1,5 +1,6 @@
 ## Commands used to install the project to the Debian virtual machine
 
+
 ```bash
 # Basic utilities not installed by default
 sudo apt update && sudo apt upgrade
@@ -48,9 +49,9 @@ sudo chmod +x ${WRAPPER_DIR}/rose
 ### Tasks environments setup
 ```bash	
 for file in wf-*.yml; do conda env create -f $file; done
+conda activate wf-binner && Rscript -e "remotes::install_github('aberHRML/binneR', dependencies=FALSE, upgrade_dependencies=FALSE)"
+conda deactivate
 ```
-...
-
 
 ## Installation InfluxDB
 [See official Documentation](https://docs.influxdata.com/influxdb/v2/install/?t=Linux#install-influxdb-as-a-service-with-systemd)
@@ -100,4 +101,3 @@ cylc hub --show-config
 
 # Creates errors...
 ```
-

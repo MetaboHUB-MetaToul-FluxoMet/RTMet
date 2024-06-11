@@ -27,7 +27,7 @@ def catch_raw_local(
     Return `(False, {})` otherwise.\n
     The "completed" state is guessed by the presence of the next raw file.
     """
-    print("Debug: 🟠 `catch_raw` debug statements.")
+    print("Debug: 🟠 `catch_raw_local` debug statements.")
     point = int(point)
     run_name: str = Path(workflow_run_dir).name
     rawfiles_dir = Path(runs_raw_dir, run_name).expanduser().resolve()
@@ -49,9 +49,11 @@ def catch_raw_local(
             current_raw = str(filename)
         elif filename.is_cyclepoint_raw(point + 1):
             next_raw = str(filename)
+
         if current_raw and next_raw:
             raw_path = rawfiles_dir / Path(current_raw)
             print(f"Debug: 🟢 Found raw file: {raw_path}")
             return True, {"file": str(raw_path)}
+
     print("Error: 🔴 No corresponding raw file found.")
     return False, {}

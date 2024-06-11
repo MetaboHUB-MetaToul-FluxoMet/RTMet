@@ -7,24 +7,28 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'RTMet'
-copyright = '2024, FluxoMet'
-author = 'Elliot Fontaine'
-release = '0.1'
-version = '0.1.0'
+project = "RTMet"
+copyright = "2024, FluxoMet"
+author = "Elliot Fontaine"
+release = "0.1"
+version = "0.1.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = []
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 exclude_patterns = []
-
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
+html_logo = "_static/logo_white.png"
+html_theme_options = {
+    "logo_only": True,
+    "display_version": False,
+}

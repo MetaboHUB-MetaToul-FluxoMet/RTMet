@@ -26,48 +26,9 @@ The main goals are:
 - 🟢 Upload results to an InfluxDB instance (optional) to allow real-time plotting and easy query,
 - 🔴 Send a feedback command to the bioreactor.
 
-## 📥 Quick Install
+## 📥 Installation
 
-RTMet runs on Unix-like systems including Linux and MacOS.
-
-```bash
-# Install your favorite conda distribution. We'll choose miniforge
-curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-bash Miniforge3-$(uname)-$(uname -m).sh
-
-# Download the latest release of RTMet (TODO).
-curl -L -O "https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/releases/latest/download/workflow.tar.gz"
-# Or clone this repository default branch.
-git clone https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet.git
-cd RTMet
-
-# Create a symbolic link for Cylc to find the workflow
-mkdir ~/cylc-src
-ln -s cylc-src/bioreactor-workflow ~/cylc-src/bioreactor-workflow 
-
-# Install Cylc and setup the wrapper scripts
-cd cylc-src/bioreactor-workflow/environments
-conda env create -f cylc.yml
-WRAPPER_DIR='/usr/local/bin' # Or somewhere else in your $PATH
-conda activate cylc
-cylc get-resources cylc ${WRAPPER_DIR}/cylc
-conda deactivate
-chmod +x ${WRAPPER_DIR}/cylc
-ln -s ${WRAPPER_DIR}/cylc ${WRAPPER_DIR}/rose
-
-# Cylc requires `bash`, GNU `coreutils` and `mail` (optional), which are not installed by Conda.
-# You may already have them on your system.
-# On MacOS, you can install them using brew.
-brew install bash coreutils gnu-sed
-
-# Create Conda environments used by workflow tasks
-for file in wf-*.yml; do conda env create -n $env_name -f $file; done
-conda activate wf-binner
-Rscript -e 'remotes::install_github("aberHRML/binneR")'
-conda deactivate
-```
-
-If you plan to use InfluxDB to store and visualize the results, you can find the installation instructions [here] (RTMet documentation, TODO).
+RTMet runs on Unix-like systems including Linux and MacOS. You can find instructions on how to install it [here](https://rtmet.readthedocs.io/en/latest/installation.html).
 
 ## 📝 Configuration
 

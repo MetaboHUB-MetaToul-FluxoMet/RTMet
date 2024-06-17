@@ -16,6 +16,8 @@ Some optional features will require:
 
 If you're using MacOS, follow the `instructions`_ from Cylc documentation explaining additional dependencies.
 
+.. _installing-the-workflow:
+
 Installing the workflow
 -----------------------
 
@@ -49,6 +51,8 @@ Cloning the project
     mkdir ~/cylc-src
     ln -s $(pwd)/RTMet/cylc-src/bioreactor-workflow ~/cylc-src/bioreactor-workflow
 
+.. _setting-up-cylc-and-wrapper:
+
 Setting up Cylc and its wrapper script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -79,6 +83,14 @@ Then, you'll need to edit the wrapper script to point to the Conda environment w
 
    - CYLC_HOME_ROOT="${CYLC_HOME_ROOT:-/opt}"
    + CYLC_HOME_ROOT="${CYLC_HOME_ROOT:-${HOME}/miniforge3/envs}"
+
+To test your installation, launch the :command:`cylc` command without any conda env active.
+
+.. code-block:: bash
+
+    for i in $(seq ${CONDA_SHLVL}); do conda deactivate; done
+    cylc help
+
 
 Installing workflow tasks environments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -38,16 +38,28 @@ If you want to use RTMet for real-time monitoring, there are a few additional re
 
 .. toctree::
    :maxdepth: 2
-   :caption: User Documentation
+   :caption: Getting started
 
    installation.rst
    tutorial.rst
+   results.rst
    user_config.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: User guides
+
    workflow_gui.rst
    influxdb.rst
    sampling_automation.rst
    real_time.rst
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Developers
+
+   contributing.rst
+   license.rst
 
 .. Indices and tables
    ==================
@@ -55,18 +67,5 @@ If you want to use RTMet for real-time monitoring, there are a few additional re
    * :ref:`genindex`
    * :ref:`modindex`
    * :ref:`search`
-
-Contributing
-------------
-RTMet is an open-source project and we welcome contributions. If you want to contribute, ...
-
-License
--------
-
-RTMet is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-RTMet is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with RTMet. If not, see https://www.gnu.org/licenses/.
 
 .. _flow injection analysis: https://en.wikipedia.org/wiki/Flow_injection_analysis

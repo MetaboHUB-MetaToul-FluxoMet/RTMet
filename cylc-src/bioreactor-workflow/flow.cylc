@@ -172,7 +172,7 @@
             mv ${annotated_features} ${results_dir}
         """ # FORMAT_TABLE post-script
         [[[environment]]]
-            db_path = ${USER_CONFIG_DIR}/{{ cfg__mol_database }}
+            db_path = ${USER_CONFIG_DIR}/compounds_db.csv
             query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.csv
             ppm_tol = {{ cfg__ppm_tol }}
             results_dir = ${MAIN_RESULTS_DIR}

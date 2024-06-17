@@ -31,4 +31,5 @@ html_logo = "_static/logo_white.png"
 html_theme_options = {
     "logo_only": True,
     "display_version": False,
+    "style_external_links": True,
 }

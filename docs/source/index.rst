@@ -38,7 +38,7 @@ If you want to use RTMet for real-time monitoring, there are a few additional re
 
 .. toctree::
    :maxdepth: 2
-   :caption: Getting started
+   :caption: Getting Started
 
    installation.rst
    tutorial.rst
@@ -47,19 +47,21 @@ If you want to use RTMet for real-time monitoring, there are a few additional re
 
 .. toctree::
    :maxdepth: 2
-   :caption: User guides
+   :caption: User Guide
 
    workflow_gui.rst
    influxdb.rst
    sampling_automation.rst
    real_time.rst
 
-.. toctree::
+.. toctree:: 
    :maxdepth: 2
-   :caption: Developers
+   :caption: Miscellaneous
 
+   glossary.rst
    contributing.rst
    license.rst
+
 
 .. Indices and tables
    ==================

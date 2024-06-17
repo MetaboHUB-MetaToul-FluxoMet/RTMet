@@ -9,7 +9,7 @@ In this tutorial, we'll see how RTMet's workflow can automatically ingest and pr
 If you don't have RTMet installed already, see how to do that :ref:`here <installing-the-workflow>`.
 
 Creating a workflow run
--------------------------
+-----------------------
 
 Open your Terminal. We'll start by making sure you don't have any Conda environment activated, and that you can access the :command:`cylc` command.
 
@@ -54,7 +54,7 @@ We can monitor what the workflow is doing by running :command:`cylc tui bioreact
 You can see :term:`cycles <cycle>` and :term:`tasks <task>` ordered in a tree-like fashion. But right now, nothing is happening. Let's supply some .raw files for the workflow to ingest.
 
 Processing .raw files
----------------
+---------------------
 
 Inside the :term:`run directory` you made, you can find a :file:`raws/` subdirectory, which the workflow is monitoring for input files.
 

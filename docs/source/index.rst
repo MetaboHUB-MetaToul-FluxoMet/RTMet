@@ -50,8 +50,8 @@ If you want to use RTMet for real-time monitoring, there are a few additional re
 
    installation.rst
    tutorial.rst
-   results.rst
    user_config.rst
+   results.rst
 
 .. toctree::
    :maxdepth: 2

@@ -2,6 +2,8 @@
 Installation
 ============
 
+.. highlight:: console
+
 System requirements
 ===================
 
@@ -26,18 +28,14 @@ Installing the workflow
 Conda
 -----
 
-If you don't already have a distribution of Conda installed, we recommend installing Miniforge.
+If you don't already have a distribution of Conda installed, we recommend installing Miniforge::
 
-.. code-block:: bash
+    $ curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+    $ bash Miniforge3-$(uname)-$(uname -m).sh
 
-    curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-    bash Miniforge3-$(uname)-$(uname -m).sh
+If it's not already set, make sure that the Conda base environment does not activate by default::
 
-If it's not already set, make sure that the Conda base environment does not activate by default.
-
-.. code-block:: bash
-
-    conda config --set auto_activate_base false
+    $ conda config --set auto_activate_base false
 
 Cloning the project
 -------------------
@@ -45,13 +43,14 @@ Cloning the project
 .. Download the latest release of RTMet (TODO).
     curl -L -O "https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/releases/latest/download/workflow.tar.gz"
 
-.. code-block:: bash
+Download the workflow from the project's repository on GitHub, to a location of your choice::
 
-    git clone https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet.git
+    $ git clone https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet.git
 
-    # Cylc will look for workflows in ~/cylc-src. Linking is advised.
-    mkdir ~/cylc-src
-    ln -s $(pwd)/RTMet/cylc-src/bioreactor-workflow ~/cylc-src/bioreactor-workflow
+We also have to make sure that Cylc finds the workflow by symlinking it::
+
+    $ mkdir ~/cylc-src
+    $ ln -s $(pwd)/RTMet/cylc-src/bioreactor-workflow ~/cylc-src/bioreactor-workflow
 
 .. _setting-up-cylc-and-wrapper:
 
@@ -59,28 +58,22 @@ Setting up Cylc and its wrapper script
 --------------------------------------
 
 Cylc is a workflow manager and the core dependency of RTMet. Install it using the :file:`cylc.yml`
-Conda environment file.
+Conda environment file::
 
-.. code-block:: bash
-
-    cd RTMet/cylc-src/bioreactor-workflow/envs
-    conda env create -f cylc.yml
+    $ cd RTMet/cylc-src/bioreactor-workflow/envs
+    $ conda env create -f cylc.yml
 
 Once it's done, you'll need to setup the Cylc wrapper script, which is needed for Cylc and Conda to
 work together.
 
 We recommend installing it in a directory that is in your :envvar:`$PATH`, such as :file:`/usr/local/bin`
-(will require :command:`sudo` access).
+(will require :command:`sudo` access)::
 
-.. code-block:: bash
-
-    WRAPPER_DIR='/usr/local/bin'
-    conda activate cylc
-    sudo $(which cylc) get-resources cylc ${WRAPPER_DIR}
-    conda deactivate
-    sudo ln -s ${WRAPPER_DIR}/cylc ${WRAPPER_DIR}/rose
-    sudo chmod +x ${WRAPPER_DIR}/rose
-    sudo chmod +x ${WRAPPER_DIR}/cylc
+    $ WRAPPER_DIR='/usr/local/bin'
+    $ conda activate cylc
+    $ sudo $(which cylc) get-resources cylc ${WRAPPER_DIR} && chmod +x ${WRAPPER_DIR}/cylc
+    $ sudo ln -s ${WRAPPER_DIR}/cylc ${WRAPPER_DIR}/rose
+    $ conda deactivate
 
 Then, you'll need to edit the wrapper script to point to the Conda environment where Cylc is installed.
 
@@ -89,25 +82,20 @@ Then, you'll need to edit the wrapper script to point to the Conda environment w
    - CYLC_HOME_ROOT="${CYLC_HOME_ROOT:-/opt}"
    + CYLC_HOME_ROOT="${CYLC_HOME_ROOT:-${HOME}/miniforge3/envs}"
 
-To test your installation, launch the :command:`cylc` command without any conda env active.
+To test your installation, launch the :command:`cylc` command without any conda env active::
 
-.. code-block:: bash
-
-    for i in $(seq ${CONDA_SHLVL}); do conda deactivate; done
-    cylc help
-
+    $ for i in $(seq ${CONDA_SHLVL}); do conda deactivate; done
+    $ cylc help
 
 Installing workflow tasks environments
 --------------------------------------
 
 Bioinformatics tools are installed in separate Conda environments, for isolation and reproductibility
-purposes. For binneR, you'll need to install it from the R console.
+purposes. For binneR, you'll need to install it from the R console::
 
-.. code-block:: bash
-
-    for file in wf-*.yml; do conda env create -f $file; done
-    conda activate wf-binner && Rscript -e "remotes::install_github('aberHRML/binneR', dependencies=FALSE, upgrade_dependencies=FALSE)"
-    conda deactivate
+    $ for file in wf-*.yml; do conda env create -f $file; done
+    $ conda activate wf-binner && Rscript -e "remotes::install_github('aberHRML/binneR', dependencies=FALSE, upgrade_dependencies=FALSE)"
+    $ conda deactivate
 
 Optional: Installing InfluxDB
 =============================

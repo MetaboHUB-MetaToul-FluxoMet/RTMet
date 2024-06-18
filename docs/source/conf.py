@@ -8,7 +8,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "RTMet"
-copyright = "2024, FluxoMet"
+copyright = "2024, MetaToul"
 author = "Elliot Fontaine"
 release = "0.1"
 version = "0.1.0"

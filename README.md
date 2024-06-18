@@ -43,7 +43,7 @@ cfg__ppm_tol=10
 # ...
 ```
 
-The `molecules_db.csv` file in `config/` contains metabolites *m/z* for ions to be matched against. It should also be edited depending on the metabolome you study.
+The `compounds_db.csv` file in `config/` contains metabolites *m/z* for ions to be matched against. It should also be edited depending on the metabolome you study.
 
 See [Configuring the workflow](https://rtmet.readthedocs.io/en/latest/user_config.html) for more info.
 

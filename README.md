@@ -20,34 +20,32 @@ The main goals are:
 
 [🔴Todo] [🟠WIP] [🟢Done]
 
-- 🟠 Automatically fetch `.raw` files produced by the spectrometer,
+- 🟢 Automatically fetch `.raw` files produced by the spectrometer,
+- 🟢 Upload results to an InfluxDB instance (optional) to allow real-time plotting and easy query of the data,
 - 🟠 Process mass spectrometry data to find present metabolites and quantify them,
 - 🔴 Estimate extra-cellular and intra-cellular reaction rates and metabolic fluxes,
-- 🟢 Upload results to an InfluxDB instance (optional) to allow real-time plotting and easy query,
 - 🔴 Send a feedback command to the bioreactor.
 
 ## 📥 Installation
 
-RTMet runs on Unix-like systems including Linux and MacOS. You can find instructions on how to install it [here](https://rtmet.readthedocs.io/en/latest/installation.html).
+RTMet runs on Unix-like systems including Linux and MacOS. You can find instructions on [how to install it](https://rtmet.readthedocs.io/en/latest/installation.html) in the docs.
 
 ## 📝 Configuration
 
-User configuration is located in the `config/` directory of the workflow. User-defined variables can be changed in `config.ini`:
+User configuration is in the `rose-suite.conf` file at the root of the workflow directory :
 
 ```ini
 [template variables]
-# Necessary parameters
-cfg__mol_database='molecules_db.csv'
-cfg__spectrometer_id='orbitrap_01'
+# Fraction of max(TIC). Only scans above it will be kept by binneR.
 cfg__tic_threshold=0.50
+# Tolerance (ppm) for metabolite identification.
 cfg__ppm_tol=10
-
-# Optional InfluxDB Setup
-cfg__toggle_influxdb=False
-...
+# ...
 ```
 
-The file (`molecules_db.csv`) containing metabolites *m/z* for ions to be matched against should also be edited depending on the metabolome you study.
+The `molecules_db.csv` file in `config/` contains metabolites *m/z* for ions to be matched against. It should also be edited depending on the metabolome you study.
+
+See [Configuring the workflow](https://rtmet.readthedocs.io/en/latest/user_config.html) for more info.
 
 ## 🕹 How to use
 
@@ -71,26 +69,24 @@ cylc tui bioreactor-workflow
 
 The workflow is awaiting for `.raw` files. Right now, it simply looks for them in the `raws/` folder of the run directory.
 The raws files you provide should be numbered that way: 
-- `yourexperimentname_1.raw`,
-- `yourexperimentname_2.raw`,
-- ...
-- `yourexperimentname_17.raw`
-- ...
+
+|          |
+| -------- |
+| yourexperimentname_1.raw  |
+| yourexperimentname_2.raw  |
+| ...                       |
+| yourexperimentname_14.raw |
+| ...                       |
+
 
 The workflow will automatically detect the files and process them. Results (metabolites, concentrations, etc) are in `share/cycle/N/` of the run directory. 
 
+For a more detailed guide, see the [Tutorial](https://rtmet.readthedocs.io/en/latest/tutorial.html) in the docs.
+
 ## 🪲 Bugs and feature requests
 
-If you have an idea on how we could improve RTMet please submit a new *issue*
+If you have an idea on how we could improve RTMet please submit a new issue
 to [our GitHub issue tracker](https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/issues).
-
-## 🚀 Roadmap
-
-- Implement the automatic polling of the spectrometer computer filesystem for new `.raw` files,
-- Continuous integration with GitHub Actions,
-- Try building a [Docker](https://www.docker.com/) image for the whole workflow,
-- Validate user input when launching the workflow (and assume it is clean in subsequent tasks),
-- ...
 
 ## 📧 Contact
 

@@ -44,31 +44,18 @@ If you want to use RTMet for real-time monitoring, there are a few additional re
      RTMet is running.
    - Have a running InfluxDB instance to store and visualize the results.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Getting Started
-
-   installation.rst
-   tutorial.rst
-   user_config.rst
-   results.rst
 
 .. toctree::
    :maxdepth: 2
-   :caption: User Guide
+   :caption: Table of Contents
 
-   workflow_gui.rst
-   influxdb.rst
-   sampling_automation.rst
-   real_time.rst
+   getting_started/index
+   user_guide/index
+   reference/index
+   glossary
+   contributing
+   license
 
-.. toctree:: 
-   :maxdepth: 2
-   :caption: Miscellaneous
-
-   glossary.rst
-   contributing.rst
-   license.rst
 
 
 .. Indices and tables

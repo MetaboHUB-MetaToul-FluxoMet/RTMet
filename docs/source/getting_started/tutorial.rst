@@ -46,7 +46,7 @@ name of the run.
 We can monitor what the workflow is doing by running :command:`cylc tui bioreactor-workflow`, which
 opens Cylc's Terminal User Interface (TUI).
 
-.. image:: _static/screenshots/tui-basic-tutorial.png
+.. image:: /_static/screenshots/tui-basic-tutorial.png
     :alt: Cylc terminal user interface
 
 You can see :term:`cycles <cycle>` and :term:`tasks <task>` ordered in a tree-like fashion. But right
@@ -67,7 +67,7 @@ so it constitute a time series.
 The first one is named :file:`std_30sec_CarboAmmo_10mM_01.raw`. Copy it inside :file:`raws/`. After
 a few seconds, the workflow run starts processing it.
 
-.. image:: _static/screenshots/tui-catching-first-raw.png
+.. image:: /_static/screenshots/tui-catching-first-raw.png
     :alt: Catching the first raw file
 
 Now, copy :file:`std_30sec_CarboAmmo_10mM_03.raw` (_03 !) to :file:`raws/`. You'll see that the file
@@ -79,7 +79,7 @@ Once it is done, move your cursor in the TUI with :kbd:`↑`/:kbd:`↓` until yo
 (**bioreactor-workflow/run1**) and press :kbd:`Enter`. It should open a contextual menu. Move the
 cursor to **stop** or click on it. This will shut down the workflow run and close the TUI.
 
-.. image:: _static/screenshots/tui-stopping.png
+.. image:: /_static/screenshots/tui-stopping.png
     :alt: Stopping the workflow
 
 Viewing results
@@ -109,7 +109,7 @@ Go in :file:`./cycle/1/qc` to view some quality control results.
 Open :file:`std_30sec_CarboAmmo_10mM_01.infusion_scans.png`. It represents the Total Ions Count and
 which scans were selected as the sample injection.
 
-.. image:: _static/screenshots/std_30sec_CarboAmmo_10mM_01.infusion_scans.png
+.. image:: /_static/screenshots/std_30sec_CarboAmmo_10mM_01.infusion_scans.png
     :alt: Selected scans in first spectrum.
 
 Deleting the workflow run

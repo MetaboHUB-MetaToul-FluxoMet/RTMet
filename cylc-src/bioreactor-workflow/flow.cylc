@@ -4,7 +4,6 @@
     title = RTMet: Real-Time Metabolomics using Mass Spectrometry
     description = """
         This workflow uses Jinja2 templating. It also uses Rose (and cylc-rose) for user configuration.
-        Rose will loads rose-suite.conf, which is a symlink to the actual user config.
     """
     URL = https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet
 

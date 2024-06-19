@@ -7,6 +7,11 @@
 Welcome to RTMet's documentation!
 =================================
 
+.. image:: _static/logo_blue.png
+   :align: center
+   :alt: RTMet Logo
+   :scale: 50
+
 What is RTMet ?
 ===============
 

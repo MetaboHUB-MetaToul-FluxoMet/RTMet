@@ -8,7 +8,7 @@
     URL = https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet
 
 # Create task families for conda environments.
-%include 'envs/conda.cylc'
+    %include 'envs/conda.cylc'
 
 [task parameters]
     #main_results = peaks, concentrations, fluxes, metadata
@@ -24,22 +24,22 @@
         catch_raw = catch_raw_local('%(point)s', '%(workflow_run_dir)s', {{ cfg__local_runs_dir }})
 {% endif %}
     [[graph]]
-        R1/^ = verify_config => verify_molecules_database & verify_met_model => is_setup
+        R1/^ = validate_cfg => validate_compounds_db & validate_met_model => is_setup
         +P1/P1 = """
-            @catch_raw => _catch_raw => raw_to_mzml => get_run_timestamp =>
-                mzml_to_peaks => peaks_to_matches => quantify
+            @catch_raw => _catch_raw => convert_raw => get_timestamp =>
+                extract_features => annotate => quantify
             is_setup[^] => _catch_raw
         """
-        +P3/P1 = quantify & quantify[-P1] & quantify[-P2] => model_fluxes
+        +P3/P1 = quantify & quantify[-P1] & quantify[-P2] => compute_fluxes
 {% if cfg__toggle_influxdb %}
-        R1/^ = verify_config => setup_influxdb_config => ping_influxdb_server => create_run_bucket => is_setup
+        R1/^ = validate_cfg => setup_influxdb_cfg => ping_influxdb => create_bucket => is_setup
         +P1/P1 = """
-            mzml_to_peaks => upload_features
+            extract_features => upload_features
             quantify => upload_concentrations
         """
         # +P3/P1 = """
-        #    model_fluxes => upload_fluxes
-        #    model_fluxes => upload_metadata
+        #    compute_fluxes => upload_fluxes
+        #    compute_fluxes => upload_metadata
         # """
 {% endif %}
     [[queues]]
@@ -47,7 +47,7 @@
             limit = 10
         [[[large_jobs]]]
             limit = 5
-            members = mzml_to_peaks, peaks_to_matches
+            members = extract_features, annotate
 
 [runtime]
     [[root]]
@@ -66,20 +66,32 @@
             MAIN_RESULTS_DIR = ${ROSE_DATAC}/dataflow
             QC_RESULTS_DIR = ${ROSE_DATAC}/qc
 
-    [[verify_config]]
+    [[validate_cfg]]
         script = rose macro --validate --verbose
         [[[meta]]]
-            title = "Validates the user configuration."
+            title = Validate User Configuration
+            description = """
+                Validates the `rose-suite.conf` user configuration.
+            """
+            categories = other
 
-    [[verify_molecules_database]]
+    [[validate_compounds_db]]
         script = echo "Verifying molecules database! (TODO)"
         [[[meta]]]
-            title = "Validates the user-defined molecular database."
+            title = Validate Compounds Database
+            description = """
+                Validates the user-defined molecular database.
+            """
+            categories = other
 
-    [[verify_met_model]]
+    [[validate_met_model]]
         script = echo "Verifying metabolic model! (TODO)"
         [[[meta]]]
-            title = "Validates the user-defined metabolic model."
+            title = Validate Metabolic Model
+            description = """
+                Validates the user-defined metabolic model.
+            """
+            categories = other
 
     [[is_setup]]
         script = echo "The workflow has been set up, ready to run!"
@@ -95,9 +107,14 @@
                 -s "[environment]RAWFILE_STEM=$(basename "$catch_raw_file" .raw)"
         """
         [[[meta]]]
-            title = "Propagates raw file path and stem to downstream tasks."
+            title = Catch Raw
+            description = """
+                This helper task follows the `catch_raw` external trigger, and propagates raw file
+                path and stem to downstream tasks.
+            """
+            categories = other
 
-    [[raw_to_mzml]]
+    [[convert_raw]]
         inherit = None, CONDA_TRFP
         script = """
             mkdir -p ${output}
@@ -113,9 +130,14 @@
             input = ${RAWFILE_PATH}
             output = ${MAIN_RESULTS_DIR}
         [[[meta]]]
-            title = "Converts a raw files to mzML and extracts run metadata."
+            title = Convert Raw
+            description = """
+                Converts a ThermoFisher raw file into the mzML open format using
+                `ThermoRawFileParser`, and extracts the spectrometer run metadata.
+            """
+            categories = bioinformatics
 
-    [[get_run_timestamp]]
+    [[get_timestamp]]
         # Regex should be replaced with XML parsing.
         script = """
             RUN_TIMESTAMP=$(grep '<run' ${mzml} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
@@ -127,7 +149,8 @@
         [[[environment]]]
             mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
         [[[meta]]]
-            title = "Extracts the spectrometer run timestamp from the mzML file."
+            title = Get Run Timestamp
+            description = "Extracts the spectrometer run timestamp (start) from the mzML file."
 
     [[FORMAT_TABLE]]
         post-script = """
@@ -143,25 +166,35 @@
             cycle = ${CYLC_TASK_CYCLE_POINT}
             spectrometer_id = {{ cfg__spectrometer_id }}
         [[[meta]]]
-            title = "Add metadata columns (datetime, cycle, instrument_id) prior to their upload to InfluxDB"
+            title = FORMAT TABLE (family task)
+            description = """
+                Family task. Formats CSV tables generated by other tasks prior to their upload to
+                InfluxDB. It adds metadata columns (datetime, cycle, instrument_id).
+            """
+            categories = family task
 
-    [[mzml_to_peaks]]
+    [[extract_features]]
         inherit = None, CONDA_BINNER, FORMAT_TABLE
         script = """
             binner-cli \
                 --file ${mzml} \
                 --threshold ${threshold}
             mv *.png ${qc_dir}
-        """ # FORMAT_TABLE post-script
+        """
         [[[environment]]]
             threshold = {{ cfg__tic_threshold }}
             mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
             qc_dir = ${QC_RESULTS_DIR}
             table = ${RAWFILE_STEM}.features.csv
         [[[meta]]]
-            title = "Generates a feature table from the mzML file using spectral binning."
+            title = Extract Features
+            description = """
+                Generates a feature table from the mzML file with the `binneR` R library, which uses
+                spectral binning.
+            """
+            categories = bioinformatics
 
-    [[peaks_to_matches]]
+    [[annotate]]
         inherit = None, CONDA_DATAMUNGING, FORMAT_TABLE
         script = """
             mzmatch \
@@ -169,7 +202,7 @@
                 --query ${query_path} \
                 --ppm ${ppm_tol}
             mv ${annotated_features} ${results_dir}
-        """ # FORMAT_TABLE post-script
+        """
         [[[environment]]]
             db_path = ${USER_CONFIG_DIR}/compounds_db.csv
             query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.csv
@@ -178,7 +211,12 @@
             annotated_features = ${RAWFILE_STEM}.features.annotated.csv
             table = ${RAWFILE_STEM}.matches.csv
         [[[meta]]]
-            title = "Annotates features using a user-defined molecular database."
+            title = Annotate Features
+            description = """
+                Annotates features using a user-defined molecular database. The main parameter is
+                the mass tolerance in ppm.
+            """
+            categories = bioinformatics
 
     [[quantify]]
         inherit = None, CONDA_DATAMUNGING
@@ -187,15 +225,23 @@
             input = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.matches.csv
             output = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.concentrations.csv
         [[[meta]]]
-            title = "Relative and absolute quantification of metabolites."
+            title = Quantify Metabolites
+            description = """
+                Relative and absolute quantification of metabolites. [TODO]
+            """
+            categories = bioinformatics
 
-    [[model_fluxes]]
-        script = echo "model_fluxes TODO"
+    [[compute_fluxes]]
+        script = echo "compute_fluxes TODO"
         [[[meta]]]
-            title = "[TODO] Models fluxes using the user-defined metabolic model."
+            title = Compute Metabolic Fluxes
+            description = """
+                Models fluxes using the user-defined metabolic model. [TODO]
+            """
+            categories = bioinformatics
 
-###############################################################################
-# InfluxDB tasks
+    ###############################################################################
+    # InfluxDB tasks
 
     [[INFLUXDB]]
         [[[environment]]]
@@ -203,9 +249,13 @@
             config_name = influx2
             bucket_name = ${CYLC_WORKFLOW_ID}
         [[[meta]]]
-            title = "Family task to inherit InfluxDB configuration."
+            title = INFLUXDB (family task)
+            description = """
+                Family task to inherit InfluxDB configuration and workflow-specific bucket.
+            """
+            categories = family task, influxdb
 
-    [[setup_influxdb_config]]
+    [[setup_influxdb_cfg]]
         inherit = INFLUXDB
         script = """
             influx config create \
@@ -220,15 +270,23 @@
             token = {{ cfg__influxdb_auth_token }}
             org = {{ cfg__influxdb_org }}
         [[[meta]]]
-            title = "Creates an InfluxDB configuration file based on user-defined variables."
+            title = Setup InfluxDB Configuration
+            description = """
+                Creates an InfluxDB configuration file based on user-defined variables.
+            """
+            categories = influxdb
 
-    [[ping_influxdb_server]]
+    [[ping_influxdb]]
         inherit = INFLUXDB
         script = influx ping --configs-path ${configs_path} --active-config ${config_name}
         [[[meta]]]
-            title = "Checks the connection to the InfluxDB server defined by the user."
+            title = Ping InfluxDB Server
+            description = """
+                Checks the connection to the InfluxDB server defined by the user.
+            """
+            categories = influxdb
 
-    [[create_run_bucket]]
+    [[create_bucket]]
         inherit = INFLUXDB
         script = """
             echo "Creating InfluxDB bucket for workflow run!"
@@ -238,7 +296,11 @@
                 --active-config ${config_name}
         """
         [[[meta]]]
-            title = "Creates a bucket in InfluxDB for the current workflow run."
+            title = Create InfluxDB Bucket
+            description = """
+                Creates a bucket in InfluxDB dedicated to the current workflow run.
+            """
+            categories = influxdb
 
     [[upload<results>]]
         inherit = INFLUXDB, CONDA_INFLUX
@@ -255,4 +317,8 @@
             dir = ${MAIN_RESULTS_DIR}
             schemas = ${CYLC_WORKFLOW_RUN_DIR}/meta/data_formats/tables_schemas.json
         [[[meta]]]
-            title = "Uploads results table to InfluxDB."
+            title = Upload <results>
+            description = """
+                Uploads results table to InfluxDB.
+            """
+            categories = influxdb

@@ -15,4 +15,8 @@
             conda activate {{ conda_env_name }}
             set -eu
         """
+        [[[meta]]]
+            title = "{{ env }}"
+            description = "Conda environment activation: {{ conda_env_name }}"
+            categories = family task, conda
 {% endfor %}

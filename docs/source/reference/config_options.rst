@@ -16,4 +16,4 @@ you use :command:`cylc reload`
 
 .. rose:file:: rose-suite.conf
 
-    .. autoconfig:: /_static/rose-suite.conf
+    .. autoconfig:: _static/rose-suite.conf

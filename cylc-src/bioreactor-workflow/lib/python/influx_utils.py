@@ -22,12 +22,6 @@ handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter("%(asctime)s | %(message)s"))
 loggerSerializer.addHandler(handler)
 
-# Configuration
-URL = "http://localhost:8086"
-TOKEN = "HlkyCQBW_F8Ri_UyOlyNDDVNZg93uEXDwpT6CQ1My4Hdx8cW2vx6wTM_duzcf3rn2y88H7a3ZZJ-N_q4_mV14g=="
-ORG = "FluxoMet"
-BUCKET = "testing-py-api"
-
 
 def client_from_ini(ini_path: str, config_name: str = "influx2"):
     """

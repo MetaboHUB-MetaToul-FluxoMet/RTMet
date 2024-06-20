@@ -34,3 +34,6 @@ html_theme_options = {
     "display_version": False,
     "style_external_links": True,
 }
+
+# disable epub mimetype warnings
+suppress_warnings = ["epub.unknown_project_files"]

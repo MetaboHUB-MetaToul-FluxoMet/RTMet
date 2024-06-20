@@ -1,3 +1,5 @@
+.. _influxdb-guide:
+
 =================================
 Visualizing results with InfluxDB
 =================================

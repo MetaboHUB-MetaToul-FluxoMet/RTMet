@@ -43,12 +43,17 @@ exclude_patterns = []
 html_theme = "sphinx_rtd_theme"
 # html_static_path = ["_static"]
 html_logo = "_static/logo_white.png"
+html_favicon = "_static/favicon.ico"
 html_theme_options = {
     "logo_only": True,
     "display_version": False,
     "style_external_links": True,
 }
 
-
 def setup(app):
     app.config.html_static_path.append("_static")
+
+# -- Options for epub output -------------------------------------------------
+# disable epub mimetype warnings
+suppress_warnings = ["epub.unknown_project_files"]
+

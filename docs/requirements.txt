@@ -1,1 +1,4 @@
 sphinx-rtd-theme==2.0.0
+metomi-rose
+cylc-flow
+cylc-sphinx-extensions.git[all]

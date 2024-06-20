@@ -1,5 +1,5 @@
 =====================
-Bio-informatics tasks
+Bioinformatics tasks
 =====================
 
 .. attention:: 

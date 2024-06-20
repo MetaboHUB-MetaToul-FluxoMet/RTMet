@@ -7,6 +7,6 @@ Reference
 .. toctree::
     :maxdepth: 2
 
+    config_options
     results
     data_processing
-    config_options

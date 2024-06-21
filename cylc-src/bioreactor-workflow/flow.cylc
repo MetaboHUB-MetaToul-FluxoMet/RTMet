@@ -32,7 +32,7 @@
         """
         +P3/P1 = quantify & quantify[-P1] & quantify[-P2] => compute_fluxes
 {% if cfg__toggle_influxdb %}
-        R1/^ = validate_cfg => setup_influxdb_cfg => ping_influxdb => create_bucket => is_setup
+        R1/^ = validate_cfg => setup_influxdb_cfg => create_bucket => is_setup
         +P1/P1 = """
             extract_features => upload_features
             quantify => upload_concentrations
@@ -273,16 +273,6 @@
             title = Setup InfluxDB Configuration
             description = """
                 Creates an InfluxDB configuration file based on user-defined variables.
-            """
-            categories = influxdb
-
-    [[ping_influxdb]]
-        inherit = INFLUXDB
-        script = influx ping --configs-path ${configs_path} --active-config ${config_name}
-        [[[meta]]]
-            title = Ping InfluxDB Server
-            description = """
-                Checks the connection to the InfluxDB server defined by the user.
             """
             categories = influxdb
 

@@ -982,7 +982,7 @@ class RoseAutoDirective(Directive):
         # Append configurations.
         section = None
         node = block_quote()
-        for key, conf_node in conf.walk():
+        for key, conf_node in sorted(conf.walk()):
             if isinstance(conf_node.value, str):
                 # Configuration setting - "name=arg".
                 name = "%s=%s" % (key[-1], conf_node.value or "")

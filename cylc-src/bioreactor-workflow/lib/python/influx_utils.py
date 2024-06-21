@@ -7,26 +7,49 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from dataclasses import dataclass
+from threading import Event
+from typing import Optional
 import json
-import pandas as pd
 
+import pandas as pd
 from influxdb_client import InfluxDBClient
+from influxdb_client.client.exceptions import InfluxDBError
+from urllib3 import HTTPResponse
 
 
 # Enable logging for DataFrame serializer
-loggerSerializer = logging.getLogger(
+HANDLER = logging.StreamHandler()
+HANDLER.setFormatter(logging.Formatter("%(asctime)s | %(message)s"))
+LOGGERSERIALIZER = logging.getLogger(
     "influxdb_client.client.write.dataframe_serializer"
 )
-loggerSerializer.setLevel(level=logging.DEBUG)
-handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter("%(asctime)s | %(message)s"))
-loggerSerializer.addHandler(handler)
+LOGGERSERIALIZER.setLevel(level=logging.DEBUG)
+LOGGERSERIALIZER.addHandler(HANDLER)
 
-# Configuration
-URL = "http://localhost:8086"
-TOKEN = "HlkyCQBW_F8Ri_UyOlyNDDVNZg93uEXDwpT6CQ1My4Hdx8cW2vx6wTM_duzcf3rn2y88H7a3ZZJ-N_q4_mV14g=="
-ORG = "FluxoMet"
-BUCKET = "testing-py-api"
+
+class BatchingCallback:
+    """
+    copied from:
+    https://influxdb-client.readthedocs.io/en/latest/usage.html#handling-errors
+    """
+
+    def __init__(self):
+        self.error_event = Event()
+        self.response: Optional[HTTPResponse] = None
+        self.message: Optional[str] = None
+
+    def success(self, conf: tuple[str, str, str], data: str):
+        pass
+
+    def error(self, conf: tuple[str, str, str], data: str, exception: InfluxDBError):
+        self.error_event.set()
+        self.response = exception.response
+        self.message = exception.message
+
+    def retry(self, conf: tuple[str, str, str], data: str, exception: InfluxDBError):
+        self.error_event.set()
+        self.response = exception.response
+        self.message = exception.message
 
 
 def client_from_ini(ini_path: str, config_name: str = "influx2"):
@@ -87,7 +110,12 @@ def ingest(
     measurement_df: MeasurementDataFrame, client: InfluxDBClient, bucket: str
 ) -> None:
     start_time = datetime.now()
-    with client.write_api() as write_api:
+    callback = BatchingCallback()
+    with client.write_api(
+        success_callback=callback.success,
+        error_callback=callback.error,
+        retry_callback=callback.retry,
+    ) as write_api:
         write_api.write(
             bucket=bucket,
             record=measurement_df.data_frame,
@@ -95,4 +123,6 @@ def ingest(
             data_frame_measurement_name=measurement_df.measurement_name,
             data_frame_timestamp_column=measurement_df.time_col,
         )
-    print(f"Import finished in: {datetime.now() - start_time}")
+    if callback.error_event.is_set():
+        raise InfluxDBError(callback.response, callback.message)
+    print(f"Successfully finished upload in: {datetime.now() - start_time}")

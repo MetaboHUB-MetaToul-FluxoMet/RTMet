@@ -31,7 +31,7 @@ is_binner_installed <- "binneR" %in% installed.packages()[, "Package"]
 
 if (!is_binner_installed) {
   cat("\nBinneR not installed, you can install it by running:\n")
-  cat("  remotes::install_github('aberHRML/binneR@v2.6.4', upgrade = 'never')\n")
+  cat("  remotes::install_github('aberHRML/binneR', dependencies=FALSE, upgrade_dependencies=FALSE)\n")
   cat("in your R console.\n\n")
   quit(status = 1)
 }
@@ -43,28 +43,39 @@ if (!is_binner_installed) {
 
 option_list <- list(
   optparse::make_option(c("-f", "--file"),
-    type = "character", default = NULL,
+    type = "character",
+    default = NULL,
     help = "Single .mzML file path",
     metavar = "character"
   ),
   optparse::make_option(c("-d", "--dir"),
-    type = "character", default = NULL,
+    type = "character",
+    default = NULL,
     help = "Directory path containing .mzML files",
     metavar = "character"
   ),
   optparse::make_option(c("-o", "--outdir"),
-    type = "character", default = getwd(),
+    type = "character",
+    default = getwd(),
     help = "Output directory path [default = working directory]",
     metavar = "character"
   ),
   optparse::make_option(c("-t", "--threshold"),
-    type = "numeric", default = 0.5,
+    type = "numeric",
+    default = 0.5,
     help = "Ratio of max(TIC) for injection scans detection. \
     \t\tValue between 0 and 1 [default=%default]",
     metavar = "numeric"
   ),
+  optparse::make_option(c("-w", "--window"),
+    type = "character",
+    default = NULL,
+    help = "Window interval in the format 'start-end' (e.g. 100-150).",
+    metavar = "character"
+  ),
   optparse::make_option(c("-p", "--precision"),
-    type = "integer", default = 2,
+    type = "integer",
+    default = 2,
     help = "Number of decimal places for spectral binning [default=%default]",
     metavar = "integer"
   )
@@ -116,6 +127,23 @@ if (is.null(opt$outdir)) {
   if (!dir.exists(opt$outdir)) {
     stop("Output directory not found: ", opt$outdir, call. = FALSE)
   }
+}
+
+# window argument handling
+if (!is.null(opt$window)) {
+  if (!grepl("^\\d+-\\d+$", opt$window)) {
+    stop("Invalid window interval format: ", opt$window, call. = FALSE)
+  }
+  window <- as.numeric(strsplit(opt$window, "-")[[1]])
+  cat("Window interval: ", window, "\n")
+  if (length(window) != 2) {
+    stop("Invalid window interval format: ", opt$window, call. = FALSE)
+  }
+  if (window[1] >= window[2]) {
+    stop("Invalid window interval: start >= end", call. = FALSE)
+  }
+} else {
+  window <- NULL
 }
 
 
@@ -181,7 +209,11 @@ for (file in mzml_files) {
   )
 
   # Peaks detection
-  infusion_scans <- binneR::detectInfusionScans(file, thresh = opt$threshold)
+  if (!is.null(window)) {
+    infusion_scans <- window
+  } else {
+    infusion_scans <- binneR::detectInfusionScans(file, thresh = opt$threshold)
+  }
   parameters <- binneR::binParameters(infusion_scans)
 
   analysis <- binneR::binneRlyse(file, info, parameters)

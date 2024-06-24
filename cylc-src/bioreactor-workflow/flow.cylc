@@ -178,11 +178,13 @@
         script = """
             binner-cli \
                 --file ${mzml} \
-                --threshold ${threshold}
+                --threshold ${threshold} \
+                $( [[ -n "${window}" ]] && printf %s "--window ${window}" )
             mv *.png ${qc_dir}
         """
         [[[environment]]]
             threshold = {{ cfg__tic_threshold }}
+            window = {{ cfg__scans_window }}
             mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
             qc_dir = ${QC_RESULTS_DIR}
             table = ${RAWFILE_STEM}.features.csv

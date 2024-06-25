@@ -26,7 +26,7 @@
     [[graph]]
         R1/^ = validate_cfg => validate_compounds_db & validate_met_model => is_setup
         +P1/P1 = """
-            @catch_raw => _catch_raw => convert_raw => get_timestamp =>
+            @catch_raw => _catch_raw => convert_raw => get_timestamp & trim_spectra =>
                 extract_features => annotate => quantify
             is_setup[^] => _catch_raw
         """
@@ -56,8 +56,10 @@
         # ROSE_DATAC=$CYLC_WORKFLOW_SHARE_DIR/cycle/n
         env-script = """
             $(eval rose task-env)
-            mkdir -p ${ROSE_DATAC}/dataflow
-            mkdir -p ${ROSE_DATAC}/qc
+            if [ "${CYLC_TASK_CYCLE_POINT}" != "0" ]; then
+                mkdir -p "${ROSE_DATAC}/dataflow"
+                mkdir -p "${ROSE_DATAC}/qc"
+            fi
         """
         [[[environment]]]
             # Directory (starting from workflow root) where user input should be stored
@@ -137,6 +139,22 @@
             """
             categories = bioinformatics
 
+    [[trim_spectra]]
+        inherit = None, CONDA_OPENMS
+        script = """
+            trimms ${mzml} ${n_start} ${n_end}
+        """
+        [[[environment]]]
+            mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
+            n_start = 20
+            n_end = 0
+        [[[meta]]]
+            title = Trim Spectra
+            description = """
+                Remove the first and last `n_start` and `n_end` spectra from the mzML file.
+            """
+            categories = bioinformatics
+
     [[get_timestamp]]
         # Regex should be replaced with XML parsing.
         script = """
@@ -185,7 +203,7 @@
         [[[environment]]]
             threshold = {{ cfg__tic_threshold }}
             window = {{ cfg__scans_window }}
-            mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
+            mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.trimmed.mzML
             qc_dir = ${QC_RESULTS_DIR}
             table = ${RAWFILE_STEM}.features.csv
         [[[meta]]]

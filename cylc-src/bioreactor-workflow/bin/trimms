@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+import sys
+from pathlib import Path
+
+from pyopenms import MzMLFile, MSExperiment
+
+
+def main(mzml_file, n_start, n_end):
+    """
+    TrimMS
+    Basic example script to trim . Requires a mzML file as first argument, and
+    the number of scans to trim at the start and at the end.
+
+    usage:
+
+        ./trimms <path_to_mzml_file> <n_start> <n_end>
+    """
+    in_file = Path(mzml_file)
+    out_file = in_file.with_name(f"{in_file.stem}.trimmed.mzML")
+
+    in_exp = MSExperiment()
+    MzMLFile().load(str(in_file), in_exp)
+
+    if not in_exp.isSorted():
+        in_exp.sortSpectra(True)
+
+    out_exp, n_spectra, i = MSExperiment(), in_exp.getNrSpectra(), 0
+    for spectrum in in_exp:
+        i += 1
+        if int(n_start) < i <= n_spectra - int(n_end):
+            out_exp.addSpectrum(spectrum)
+
+    MzMLFile().store(str(out_file), out_exp)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 4:
+        print(main.__doc__)
+        sys.exit()
+    file = sys.argv[1]
+    n_trim_start = sys.argv[2]
+    n_trim_end = sys.argv[3]
+
+    numeric_conditions = [
+        n_trim_start.isdigit(),
+        n_trim_end.isdigit(),
+        int(n_trim_start) >= 0,
+        int(n_trim_end) >= 0,
+    ]
+    if not all(numeric_conditions):
+        print("n_start and n_end must be positive integers.")
+        sys.exit()
+    if not Path(file).exists():
+        print(f"File {file} not found.")
+        sys.exit()
+
+    main(file, n_trim_start, n_trim_end)

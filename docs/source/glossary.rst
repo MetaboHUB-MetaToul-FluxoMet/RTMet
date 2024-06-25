@@ -45,7 +45,7 @@ Glossary
         | A technique based on the injection of a sample into a flow of solvent, which is then 
           directly analyzed by a mass spectrometer.
         
-        .. seealso:: "`Flow injection analysis  <fia>`__" on Wikipedia.
+        .. seealso:: `Flow injection analysis  <fia>`__ on Wikipedia.
 
 
 .. External links to Cylc glossary:

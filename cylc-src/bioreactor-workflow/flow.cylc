@@ -146,8 +146,8 @@
         """
         [[[environment]]]
             mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
-            n_start = 20
-            n_end = 0
+            n_start = {{ cfg__trim_values[0] }}
+            n_end = {{ cfg__trim_values[1] }}
         [[[meta]]]
             title = Trim Spectra
             description = """

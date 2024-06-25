@@ -4,7 +4,8 @@
     'CONDA_TRFP': 'wf-trfp',
     'CONDA_BINNER': 'wf-binner',
     'CONDA_DATAMUNGING': 'wf-datamunging',
-    'CONDA_INFLUX': 'wf-influx'
+    'CONDA_INFLUX': 'wf-influx',
+    'CONDA_OPENMS': 'wf-pyopenms',
     } %}
 
 [runtime]

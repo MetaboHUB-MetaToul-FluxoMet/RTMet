@@ -325,7 +325,7 @@
         [[[environment]]]
             table = ${CYLC_TASK_PARAM_results}
             dir = ${MAIN_RESULTS_DIR}
-            schemas = ${CYLC_WORKFLOW_RUN_DIR}/meta/data_formats/tables_schemas.json
+            schemas = ${CYLC_WORKFLOW_RUN_DIR}/meta/data_formats/result_tables.json
         [[[meta]]]
             title = Upload <results>
             description = """

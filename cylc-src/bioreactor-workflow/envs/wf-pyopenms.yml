@@ -1,0 +1,6 @@
+name: wf-pyopenms
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  -  pyopenms=3.1.0

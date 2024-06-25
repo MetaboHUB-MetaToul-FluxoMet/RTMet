@@ -32,7 +32,7 @@ Features
 ========
 
 - Automatically fetch :file:`.raw` files coming from the mass spectrometer. 
-- Process FIA-HRMS data to find metabolites, estimate their concentration and reaction rates.
+- Process :term:`FIA-HRMS` data to find metabolites, estimate their concentration and reaction rates.
 - Visualize the results in real-time.
 
 Is RTMet for you ?

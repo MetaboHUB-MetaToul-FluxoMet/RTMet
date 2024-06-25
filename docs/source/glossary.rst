@@ -54,4 +54,3 @@ Glossary
 .. _cycle: https://cylc.github.io/cylc-doc/8.2.4/html/glossary.html#term-cycle
 .. _task: https://cylc.github.io/cylc-doc/8.2.4/html/glossary.html#term-task
 .. _fia: https://en.wikipedia.org/wiki/Flow_injection_analysis
-"""

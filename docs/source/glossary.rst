@@ -33,9 +33,25 @@ Glossary
           dependencies bewteen tasks.
 
         .. seealso:: `task <task>`__ in Cylc glossary.
+    
+    flowgram
+        Elution profile in :term:`FIA-MS`, by analogy with the 'chromatogram' in LC-MS. There is no
+        column chromatography in FIA-MS
+    
+    FIA-MS
+    FIE-MS
+    FIA-HRMS
+        | Flow Injection Analysis - High Resolution Mass Spectrometry.
+        | A technique based on the injection of a sample into a flow of solvent, which is then 
+          directly analyzed by a mass spectrometer.
+        
+        .. seealso:: "`Flow injection analysis  <fia>`__" on Wikipedia.
+
 
 .. External links to Cylc glossary:
 .. _run-directory: https://cylc.github.io/cylc-doc/8.2.4/html/glossary.html#term-run-directory
 .. _source-directory: https://cylc.github.io/cylc-doc/8.2.4/html/glossary.html#term-source-directory
 .. _cycle: https://cylc.github.io/cylc-doc/8.2.4/html/glossary.html#term-cycle
 .. _task: https://cylc.github.io/cylc-doc/8.2.4/html/glossary.html#term-task
+.. _fia: https://en.wikipedia.org/wiki/Flow_injection_analysis
+"""

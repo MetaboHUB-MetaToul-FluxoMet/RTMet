@@ -1,0 +1,109 @@
+{
+  "name": "compounds_db",
+  "type": "table",
+  "path": "../config/compounds_db.csv",
+  "scheme": "file",
+  "format": "csv",
+  "mediatype": "text/csv",
+  "encoding": "utf-8",
+  "dialect": {
+    "csv": {
+      "delimiter": ";",
+      "header": true
+    }
+  },
+  "schema": {
+    "fields": [
+      {
+        "name": "Isobaric ID",
+        "type": "string",
+        "example": "hexose",
+        "description": "Unique identifier for compound(s) that can't be distinguished by mass."
+      },
+      {
+        "name": "Metabolites IDs",
+        "type": "string",
+        "example": "glc__D fru fru_B",
+        "description": "List of identifiers in the metabolic model for the compound(s)."
+      },
+      {
+        "name": "Precursor Name",
+        "type": "string",
+        "example": "Glucose",
+        "description": "Human readable name of the compound(s)."
+      },
+      {
+        "name": "Precursor Formula",
+        "type": "string",
+        "example": "C6H12O6",
+        "description": "Chemical formula of the compound(s)."
+      },
+      {
+        "name": "Precursor m/z",
+        "type": "number",
+        "example": 180.0634,
+        "description": "Mass-to-charge ratio of the compound(s). Should be unique.",
+        "constraints": {
+          "required": true,
+          "unique": true,
+          "minimum": 0
+        }
+      },
+      {
+        "name": "Precursor Adduct",
+        "type": "string",
+        "example": "[M-H]",
+        "description": "Adduct of the compound(s)."
+      },
+      {
+        "name": "Precursor Charge",
+        "type": "integer",
+        "example": -1,
+        "description": "Charge of the compound(s).",
+        "constraints": {
+          "required": true
+        }
+      },
+      {
+        "name": "Retention Time",
+        "type": "number",
+        "example": 0.5,
+        "description": "Retention time of the compound(s) in minutes.",
+        "constraints": {
+          "minimum": 0
+        }
+      },
+      {
+        "name": "Ref Isobaric ID",
+        "type": "string",
+        "example": "13c-glucose",
+        "description": "compound that should be used for relative quantification. Must be in the Isobaric ID column."
+      },
+      {
+        "name": "Coeff A",
+        "type": "number",
+        "example": 0.26,
+        "description": "Coefficient A for the calibration curve."
+      },
+      {
+        "name": "Coeff B",
+        "type": "number",
+        "example": 10.45,
+        "description": "Coefficient B for the calibration curve."
+      }
+    ],
+    "missingValues": [
+      ""
+    ],
+    "primaryKey": "Isobaric ID",
+    "foreignKeys": [
+      {
+        "fields": "Ref Isobaric ID",
+        "reference": {
+          "resource": "",
+          "fields": "Isobaric ID"
+        }
+      }
+    ]
+  }
+}

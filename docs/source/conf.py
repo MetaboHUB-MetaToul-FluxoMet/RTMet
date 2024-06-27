@@ -37,6 +37,8 @@ extensions = [
 templates_path = ["_templates"]
 exclude_patterns = []
 
+rst_epilog = open("substitutions.rst.include", "r").read()
+
 # Build CSV files snippet to use with `csv-table` directive
 original_csvs = [
     "../../cylc-src/bioreactor-workflow/meta/exemples/compounds_db.csv",
@@ -66,8 +68,10 @@ html_theme_options = {
     "style_external_links": True,
 }
 
+
 def setup(app):
     app.config.html_static_path.append("_static")
+
 
 # -- Options for epub output -------------------------------------------------
 # disable epub mimetype warnings

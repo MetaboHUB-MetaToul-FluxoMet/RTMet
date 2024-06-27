@@ -29,7 +29,7 @@ compounds_db.csv
 ----------------
 
 .. csv-table:: Exemple
-   :file: /../../cylc-src/bioreactor-workflow/meta/exemples/compounds_db.csv
+   :file: /_static/tables/compounds_db.csv
    :delim: ;
    :stub-columns: 1
    :header-rows: 1

@@ -9,6 +9,7 @@
 
 import os
 import sys
+import csv
 
 import metomi.rose
 
@@ -35,6 +36,21 @@ extensions = [
 templates_path = ["_templates"]
 exclude_patterns = []
 
+# Build CSV files snippet to use with `csv-table` directive
+original_csvs = [
+    "../../cylc-src/bioreactor-workflow/meta/exemples/compounds_db.csv",
+]
+static_tables_path = "_static/tables"
+os.makedirs(static_tables_path, exist_ok=True)
+for csv_path in original_csvs:
+    with open(csv_path, "r") as csv_file:
+        csv_reader = csv.reader(csv_file)
+        csv_data = list(csv_reader)
+    with open(
+        os.path.join(static_tables_path, os.path.basename(csv_path)), "w"
+    ) as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerows(csv_data[:5])
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

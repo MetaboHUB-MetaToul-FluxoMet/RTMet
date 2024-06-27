@@ -31,6 +31,7 @@ extensions = [
     # Custom extensions (in ext/ directory)
     "rose_lang",
     "rose_domain",
+    "exec",
 ]
 
 templates_path = ["_templates"]

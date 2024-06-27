@@ -1,0 +1,9 @@
+Isobaric ID;Metabolites IDs;Precursor Name;Precursor Formula;Precursor m/z;Precursor Adduct;Precursor Charge;Retention Time;Ref Isobaric ID;Coeff A;Coeff B
+acetate;bigg_001;Acetate;C2H4O2;59.01385;[M-H];-1;0.3;13c-acetate;0.461711288;0.806159876
+13c-acetate;;13C-Acetate;C2H4O2;61.02056;[M2C13-H];-1;0.3;13c-acetate;1;0
+propionate;bigg_002;Propionate;C3H6O2;73.0295;[M-H];-1;0.3;13c-glucose;;
+gly;bigg_003;Gly;C2H5NO2;74.02475;[M-H];-1;0.3;13c-glucose;;
+pyruvate;bigg_004;Pyruvate;C3H4O3;87.00877;[M-H];-1;0.3;13c-glucose;0.179135373;0.112376156
+butyrate;bigg_005;Butyrate;C4H8O2;87.04515;[M-H];-1;0.3;13c-glucose;;
+ala;bigg_006;Ala;C3H7NO2;88.0404;[M-H];-1;0.3;13c-glucose;;
+oxalate;bigg_007;Oxalate;C2H2O4;88.98803;[M-H];-1;0.3;13c-glucose;;

@@ -9,6 +9,7 @@
 
 import os
 import sys
+import csv
 
 import metomi.rose
 
@@ -27,15 +28,32 @@ sys.path.append(os.path.abspath("ext"))
 extensions = [
     # cylc.sphinx_ext extensions (from cylc.sphinx_ext-extensions library)
     "cylc.sphinx_ext.cylc_lang",
-    # Custom extensions (in ext/ directory) made for Rose (MET Office)
+    # Custom extensions (in ext/ directory)
     "rose_lang",
     "rose_domain",
+    "exec",
 ]
-# extensions = ["cylc.sphinx_ext.cylc_lang"]
 
 templates_path = ["_templates"]
 exclude_patterns = []
 
+rst_epilog = open("substitutions.rst.include", "r").read()
+
+# Build CSV files snippet to use with `csv-table` directive
+original_csvs = [
+    "../../cylc-src/bioreactor-workflow/meta/exemples/compounds_db.csv",
+]
+static_tables_path = "_static/tables"
+os.makedirs(static_tables_path, exist_ok=True)
+for csv_path in original_csvs:
+    with open(csv_path, "r") as csv_file:
+        csv_reader = csv.reader(csv_file)
+        csv_data = list(csv_reader)
+    with open(
+        os.path.join(static_tables_path, os.path.basename(csv_path)), "w"
+    ) as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerows(csv_data[:5])
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -50,10 +68,11 @@ html_theme_options = {
     "style_external_links": True,
 }
 
+
 def setup(app):
     app.config.html_static_path.append("_static")
+
 
 # -- Options for epub output -------------------------------------------------
 # disable epub mimetype warnings
 suppress_warnings = ["epub.unknown_project_files"]
-

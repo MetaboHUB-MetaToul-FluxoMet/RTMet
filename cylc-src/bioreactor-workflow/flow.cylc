@@ -62,8 +62,10 @@
             fi
         """
         [[[environment]]]
-            # Directory (starting from workflow root) where user input should be stored
+            # Directory (starting from workflow root) where user input should be stored.
             USER_CONFIG_DIR = ${CYLC_WORKFLOW_RUN_DIR}/config
+            # Directory (starting from workflow root) where validation schemas are stored.
+            META_DIR = ${CYLC_WORKFLOW_RUN_DIR}/meta
             # Runtime dir names in ROSE_DATAC
             MAIN_RESULTS_DIR = ${ROSE_DATAC}/dataflow
             QC_RESULTS_DIR = ${ROSE_DATAC}/qc
@@ -78,11 +80,12 @@
             categories = other
 
     [[validate_compounds_db]]
-        script = echo "Verifying molecules database! (TODO)"
+    inherit = None, CONDA_DATAMUNGING
+        script = frictionless validate --trusted ${META_DIR}/compounds_db.resource.json
         [[[meta]]]
             title = Validate Compounds Database
             description = """
-                Validates the user-defined molecular database.
+                Validates the user-defined molecular database that is used for annotation.
             """
             categories = other
 
@@ -325,7 +328,7 @@
         [[[environment]]]
             table = ${CYLC_TASK_PARAM_results}
             dir = ${MAIN_RESULTS_DIR}
-            schemas = ${CYLC_WORKFLOW_RUN_DIR}/meta/data_formats/tables_schemas.json
+            schemas = ${META_DIR}/result_tables.json
         [[[meta]]]
             title = Upload <results>
             description = """

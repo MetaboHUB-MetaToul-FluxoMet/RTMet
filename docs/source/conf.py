@@ -27,11 +27,10 @@ sys.path.append(os.path.abspath("ext"))
 extensions = [
     # cylc.sphinx_ext extensions (from cylc.sphinx_ext-extensions library)
     "cylc.sphinx_ext.cylc_lang",
-    # Custom extensions (in ext/ directory) made for Rose (MET Office)
+    # Custom extensions (in ext/ directory)
     "rose_lang",
     "rose_domain",
 ]
-# extensions = ["cylc.sphinx_ext.cylc_lang"]
 
 templates_path = ["_templates"]
 exclude_patterns = []
@@ -56,4 +55,3 @@ def setup(app):
 # -- Options for epub output -------------------------------------------------
 # disable epub mimetype warnings
 suppress_warnings = ["epub.unknown_project_files"]
-

@@ -1,0 +1,48 @@
+name: 🧹 Cylc Lint and Validate Workflow
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/cylc-lint-validate.yml'
+      - 'cylc-src/**.cylc'
+  push:
+    branches: [main]
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        python-version: ['3.9', '3']
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: configure python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Install docs/tutorial dependencies
+        uses: cylc/cylc-doc/.github/actions/install-dependencies@master
+
+      - name: install cylc-flow
+        run: pip install .[all]
+
+      - name: lint and validate workflow
+        timeout-minutes: 6
+        run: |
+          mkdir -p "${HOME}/cylc-run"
+          .github/bin/cylc-lint-validate
+
+      - name: debug
+        if: failure()
+        run: |
+          find ~/cylc-run -name job.err -exec cat {} +  # cylc error files

@@ -1,0 +1,32 @@
+name: 🐍 Setup Cylc Conda
+description: Install miniforge, cylc/rose packages and setup wrapper script
+inputs:
+  env-path:
+    required: true
+    type: string
+    default: 'cylc-src/bioreactor-workflow/envs/cylc.yml'
+
+runs:
+  using: composite
+  steps:
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-activate-base: false
+        activate-environment: cylc
+        miniforge-version: latest
+        environment-file: ${{ inputs.env-path }}
+    
+    # use login shell for conda activation after setup-miniconda
+    - name: add graphviz
+      shell: bash -eul {0}
+      run: |
+        conda install -y graphviz
+    - name: setup cylc wrapper script
+      shell: bash -eul {0}
+      run: |
+        BASE_CONDA_PREFIX=$(dirname ${CONDA_PREFIX})
+        WRAPPER_DIR='/usr/local/bin'
+        cylc get-resources cylc ${WRAPPER_DIR} && chmod +x ${WRAPPER_DIR}/cylc
+        sed -i 's|^CYLC_HOME_ROOT_ALT=.*|CYLC_HOME_ROOT_ALT=${BASE_CONDA_PREFIX}|' ${WRAPPER_DIR}/cylc
+        ln -s ${WRAPPER_DIR}/cylc ${WRAPPER_DIR}/rose
+        

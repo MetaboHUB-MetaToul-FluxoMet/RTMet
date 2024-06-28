@@ -18,11 +18,11 @@ runs:
     
     # use login shell for conda activation after setup-miniconda
     - name: add graphviz
-      shell: bash -eul {0}
+      shell: bash -el {0}
       run: |
         conda install -y graphviz
     - name: setup cylc wrapper script
-      shell: bash -eul {0}
+      shell: bash -el {0}
       run: |
         BASE_CONDA_PREFIX=$(dirname ${CONDA_PREFIX})
         WRAPPER_DIR='/usr/local/bin'

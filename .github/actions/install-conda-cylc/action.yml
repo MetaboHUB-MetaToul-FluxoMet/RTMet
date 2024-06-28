@@ -24,9 +24,9 @@ runs:
     - name: setup cylc wrapper script
       shell: bash -el {0}
       run: |
-        BASE_CONDA_PREFIX=$(dirname ${CONDA_PREFIX})
-        WRAPPER_DIR='/usr/local/bin'
+        CONDA_ENVS=${CONDA}/envs
+        WRAPPER_DIR=/usr/local/bin
         cylc get-resources cylc ${WRAPPER_DIR} && chmod +x ${WRAPPER_DIR}/cylc
-        sed -i 's|^CYLC_HOME_ROOT_ALT=.*|CYLC_HOME_ROOT_ALT=${BASE_CONDA_PREFIX}|' ${WRAPPER_DIR}/cylc
+        sed -i 's|^CYLC_HOME_ROOT_ALT=.*|CYLC_HOME_ROOT_ALT=${CONDA_ENVS}|' ${WRAPPER_DIR}/cylc
         ln -s ${WRAPPER_DIR}/cylc ${WRAPPER_DIR}/rose
         

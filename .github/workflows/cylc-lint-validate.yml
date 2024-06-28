@@ -15,34 +15,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    env:
-      CYLC_VERSION: 8.3
-      PYTHON_VERSION: 3.9
+  cylc-validate:
+    name: Validate Cylc files
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash -eul {0}
     steps:
-      - name: configure python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/install-conda-cylc
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: Install docs/tutorial dependencies
-        uses: cylc/cylc-doc/.github/actions/install-dependencies@master
-
-      - name: install cylc-flow
-        run: pip install cylc-flow=${{ env.CYLC_VERSION }}
-
-      - name: lint and validate workflow
-        timeout-minutes: 6
+          env-path: 'cylc-src/bioreactor-workflow/envs/cylc.yml'
+      - name: cylc lint
         run: |
-          mkdir -p "${HOME}/cylc-run"
-          .github/bin/cylc-lint-validate
-
-      - name: debug
-        if: failure()
+          cylc lint ./cylc-src/bioreactor-workflow
+      - name: cylc validate
         run: |
-          find ~/cylc-run -name job.err -exec cat {} +  # cylc error files
+          cylc validate ./cylc-src/bioreactor-workflow

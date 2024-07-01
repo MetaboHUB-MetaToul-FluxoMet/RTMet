@@ -27,6 +27,6 @@ runs:
         CONDA_ENVS=${CONDA}/envs
         WRAPPER_DIR=/usr/local/bin
         cylc get-resources cylc ${WRAPPER_DIR} && chmod +x ${WRAPPER_DIR}/cylc
-        sed -i 's|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${CONDA_ENVS}|' ${WRAPPER_DIR}/cylc
+        sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${CONDA_ENVS}|" ${WRAPPER_DIR}/cylc
         ln -s ${WRAPPER_DIR}/cylc ${WRAPPER_DIR}/rose
         

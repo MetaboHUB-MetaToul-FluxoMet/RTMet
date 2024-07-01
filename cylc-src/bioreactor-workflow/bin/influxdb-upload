@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
+import os
 import argparse
 from pathlib import Path
 
 import influx_utils
+
+BUCKET_NAME = os.getenv("BUCKET_NAME", "no_bucket_name_given")
 
 
 def main():
@@ -12,19 +15,15 @@ def main():
     )
     parser.add_argument("--table", type=str, help="Table name to ingest.")
     parser.add_argument("--dir", type=Path, help="Path to directory with CSV tables.")
-    parser.add_argument("--ini", type=Path, help="Path to InfluxDB ini config.")
     parser.add_argument(
         "--schemas", type=Path, help="Path to JSON with tables schemas."
-    )
-    parser.add_argument(
-        "--bucket", type=str, help="Name of the bucket to ingest the data."
     )
 
     args = parser.parse_args()
     schemas = influx_utils.load_tables_schemas(args.schemas)
     measurement_df = influx_utils.measurement_df_from_csv(schemas, args.table, args.dir)
-    client = influx_utils.client_from_ini(args.ini)
-    influx_utils.ingest(measurement_df, client, args.bucket)
+    client = influx_utils.client_from_env()
+    influx_utils.ingest(measurement_df, client, bucket=BUCKET_NAME)
 
 
 if __name__ == "__main__":

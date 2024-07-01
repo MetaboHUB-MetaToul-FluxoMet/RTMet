@@ -32,7 +32,7 @@
         """
         +P3/P1 = quantify & quantify[-P1] & quantify[-P2] => compute_fluxes
 {% if cfg__toggle_influxdb %}
-        R1/^ = validate_cfg => setup_influxdb_cfg => create_bucket => is_setup
+        R1/^ = validate_cfg => create_bucket => is_setup
         +P1/P1 = """
             extract_features => upload_features
             quantify => upload_concentrations
@@ -267,46 +267,26 @@
     # InfluxDB tasks
 
     [[INFLUXDB]]
+        inherit = None, CONDA_INFLUX
         [[[environment]]]
-            configs_path = ${ROSE_DATA}/influxdb-config.ini
-            config_name = influx2
-            bucket_name = ${CYLC_WORKFLOW_ID}
+            BUCKET_NAME = ${CYLC_WORKFLOW_ID}
+            # Env variables recognized by the InfluxDB Python library.
+            INFLUXDB_V2_URL = {{ cfg__influxdb_url }}
+            INFLUXDB_V2_ORG = {{ cfg__influxdb_org }}
+            INFLUXDB_V2_TOKEN = {{ cfg__influxdb_auth_token }}
         [[[meta]]]
             title = INFLUXDB (family task)
             description = """
-                Family task to inherit InfluxDB configuration and workflow-specific bucket.
+                Family task to inherit InfluxDB configuration and workflow-specific bucket, in the
+                form of environment variables.
             """
             categories = family task, influxdb
-
-    [[setup_influxdb_cfg]]
-        inherit = INFLUXDB
-        script = """
-            influx config create \
-                --config-name ${config_name} \
-                --configs-path ${configs_path} \
-                --host-url ${host_url} \
-                --token ${token} \
-                --org ${org}
-        """
-        [[[environment]]]
-            host_url = {{ cfg__influxdb_url }}
-            token = {{ cfg__influxdb_auth_token }}
-            org = {{ cfg__influxdb_org }}
-        [[[meta]]]
-            title = Setup InfluxDB Configuration
-            description = """
-                Creates an InfluxDB configuration file based on user-defined variables.
-            """
-            categories = influxdb
 
     [[create_bucket]]
         inherit = INFLUXDB
         script = """
             echo "Creating InfluxDB bucket for workflow run!"
-            influx bucket create \
-                --name ${bucket_name} \
-                --configs-path ${configs_path} \
-                --active-config ${config_name}
+            influxdb-bucket
         """
         [[[meta]]]
             title = Create InfluxDB Bucket
@@ -319,8 +299,6 @@
         inherit = INFLUXDB, CONDA_INFLUX
         script = """
             influxdb-upload \
-                --ini ${configs_path} \
-                --bucket ${bucket_name} \
                 --table ${table} \
                 --dir ${dir} \
                 --schemas ${schemas} \

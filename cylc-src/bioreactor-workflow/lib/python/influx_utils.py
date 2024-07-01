@@ -52,6 +52,13 @@ class BatchingCallback:
         self.message = exception.message
 
 
+def client_from_env(*args, **kwargs):
+    """
+    Create client from environment variables.
+    """
+    return InfluxDBClient.from_env_properties(*args, **kwargs)
+
+
 def client_from_ini(ini_path: str, config_name: str = "influx2"):
     """
     Create client from ini file.

@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+
+import os
+
+from influxdb_client import InfluxDBClient, BucketsApi
+from influxdb_client.client.exceptions import InfluxDBError
+
+
+BUCKET_NAME = os.getenv("BUCKET_NAME", "no_bucket_name_given")
+# Other environment variables are read with InfluxDBClient.from_env_properties
+
+
+def main():
+    client = InfluxDBClient.from_env_properties()
+    bucket_api: BucketsApi = client.buckets_api()
+    try:
+        bucket_api.create_bucket(bucket_name=BUCKET_NAME)
+    except InfluxDBError as e:
+        raise Error(f"Failed to create bucket {BUCKET_NAME}: {e}")
+
+
+if __name__ == "__main__":
+    main()

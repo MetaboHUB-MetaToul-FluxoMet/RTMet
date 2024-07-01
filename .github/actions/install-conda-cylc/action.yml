@@ -4,11 +4,28 @@ inputs:
   env-path:
     required: true
     type: string
-    default: 'cylc-src/bioreactor-workflow/envs/cylc.yml'
+    description: 'Path to the conda environment file specifying the cylc environment.'
+  wrapper-path:
+    required: false
+    type: string
+    description: 'Directory path where the cylc and rose wrapper scripts should be written. Must be in PATH.'
+    default: '/usr/local/bin'
 
 runs:
   using: composite
   steps:
+    - name: check conda env file
+      description: Check if the conda env file contains at least cylc-flow or cylc-flow-base
+      run: |
+        if ! grep -q 'name: cylc' "${{ inputs.env-path }}"; then
+            echo "The conda environment should be named 'cylc'."
+            exit 1
+          fi
+        if ! grep -q cylc-flow ${{ inputs.env-path }}; then
+          echo "'cylc-flow' or 'cylc-flow-base' not found in the conda env file."
+          exit 1
+        fi
+
     - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-activate-base: false
@@ -25,7 +42,7 @@ runs:
       shell: bash -el {0}
       run: |
         CONDA_ENVS=${CONDA}/envs
-        WRAPPER_DIR=/usr/local/bin
+        WRAPPER_DIR=${{ inputs.wrapper-path }}
         cylc get-resources cylc ${WRAPPER_DIR} && chmod +x ${WRAPPER_DIR}/cylc
         sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${CONDA_ENVS}|" ${WRAPPER_DIR}/cylc
         ln -s ${WRAPPER_DIR}/cylc ${WRAPPER_DIR}/rose

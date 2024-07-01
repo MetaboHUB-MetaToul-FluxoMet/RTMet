@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/cylc-lint-validate.yml'
+      - '.github/actions/install-conda-cylc/action.yml'
       - 'cylc-src/**.cylc'
   push:
     branches: [main]
@@ -18,6 +19,9 @@ jobs:
   cylc-validate:
     name: Validate Cylc files
     runs-on: ubuntu-latest
+    env:
+      conda_env_file: 'cylc-src/bioreactor-workflow/envs/cylc.yml'
+      workflow_path: './cylc-src/bioreactor-workflow'
     defaults:
       run:
         shell: bash -eul {0}
@@ -25,10 +29,10 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/install-conda-cylc
         with:
-          env-path: 'cylc-src/bioreactor-workflow/envs/cylc.yml'
+          env-path: ${{ env.conda_env_file }}
       - name: cylc lint
         run: |
-          cylc lint ./cylc-src/bioreactor-workflow
+          cylc lint -v ${workflow_path}
       - name: cylc validate
         run: |
-          cylc validate ./cylc-src/bioreactor-workflow
+          cylc validate -v ${workflow_path}

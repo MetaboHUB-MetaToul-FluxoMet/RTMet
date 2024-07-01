@@ -15,6 +15,7 @@ runs:
   using: composite
   steps:
     - name: validate conda env file
+      shell: bash -e {0}
       run: |
         if ! grep -q 'name: cylc' "${{ inputs.env-path }}"; then
             echo "The conda environment should be named 'cylc'."

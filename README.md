@@ -28,7 +28,7 @@ The main goals are:
 
 ## 📥 Installation
 
-RTMet runs on Unix-like systems including Linux and MacOS. You can find instructions on [how to install it](https://rtmet.readthedocs.io/en/latest/installation.html) in the docs.
+RTMet runs on Unix-like systems including Linux and MacOS. You can find instructions on [how to install it](https://rtmet.readthedocs.io/en/latest/getting_started/installation.html) in the docs.
 
 ## 📝 Configuration
 
@@ -45,7 +45,7 @@ cfg__ppm_tol=10
 
 The `compounds_db.csv` file in `config/` contains metabolites *m/z* for ions to be matched against. It should also be edited depending on the metabolome you study.
 
-See [Configuring the workflow](https://rtmet.readthedocs.io/en/latest/user_config.html) for more info.
+See [Configuring the workflow](https://rtmet.readthedocs.io/en/latest/getting_started/user_config.html) for more info.
 
 ## 🕹 How to use
 
@@ -81,7 +81,7 @@ The raws files you provide should be numbered that way:
 
 The workflow will automatically detect the files and process them. Results (metabolites, concentrations, etc) are in `share/cycle/N/` of the run directory. 
 
-For a more detailed guide, see the [Tutorial](https://rtmet.readthedocs.io/en/latest/tutorial.html) in the docs.
+For a more detailed guide, see the [Tutorial](https://rtmet.readthedocs.io/en/latest/getting_started/tutorial.html) in the docs.
 
 ## 🪲 Bugs and feature requests
 

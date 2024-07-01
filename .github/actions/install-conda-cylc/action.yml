@@ -1,0 +1,53 @@
+name: 🐍 Setup Cylc Conda
+description: Install miniforge, cylc/rose packages and setup wrapper script
+inputs:
+  env-path:
+    required: true
+    type: string
+    description: 'Path to the conda environment file specifying the cylc environment.'
+  wrapper-path:
+    required: false
+    type: string
+    description: 'Directory path where the cylc and rose wrapper scripts should be written. Must be in PATH.'
+    default: '/usr/local/bin'
+
+runs:
+  using: composite
+  steps:
+    - name: validate conda env file
+      shell: bash -e {0}
+      run: |
+        errors=0
+        if ! grep -q 'name: cylc' "${{ inputs.env-path }}"; then
+          echo "The conda environment should be named 'cylc'."
+          errors=1
+        fi
+        if ! grep -q cylc-flow ${{ inputs.env-path }}; then
+          echo "'cylc-flow' or 'cylc-flow-base' not found in the conda env file."
+          errors=1
+        fi
+        if [ "$errors" -ne 0 ]; then
+          exit 1
+        fi
+
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-activate-base: false
+        activate-environment: cylc
+        miniforge-version: latest
+        environment-file: ${{ inputs.env-path }}
+    
+    # use login shell for conda activation after setup-miniconda
+    - name: add graphviz
+      shell: bash -el {0}
+      run: |
+        conda install -y graphviz
+    - name: setup cylc wrapper script
+      shell: bash -el {0}
+      run: |
+        CONDA_ENVS=${CONDA}/envs
+        WRAPPER_DIR=${{ inputs.wrapper-path }}
+        cylc get-resources cylc ${WRAPPER_DIR} && chmod +x ${WRAPPER_DIR}/cylc
+        sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${CONDA_ENVS}|" ${WRAPPER_DIR}/cylc
+        ln -s ${WRAPPER_DIR}/cylc ${WRAPPER_DIR}/rose
+        

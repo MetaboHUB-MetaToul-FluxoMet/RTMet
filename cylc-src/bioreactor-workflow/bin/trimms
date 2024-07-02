@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-from pyopenms import MzMLFile, MSExperiment
+from pyopenms import MzMLFile, MSExperiment, MSSpectrum
 
 
 def main(mzml_file, n_start, n_end):
@@ -17,20 +17,21 @@ def main(mzml_file, n_start, n_end):
     """
     in_file = Path(mzml_file)
     out_file = in_file.with_name(f"{in_file.stem}.trimmed.mzML")
+    exp = MSExperiment()
+    MzMLFile().load(str(in_file), exp)
 
-    in_exp = MSExperiment()
-    MzMLFile().load(str(in_file), in_exp)
+    if not exp.isSorted():
+        exp.sortSpectra(True)
 
-    if not in_exp.isSorted():
-        in_exp.sortSpectra(True)
-
-    out_exp, n_spectra, i = MSExperiment(), in_exp.getNrSpectra(), 0
-    for spectrum in in_exp:
+    filtered_spectra = []
+    n_spectra, i = exp.getNrSpectra(), 0
+    for spectrum in exp:
         i += 1
         if int(n_start) < i <= n_spectra - int(n_end):
-            out_exp.addSpectrum(spectrum)
+            filtered_spectra.append(spectrum)
+    exp.setSpectra(filtered_spectra)
 
-    MzMLFile().store(str(out_file), out_exp)
+    MzMLFile().store(str(out_file), exp)
 
 
 if __name__ == "__main__":

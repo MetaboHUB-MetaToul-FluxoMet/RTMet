@@ -52,20 +52,6 @@ class BatchingCallback:
         self.message = exception.message
 
 
-def client_from_env(*args, **kwargs):
-    """
-    Create client from environment variables.
-    """
-    return InfluxDBClient.from_env_properties(*args, **kwargs)
-
-
-def client_from_ini(ini_path: str, config_name: str = "influx2"):
-    """
-    Create client from ini file.
-    """
-    return InfluxDBClient.from_config_file(ini_path, config_name=config_name)
-
-
 @dataclass
 class MeasurementDataFrame:
     """
@@ -77,6 +63,31 @@ class MeasurementDataFrame:
     tag_cols: list[str] = None
     time_col: str = "datetime"
 
+    @classmethod
+    def from_csv(cls, schemas: dict, table_name: str, dir: str):
+        dir_path = Path(dir)
+        sep = schemas["sep"]
+        table_schema = schemas["tables"][table_name]
+        file_suffix = table_schema["suffix"]
+        datetime_col: str = table_schema["datetime_column"]
+        tags: list | None = table_schema.get("tags")
+
+        files = list(dir_path.glob(f"*{file_suffix}"))
+        if len(files) == 0:
+            raise FileNotFoundError(
+                f"No file found with suffix {file_suffix} in {dir_path}"
+            )
+        if len(files) > 1:
+            raise FileNotFoundError(
+                f"Many files found with suffix {file_suffix} in {dir_path}"
+            )
+        file_path = files[0]
+
+        dataframe = pd.read_csv(file_path, sep=sep)
+        if datetime_col not in dataframe.columns:
+            raise KeyError(f"Column {datetime_col} not found in {file_path.name}")
+        return cls(dataframe, table_name, tags, datetime_col)
+
 
 def load_tables_schemas(json_path: str) -> dict:
     """
@@ -84,33 +95,6 @@ def load_tables_schemas(json_path: str) -> dict:
     """
     with open(json_path, "r", encoding="utf-8") as file:
         return json.load(file)
-
-
-def measurement_df_from_csv(
-    schemas: dict, table_name: str, dir: str
-) -> MeasurementDataFrame:
-    dir_path = Path(dir)
-    sep = schemas["sep"]
-    table_schema = schemas["tables"][table_name]
-    file_suffix = table_schema["suffix"]
-    datetime_col: str = table_schema["datetime_column"]
-    tags: list | None = table_schema.get("tags")
-
-    files = list(dir_path.glob(f"*{file_suffix}"))
-    if len(files) == 0:
-        raise FileNotFoundError(
-            f"No file found with suffix {file_suffix} in {dir_path}"
-        )
-    if len(files) > 1:
-        raise FileNotFoundError(
-            f"Many files found with suffix {file_suffix} in {dir_path}"
-        )
-    file_path = files[0]
-
-    dataframe = pd.read_csv(file_path, sep=sep)
-    if datetime_col not in dataframe.columns:
-        raise KeyError(f"Column {datetime_col} not found in {file_path.name}")
-    return MeasurementDataFrame(dataframe, table_name, tags, datetime_col)
 
 
 def ingest(

@@ -1,8 +1,6 @@
 {
-    "sep": ";",
     "tables": {
         "features": {
-            "suffix": "features.csv",
             "datetime_column": "datetime",
             "fields": {
                 "cycle": "int",
@@ -15,11 +13,11 @@
                 "instrument_id",
                 "polarity",
                 "bin",
-                "merged_peak"
+                "merged_peak",
+                "annotated"
             ]
         },
         "concentrations": {
-            "suffix": "concentrations.csv",
             "datetime_column": "datetime",
             "fields": {
                 "cycle": "int",
@@ -38,7 +36,6 @@
             ]
         },
         "cycles_metadata": {
-            "suffix": "metadata.csv",
             "datetime_column": "datetime",
             "fields": {
                 "cycle": "int",
@@ -47,7 +44,6 @@
             }
         },
         "workflow_run": {
-            "suffix": "run_metadata.csv",
             "datetime_column": "datetime",
             "fields": {
                 "run_directory": "str",

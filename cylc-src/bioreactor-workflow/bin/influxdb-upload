@@ -1,30 +1,28 @@
 #!/usr/bin/env python3
 
-import argparse
-from pathlib import Path
+import os
 
-import influx_utils
+from influxdb_client import InfluxDBClient
+from influx_utils import MeasurementDataFrame
+
+BUCKET_NAME = os.getenv("BUCKET_NAME")
+SCHEMAS = os.getenv("SCHEMAS_JSON")
+SCHEMA_NAME = os.getenv("schema")
+CSV = os.getenv("table")
+# Other environment variables are read with InfluxDBClient.from_env_properties :
+# INFLUXDB_V2_URL
+# INFLUXDB_V2_ORG
+# INFLUXDB_V2_TOKEN
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        prog="influxdb-upload", description="Upload CSV to InfluxDB."
-    )
-    parser.add_argument("--table", type=str, help="Table name to ingest.")
-    parser.add_argument("--dir", type=Path, help="Path to directory with CSV tables.")
-    parser.add_argument("--ini", type=Path, help="Path to InfluxDB ini config.")
-    parser.add_argument(
-        "--schemas", type=Path, help="Path to JSON with tables schemas."
-    )
-    parser.add_argument(
-        "--bucket", type=str, help="Name of the bucket to ingest the data."
-    )
-
-    args = parser.parse_args()
-    schemas = influx_utils.load_tables_schemas(args.schemas)
-    measurement_df = influx_utils.measurement_df_from_csv(schemas, args.table, args.dir)
-    client = influx_utils.client_from_ini(args.ini)
-    influx_utils.ingest(measurement_df, client, args.bucket)
+    """
+    Upload a CSV file to InfluxDB, using the specified schema to specify tags
+    and fields.
+    """
+    measurement_df = MeasurementDataFrame.from_csv(CSV, SCHEMAS, SCHEMA_NAME)
+    with InfluxDBClient.from_env_properties() as client:
+        measurement_df.upload(client, bucket=BUCKET_NAME)
 
 
 if __name__ == "__main__":

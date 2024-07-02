@@ -289,7 +289,7 @@
                 Creates a bucket in InfluxDB dedicated to the current workflow run.
             """
             categories = influxdb
-    
+
     [[UPLOAD_TABLE]]
         inherit = INFLUXDB
         script = influxdb-upload
@@ -315,7 +315,7 @@
                 Uploads the features table to InfluxDB.
             """
             categories = influxdb
-    
+
     [[upload_concentrations]]
         inherit = UPLOAD_TABLE
         [[[environment]]]

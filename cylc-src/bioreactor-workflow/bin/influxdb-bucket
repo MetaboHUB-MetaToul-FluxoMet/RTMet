@@ -5,18 +5,25 @@ import os
 from influxdb_client import InfluxDBClient, BucketsApi
 from influxdb_client.client.exceptions import InfluxDBError
 
-
+REUSE_BUCKET = os.getenv("REUSE_BUCKET", "False").lower() == "true"
 BUCKET_NAME = os.getenv("BUCKET_NAME", "no_bucket_name_given")
-# Other environment variables are read with InfluxDBClient.from_env_properties
+# Other environment variables are read with InfluxDBClient.from_env_properties :
+# INFLUXDB_V2_URL
+# INFLUXDB_V2_ORG
+# INFLUXDB_V2_TOKEN
 
 
 def main():
+    """Create an InfluxDB bucket."""
     client = InfluxDBClient.from_env_properties()
     bucket_api: BucketsApi = client.buckets_api()
     try:
         bucket_api.create_bucket(bucket_name=BUCKET_NAME)
     except InfluxDBError as e:
-        raise Error(f"Failed to create bucket {BUCKET_NAME}: {e}")
+        if REUSE_BUCKET and e.response.status == 422:
+            print(f"Bucket {BUCKET_NAME} already exists, skipping creation.")
+        else:
+            raise e
 
 
 if __name__ == "__main__":

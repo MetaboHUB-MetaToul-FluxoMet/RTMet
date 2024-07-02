@@ -270,15 +270,16 @@
         inherit = None, CONDA_INFLUX
         [[[environment]]]
             BUCKET_NAME = ${CYLC_WORKFLOW_ID}
-            # Env variables recognized by the InfluxDB Python library.
+            REUSE_BUCKET = {{ cfg__influxdb_reuse_bucket }}
+            # Canonical environment variables recognized by the InfluxDB Python library.
             INFLUXDB_V2_URL = {{ cfg__influxdb_url }}
             INFLUXDB_V2_ORG = {{ cfg__influxdb_org }}
             INFLUXDB_V2_TOKEN = {{ cfg__influxdb_auth_token }}
         [[[meta]]]
             title = INFLUXDB (family task)
             description = """
-                Family task to inherit InfluxDB configuration and workflow-specific bucket, in the
-                form of environment variables.
+                Family task to inherit InfluxDB client configuration and workflow-specific bucket,
+                in the form of environment variables.
             """
             categories = family task, influxdb
 

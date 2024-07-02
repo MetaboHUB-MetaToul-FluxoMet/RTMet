@@ -5,7 +5,7 @@ import os
 from influxdb_client import InfluxDBClient, BucketsApi
 from influxdb_client.client.exceptions import InfluxDBError
 
-REUSE_BUCKET = os.getenv("REUSE_BUCKET", "False").lower() == "true"
+REUSE_BUCKET = os.getenv("reuse_bucket", "False").lower() == "true"
 BUCKET_NAME = os.getenv("BUCKET_NAME")
 # Other environment variables are read with InfluxDBClient.from_env_properties :
 # INFLUXDB_V2_URL

@@ -30,7 +30,7 @@
 {% if cfg__toggle_influxdb %}
         R1/^ = validate_cfg => create_bucket => is_setup
         +P1/P1 = """
-            extract_features => upload_features
+            annotate => upload_features
             quantify => upload_concentrations
         """
         # +P3/P1 = """
@@ -266,7 +266,6 @@
         inherit = None, CONDA_INFLUX
         [[[environment]]]
             BUCKET_NAME = ${CYLC_WORKFLOW_ID}
-            REUSE_BUCKET = {{ cfg__influxdb_reuse_bucket }}
             # Canonical environment variables recognized by the InfluxDB Python library.
             INFLUXDB_V2_URL = {{ cfg__influxdb_url }}
             INFLUXDB_V2_ORG = {{ cfg__influxdb_org }}
@@ -282,6 +281,8 @@
     [[create_bucket]]
         inherit = INFLUXDB
         script = influxdb-bucket
+        [[[environment]]]
+            reuse_bucket = {{ cfg__influxdb_reuse_bucket }}
         [[[meta]]]
             title = Create InfluxDB Bucket
             description = """
@@ -293,9 +294,9 @@
         inherit = INFLUXDB
         script = influxdb-upload
         [[[environment]]]
+            SCHEMAS_JSON = ${META_DIR}/result_tables.json
             table = _ # Defined in child tasks
-            SCHEMAS = ${META_DIR}/result_tables.json
-            RESULTS_DIR = ${MAIN_RESULTS_DIR}
+            schema = _ # Defined in child tasks
         [[[meta]]]
             title = UPLOAD TABLE (family task)
             description = """
@@ -306,7 +307,8 @@
     [[upload_features]]
         inherit = UPLOAD_TABLE
         [[[environment]]]
-            table = features
+            table = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.annotated.csv
+            schema = features
         [[[meta]]]
             title = Upload Features Table
             description = """
@@ -317,7 +319,8 @@
     [[upload_concentrations]]
         inherit = UPLOAD_TABLE
         [[[environment]]]
-            table = concentrations
+            table = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.concentrations.csv
+            schema = concentrations
         [[[meta]]]
             title = Upload Concentrations Table
             description = """

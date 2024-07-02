@@ -3,13 +3,12 @@
 import os
 
 from influxdb_client import InfluxDBClient
-import influx_utils
 from influx_utils import MeasurementDataFrame
 
 BUCKET_NAME = os.getenv("BUCKET_NAME")
-SCHEMAS = os.getenv("SCHEMAS")
-RESULTS_DIR = os.getenv("RESULTS_DIR")
-TABLE = os.getenv("table")
+SCHEMAS = os.getenv("SCHEMAS_JSON")
+SCHEMA_NAME = os.getenv("schema")
+CSV = os.getenv("table")
 # Other environment variables are read with InfluxDBClient.from_env_properties :
 # INFLUXDB_V2_URL
 # INFLUXDB_V2_ORG
@@ -21,10 +20,9 @@ def main():
     Upload a CSV file to InfluxDB, using the specified schema to specify tags
     and fields.
     """
-    schemas = influx_utils.load_tables_schemas(SCHEMAS)
-    measurement_df = MeasurementDataFrame.from_csv(schemas, TABLE, RESULTS_DIR)
+    measurement_df = MeasurementDataFrame.from_csv(CSV, SCHEMAS, SCHEMA_NAME)
     with InfluxDBClient.from_env_properties() as client:
-        influx_utils.ingest(measurement_df, client, bucket=BUCKET_NAME)
+        measurement_df.upload(client, bucket=BUCKET_NAME)
 
 
 if __name__ == "__main__":

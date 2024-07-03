@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+import os
+from pathlib import Path
+
+from pyopenms import MzMLFile, MSExperiment
+
+MZML = os.getenv("mzml")
+
+
+def main():
+    """
+    Get Instrument Name from mzML file
+    """
+    exp = MSExperiment()
+    MzMLFile().load(MZML, exp)
+
+    # stdout
+    print(exp.getInstrument().getName())
+
+
+if __name__ == "__main__":
+    main()

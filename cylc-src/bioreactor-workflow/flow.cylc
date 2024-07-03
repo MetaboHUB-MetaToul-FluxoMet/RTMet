@@ -24,7 +24,7 @@
         R1/+P1 = convert_raw => get_instrument => extract_features
         +P1/P1 = """
             is_setup[^] => _catch_raw
-            @catch_raw => _catch_raw => convert_raw => get_timestamp & 
+            @catch_raw => _catch_raw => convert_raw => get_timestamp &
                 trim_spectra => extract_features => annotate => quantify
         """
         R1/+P3 = quantify => compute_fluxes

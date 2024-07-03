@@ -21,12 +21,14 @@
 {% endif %}
     [[graph]]
         R1/^ = validate_cfg => validate_compounds_db & validate_met_model => is_setup
+        R1/+P1 = convert_raw => get_instrument => extract_features
         +P1/P1 = """
-            @catch_raw => _catch_raw => convert_raw => get_timestamp & trim_spectra =>
-                extract_features => annotate => quantify
             is_setup[^] => _catch_raw
+            @catch_raw => _catch_raw => convert_raw => get_timestamp &
+                trim_spectra => extract_features => annotate => quantify
         """
-        +P3/P1 = quantify & quantify[-P1] & quantify[-P2] => compute_fluxes
+        R1/+P3 = quantify => compute_fluxes
+        +P4/P1 = quantify & compute_fluxes[-P1] => compute_fluxes
 {% if cfg__toggle_influxdb %}
         R1/^ = validate_cfg => create_bucket => is_setup
         +P1/P1 = """
@@ -118,7 +120,6 @@
     [[convert_raw]]
         inherit = None, CONDA_TRFP
         script = """
-            mkdir -p ${output}
             thermorawfileparser \
                 --format=${format} \
                 --input=${input} \
@@ -169,11 +170,20 @@
             title = Get Run Timestamp
             description = "Extracts the spectrometer run timestamp (start) from the mzML file."
 
+    [[get_instrument]]
+        inherit = None, CONDA_OPENMS
+        script = get-instrument >> ${ROSE_DATA}/instrument_name.txt
+        [[[environment]]]
+            mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
+        [[[meta]]]
+            title = Get Instrument Name
+            description = "Extracts the instrument name from the mzML file."
+
     [[FORMAT_TABLE]]
         post-script = """
             cat ${table} | \
                 sed "1s|^|datetime;cycle;instrument_id;|" | \
-                sed "2,$ s|^|$timestamp;$cycle;$spectrometer_id;|" > \
+                sed "2,$ s|^|$timestamp;$cycle;$instrument_name;|" > \
                 ${results_dir}/${table}
         """
         [[[environment]]]
@@ -181,7 +191,7 @@
             results_dir = ${MAIN_RESULTS_DIR}
             timestamp = ${RUN_TIMESTAMP}
             cycle = ${CYLC_TASK_CYCLE_POINT}
-            spectrometer_id = {{ cfg__spectrometer_id }}
+            instrument_name = $(cat ${ROSE_DATA}/instrument_name.txt)
         [[[meta]]]
             title = FORMAT TABLE (family task)
             description = """

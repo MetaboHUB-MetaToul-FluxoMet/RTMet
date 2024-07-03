@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+import os, sys
+from pathlib import Path
+
+from pyopenms import MzMLFile, MSExperiment
+
+MZML = os.getenv("mzml")
+
+
+def main():
+    """
+    Usage:
+        ./get-instrument
+
+    Get Instrument Name from mzML file. `$mzml` shell environment variable must
+    be set to the path of the file.
+    """
+    exp = MSExperiment()
+    MzMLFile().load(MZML, exp)
+    sys.stdout.write(exp.getInstrument().getName())
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        sys.stderr.write(main.__doc__)
+    elif not MZML:
+        sys.stderr.write("$mzml environment variable not set.\n")
+        sys.exit()
+    elif not Path(MZML).exists():
+        sys.stderr.write(f"mzML file not found: {MZML}\n")
+        sys.exit()
+
+    main()

@@ -27,7 +27,8 @@
             @catch_raw => _catch_raw => convert_raw => get_timestamp & 
                 trim_spectra => extract_features => annotate => quantify
         """
-        +P3/P1 = quantify & quantify[-P1] & quantify[-P2] => compute_fluxes
+        R1/+P3 = quantify => compute_fluxes
+        +P4/P1 = quantify & compute_fluxes[-P1] => compute_fluxes
 {% if cfg__toggle_influxdb %}
         R1/^ = validate_cfg => create_bucket => is_setup
         +P1/P1 = """
@@ -119,7 +120,6 @@
     [[convert_raw]]
         inherit = None, CONDA_TRFP
         script = """
-            mkdir -p ${output}
             thermorawfileparser \
                 --format=${format} \
                 --input=${input} \

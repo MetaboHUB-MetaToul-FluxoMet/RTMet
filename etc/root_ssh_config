@@ -1,3 +1,5 @@
+# /root/.ssh/config
+
 Host *
     ServerAliveInterval 20
     ServerAliveCountMax 3

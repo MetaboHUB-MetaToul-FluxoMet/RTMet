@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# /usr/local/sbin/autoinstall-workflow-runs.sh
+
 # FR: ce script permet de créer ("installer") automatiquement un nouveau run
 # du workflow cylc quand un nouveau dossier apparait dans le répertoire
 # $LOCAL_RUNS_DIR.

@@ -1,0 +1,423 @@
+apiVersion: influxdata.com/v2alpha1
+kind: Variable
+metadata:
+    name: fasting-lumiere-29d009
+spec:
+    language: flux
+    name: metabolite_4
+    query: "import \"influxdata/influxdb/schema\"\r\n\r\nschema.tagValues(bucket: v.bucket, tag: \"isobaric_id\")"
+    selected:
+        - 6pg
+    type: query
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Variable
+metadata:
+    name: keen-galileo-29d001
+spec:
+    language: flux
+    name: bucket
+    query: |-
+        buckets()
+          |> filter(fn: (r) => r.name !~ /^_/)
+          |> rename(columns: {name: "_value"})
+          |> keep(columns: ["_value"])
+    selected:
+        - bioreactor-workflow/standards
+    type: query
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Variable
+metadata:
+    name: reverent-elgamal-29d005
+spec:
+    language: flux
+    name: metabolite_2
+    query: "import \"influxdata/influxdb/schema\"\r\n\r\nschema.tagValues(bucket: v.bucket, tag: \"isobaric_id\")"
+    type: query
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Variable
+metadata:
+    name: rustic-engelbart-29d007
+spec:
+    language: flux
+    name: metabolite_3
+    query: "import \"influxdata/influxdb/schema\"\r\n\r\nschema.tagValues(bucket: v.bucket, tag: \"isobaric_id\")"
+    type: query
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Variable
+metadata:
+    name: spectacular-wilbur-29d003
+spec:
+    language: flux
+    name: metabolite_1
+    query: "import \"influxdata/influxdb/schema\"\r\n\r\nschema.tagValues(bucket: v.bucket, tag: \"isobaric_id\")"
+    selected:
+        - acetate
+    type: query
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Dashboard
+metadata:
+    name: stupefied-blackwell-a9d001
+spec:
+    charts:
+        - axes:
+            - base: "10"
+              name: x
+              scale: linear
+            - base: "10"
+              name: "y"
+              scale: linear
+          colorizeRows: true
+          colors:
+            - hex: '#31C0F6'
+              id: MAUVkb2K6X5W35-ilPbAN
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#A500A5'
+              id: ZF5IyvzUfVLo4yA103EFW
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#FF7E27'
+              id: ts5TKNJHuo-iFvzxEpJzZ
+              name: Nineteen Eighty Four
+              type: scale
+          geom: monotoneX
+          height: 6
+          hoverDimension: auto
+          kind: Xy
+          legendColorizeRows: true
+          legendOpacity: 1
+          legendOrientationThreshold: 1e+08
+          name: All
+          opacity: 1
+          orientationThreshold: 1e+08
+          position: overlaid
+          queries:
+            - query: |-
+                from(bucket: v.bucket)
+                  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+                  |> filter(fn: (r) => r["_measurement"] == "concentrations")
+                  |> filter(fn: (r) => r["_field"] == "intensity")
+                  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+                  |> yield(name: "mean")
+          staticLegend:
+            colorizeRows: true
+            opacity: 1
+            orientationThreshold: 1e+08
+            widthRatio: 1
+          width: 5
+          widthRatio: 1
+        - height: 2
+          kind: Markdown
+          name: Name this Cell
+          note: Dashboard pour visualiser l'évolution des intensités pour certains métabolites
+          staticLegend: {}
+          width: 3
+          yPos: 6
+        - axes:
+            - base: "10"
+              name: x
+              scale: linear
+            - base: "10"
+              name: "y"
+              scale: linear
+          colorizeRows: true
+          colors:
+            - hex: '#31C0F6'
+              id: Qlehs4i5QDBzVT5Lr6TxS
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#A500A5'
+              id: ZRvWsW-CEGzVR0rSPRURX
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#FF7E27'
+              id: teWaXpcQ1xHNj-iNc2qQo
+              name: Nineteen Eighty Four
+              type: scale
+          geom: monotoneX
+          height: 2
+          hoverDimension: auto
+          kind: Xy
+          legendColorizeRows: true
+          legendOpacity: 1
+          legendOrientationThreshold: 1e+08
+          name: Acetate
+          opacity: 1
+          orientationThreshold: 1e+08
+          position: overlaid
+          queries:
+            - query: "from(bucket: v.bucket)\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"concentrations\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"intensity\")\r\n  |> filter(fn: (r) => r[\"isobaric_id\"] == \"acetate\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> yield(name: \"mean\")"
+          staticLegend:
+            colorizeRows: true
+            opacity: 1
+            orientationThreshold: 1e+08
+            widthRatio: 1
+          width: 3
+          widthRatio: 1
+          xCol: _time
+          xPos: 5
+          yCol: _value
+        - axes:
+            - base: "10"
+              name: x
+              scale: linear
+            - base: "10"
+              name: "y"
+              scale: linear
+          colorizeRows: true
+          colors:
+            - hex: '#31C0F6'
+              id: XKAn97VNXU3R_4_PjtJip
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#A500A5'
+              id: J0NSHG_iz2vOgkezvi111
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#FF7E27'
+              id: RqhGVfCTzHPFtxguVSA8E
+              name: Nineteen Eighty Four
+              type: scale
+          geom: monotoneX
+          height: 2
+          hoverDimension: auto
+          kind: Xy
+          legendColorizeRows: true
+          legendOpacity: 1
+          legendOrientationThreshold: 1e+08
+          name: metabolite_1
+          opacity: 1
+          orientationThreshold: 1e+08
+          position: overlaid
+          queries:
+            - query: |-
+                from(bucket: v.bucket)
+                  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+                  |> filter(fn: (r) => r["_measurement"] == "concentrations")
+                  |> filter(fn: (r) => r["isobaric_id"] == v.metabolite_1)
+                  |> filter(fn: (r) => r["_field"] == "intensity")
+                  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+                  |> yield(name: "mean")
+          staticLegend:
+            colorizeRows: true
+            opacity: 1
+            orientationThreshold: 1e+08
+            widthRatio: 1
+          width: 3
+          widthRatio: 1
+          xCol: _time
+          xPos: 5
+          yCol: _value
+          yPos: 2
+        - axes:
+            - base: "10"
+              name: x
+              scale: linear
+            - base: "10"
+              name: "y"
+              scale: linear
+          colorizeRows: true
+          colors:
+            - hex: '#31C0F6'
+              id: XKAn97VNXU3R_4_PjtJip
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#A500A5'
+              id: J0NSHG_iz2vOgkezvi111
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#FF7E27'
+              id: RqhGVfCTzHPFtxguVSA8E
+              name: Nineteen Eighty Four
+              type: scale
+          geom: monotoneX
+          height: 2
+          hoverDimension: auto
+          kind: Xy
+          legendColorizeRows: true
+          legendOpacity: 1
+          legendOrientationThreshold: 1e+08
+          name: metabolite_3
+          opacity: 1
+          orientationThreshold: 1e+08
+          position: overlaid
+          queries:
+            - query: |-
+                from(bucket: v.bucket)
+                  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+                  |> filter(fn: (r) => r["_measurement"] == "concentrations")
+                  |> filter(fn: (r) => r["isobaric_id"] == v.metabolite_3)
+                  |> filter(fn: (r) => r["_field"] == "intensity")
+                  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+                  |> yield(name: "mean")
+          staticLegend:
+            colorizeRows: true
+            opacity: 1
+            orientationThreshold: 1e+08
+            widthRatio: 1
+          width: 3
+          widthRatio: 1
+          xPos: 5
+          yPos: 4
+        - axes:
+            - base: "10"
+              name: x
+              scale: linear
+            - base: "10"
+              name: "y"
+              scale: linear
+          colorizeRows: true
+          colors:
+            - hex: '#31C0F6'
+              id: Qlehs4i5QDBzVT5Lr6TxS
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#A500A5'
+              id: ZRvWsW-CEGzVR0rSPRURX
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#FF7E27'
+              id: teWaXpcQ1xHNj-iNc2qQo
+              name: Nineteen Eighty Four
+              type: scale
+          geom: monotoneX
+          height: 2
+          hoverDimension: auto
+          kind: Xy
+          legendColorizeRows: true
+          legendOpacity: 1
+          legendOrientationThreshold: 1e+08
+          name: Hexoses
+          opacity: 1
+          orientationThreshold: 1e+08
+          position: overlaid
+          queries:
+            - query: |-
+                from(bucket: v.bucket)
+                  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+                  |> filter(fn: (r) => r["_measurement"] == "concentrations")
+                  |> filter(fn: (r) => r["_field"] == "intensity")
+                  |> filter(fn: (r) => r["isobaric_id"] == "hexose")
+                  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+                  |> yield(name: "mean")
+          staticLegend:
+            colorizeRows: true
+            opacity: 1
+            orientationThreshold: 1e+08
+            widthRatio: 1
+          width: 3
+          widthRatio: 1
+          xCol: _time
+          xPos: 8
+          yCol: _value
+        - axes:
+            - base: "10"
+              name: x
+              scale: linear
+            - base: "10"
+              name: "y"
+              scale: linear
+          colorizeRows: true
+          colors:
+            - hex: '#31C0F6'
+              id: XKAn97VNXU3R_4_PjtJip
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#A500A5'
+              id: J0NSHG_iz2vOgkezvi111
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#FF7E27'
+              id: RqhGVfCTzHPFtxguVSA8E
+              name: Nineteen Eighty Four
+              type: scale
+          geom: monotoneX
+          height: 2
+          hoverDimension: auto
+          kind: Xy
+          legendColorizeRows: true
+          legendOpacity: 1
+          legendOrientationThreshold: 1e+08
+          name: metabolite_2
+          opacity: 1
+          orientationThreshold: 1e+08
+          position: overlaid
+          queries:
+            - query: |-
+                from(bucket: v.bucket)
+                  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+                  |> filter(fn: (r) => r["_measurement"] == "concentrations")
+                  |> filter(fn: (r) => r["isobaric_id"] == v.metabolite_2)
+                  |> filter(fn: (r) => r["_field"] == "intensity")
+                  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+                  |> yield(name: "mean")
+          staticLegend:
+            colorizeRows: true
+            opacity: 1
+            orientationThreshold: 1e+08
+            widthRatio: 1
+          width: 3
+          widthRatio: 1
+          xCol: _time
+          xPos: 8
+          yCol: _value
+          yPos: 2
+        - axes:
+            - base: "10"
+              name: x
+              scale: linear
+            - base: "10"
+              name: "y"
+              scale: linear
+          colorizeRows: true
+          colors:
+            - hex: '#31C0F6'
+              id: XKAn97VNXU3R_4_PjtJip
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#A500A5'
+              id: J0NSHG_iz2vOgkezvi111
+              name: Nineteen Eighty Four
+              type: scale
+            - hex: '#FF7E27'
+              id: RqhGVfCTzHPFtxguVSA8E
+              name: Nineteen Eighty Four
+              type: scale
+          geom: monotoneX
+          height: 2
+          hoverDimension: auto
+          kind: Xy
+          legendColorizeRows: true
+          legendOpacity: 1
+          legendOrientationThreshold: 1e+08
+          name: metabolite_4
+          opacity: 1
+          orientationThreshold: 1e+08
+          position: overlaid
+          queries:
+            - query: |-
+                from(bucket: v.bucket)
+                  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+                  |> filter(fn: (r) => r["_measurement"] == "concentrations")
+                  |> filter(fn: (r) => r["isobaric_id"] == v.metabolite_4)
+                  |> filter(fn: (r) => r["_field"] == "intensity")
+                  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+                  |> yield(name: "mean")
+          staticLegend:
+            colorizeRows: true
+            opacity: 1
+            orientationThreshold: 1e+08
+            widthRatio: 1
+          width: 3
+          widthRatio: 1
+          xCol: _time
+          xPos: 8
+          yCol: _value
+          yPos: 4
+    description: Dashboard pour visualiser l'évolution des intensités pour certains métabolites
+    name: Bioreactor Dashboard

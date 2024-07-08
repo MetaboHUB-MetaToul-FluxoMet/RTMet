@@ -1,0 +1,10 @@
+Host *
+    ServerAliveInterval 20
+    ServerAliveCountMax 3
+    ControlMaster auto
+    ControlPath ~/.ssh/controlmasters/%r@%h:%p
+    ControlPersist 30m
+
+Host exploris120
+    HostName insa-XXXXX
+    User HIDDEN_SECRET

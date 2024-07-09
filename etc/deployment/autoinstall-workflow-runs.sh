@@ -30,8 +30,8 @@ function install_workflows {
             [ ! -f "${dir}INSTALLED" ] &&
             [ ! -f "${dir}INSTALL_FAILED" ]; then
             echo "Run to be installed: $(basename ${dir})"
-            sudo --login --user=${USER} cylc install ${WORKFLOW_NAME} -r $(basename ${dir}) && touch ${dir}INSTALLED || touch ${dir}INSTALL_FAILED
-            
+            sudo --login --user=${USER} bash -c "cylc install ${WORKFLOW_NAME} -r $(basename ${dir}) && touch ${dir}INSTALLED || touch ${dir}INSTALL_FAILED"
+
         fi
     done
 }

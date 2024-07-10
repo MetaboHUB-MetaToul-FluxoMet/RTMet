@@ -21,7 +21,7 @@ version = "0.1.0"
 
 # Versions used for intersphinx links
 cylc_version = "8.2.3"
-rose_version = "2.2.0"
+rose_version = "2.3.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

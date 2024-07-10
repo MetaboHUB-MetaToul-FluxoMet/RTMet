@@ -48,7 +48,7 @@ rst_epilog = open("substitutions.rst.include", "r").read()
 intersphinx_mapping = {
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
     "cylc": (f"https://cylc.github.io/cylc-doc/{cylc_version}/html/", None),
-    "rose": (f"https://metomi.github.io/rose/doc/{rose_version}/html/", None),
+    "rose": (f"https://metomi.github.io/rose/{rose_version}/html/", None),
 }
 # See also:
 # https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#confval-intersphinx_disabled_reftypes

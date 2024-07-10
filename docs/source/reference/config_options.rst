@@ -12,8 +12,8 @@ you use :command:`cylc reload`
 Configuration Options
 =====================
 
-The main configuration file can be found in the :file:`rose-suite.conf` file at the root of the workflow
-directory.
+The main configuration file can be found in the :file:`rose-suite.conf` file at the root of the
+workflow directory.
 
 .. rose:file:: rose-suite.conf
 
@@ -23,7 +23,6 @@ Input Tables
 ============
 
 The input tables are stored in the :file:`config/` directory at the root of the workflow directory.
-
 
 compounds_db.csv
 ----------------

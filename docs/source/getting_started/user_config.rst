@@ -19,8 +19,6 @@ Inside, you'll find :file:`rose-suite.conf`, which is a global configuration fil
     :caption: rose-suite.conf
 
     [template variables]
-    # A arbitrary name identifying the spectrometer.
-    cfg__spectrometer_id='orbitrap_01'
     # Fraction of max(TIC). Only scans above it will be kept by binneR.
     cfg__tic_threshold=0.50
     # Tolerance (ppm) for metabolite identification.

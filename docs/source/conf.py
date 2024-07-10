@@ -19,6 +19,10 @@ author = "Elliot Fontaine"
 release = "0.1"
 version = "0.1.0"
 
+# Versions used for intersphinx links
+cylc_version = "8.2.3"
+rose_version = "2.2.0"
+
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -26,6 +30,8 @@ version = "0.1.0"
 sys.path.append(os.path.abspath("ext"))
 
 extensions = [
+    # core sphinx extensions
+    "sphinx.ext.intersphinx",
     # cylc.sphinx_ext extensions (from cylc.sphinx_ext-extensions library)
     "cylc.sphinx_ext.cylc_lang",
     # Custom extensions (in ext/ directory)
@@ -38,6 +44,15 @@ templates_path = ["_templates"]
 exclude_patterns = []
 
 rst_epilog = open("substitutions.rst.include", "r").read()
+
+intersphinx_mapping = {
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+    "cylc": (f"https://cylc.github.io/cylc-doc/{cylc_version}/html/", None),
+    "rose": (f"https://metomi.github.io/rose/doc/{rose_version}/html/", None),
+}
+# See also:
+# https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#confval-intersphinx_disabled_reftypes
+intersphinx_disabled_reftypes = ["*"]
 
 # Build CSV files snippet to use with `csv-table` directive
 original_csvs = [

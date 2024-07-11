@@ -4,6 +4,8 @@ Tutorial
 
 .. highlight:: console
 
+.. _basic-tutorial:
+
 In this tutorial, we'll see how RTMet's workflow can automatically ingest and process .raw files.
 You'll be using the command line, so we assume you are at least familiar with it.
 

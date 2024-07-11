@@ -55,8 +55,8 @@ Manually start the **influxdb-guide** run from there, by opening the context men
 At cycle 0, you should see the task **create_bucket** run then succeed. If it is the case, the
 workflow can properly access the InfluxDB instance and your all-access token is valid. Well done !
 
-Access your InfluxDB instance via the web interface. Go to :octicon:`upload` **Load Data > Buckets**. You should see
-a new bucket named **influxdb-guide**. You may have to refresh the page.
+Access your InfluxDB instance via the web interface. Go to :octicon:`upload` **Load Data > Buckets**.
+You should see a new bucket named **influxdb-guide**. You may have to refresh the page.
 
 .. error::
     If the **create_bucket** job failed or you don't see the bucket, check the logs of the job for
@@ -66,20 +66,48 @@ a new bucket named **influxdb-guide**. You may have to refresh the page.
     :file:`~/cylc-run/bioreactor-workflow/influxdb-guide/log/job/0/create_bucket/01/` as
     :file:`job.out` and :file:`job.err`.
 
+Uploading data to InfluxDB
+--------------------------
+
+Since we're gonna try to visualize data, you'll need to give the workflow run some .raw files to
+process, like you did in the :ref:`basic-tutorial`. This time, you may want to use some data of your
+own, generated recently.
+
+Add the .raw files to the :file:`raws/` subdirectory of the **influxdb-guide** run directory.
+Watch the TUI to see the workflow process the files, and then automatically upload it to influxDB.
+
 Setting up the bioreactor dashboard
 -----------------------------------
 
-We're gonna use a preconfigured dashboard to visualize the data. Download the following template:
-
-:download:`bioreactor_template.yml </../../etc/influx_templates/bioreactor_template.yml>`.
-
-Then, import it into your InfluxDB instance. From the InfluxDB UI, go to :octicon:`gear`
-**Settings > Templates** using the left navigation bar. Paste the following url in the
-**Import Template** field:
+We're gonna use a preconfigured dashboard to visualize the data. From the InfluxDB UI, go to
+:octicon:`gear` **Settings > Templates** using the left navigation bar. Paste the following url in
+the **Import Template** field:
 
 https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/blob/main/etc/influx_templates/bioreactor_template.yml
 
 Ignore the warning that the template isn't from the Community Templates repository, and click
 **Lookup Template** then **Install Template**.
 
-Now, go to :octicon:`apps` **Dashboard** and open **Bioreactor Dashboard**
+Now, go to :octicon:`apps` **Dashboard** and open **Bioreactor Dashboard**.
+
+.. image:: /_static/screenshots/bioreactor_dashboard.png
+    :alt: InfluxDB dashboard named Bioreactor Dashboard
+
+You probably won't see any data yet. Start by enabling **Show Variables**. The most important one is
+:octicon:`three-bars` **bucket**. Set it to the **influxdb-guide** bucket you created earlier.
+
+The timestamp given to results uploaded to InfluxDB is the one written in the .raw file by the
+instrument. If you're looking at historical data, you may want to adjust the :octicon:`clock` **Time
+Range** of the dashboard at the top right.
+
+If you don't remember the day of the experiment, start by selecting a very large window (1 year).
+You should see some points squished together on the graph. The overlay legend will give you the exact
+date and time of the data points.
+
+.. note::
+  The idea is that when using the workflow in real-time, you can monitor the data as it is being
+  processed and uploaded. You would simply choose a sliding time range, e.g. :octicon:`clock` **Past 1h**,
+  and activate auto-refresh.
+
+You can also set the variables :octicon:`three-bars` **metabolite_n** to change the displayed
+metabolite concentrations in the corresponding cells.

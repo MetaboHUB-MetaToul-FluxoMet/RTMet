@@ -72,3 +72,7 @@ Setting up the bioreactor dashboard
 We're gonna use a preconfigured dashboard to visualize the data. Download the following
 :reporawfile:`template <etc/influx_templates/bioreactor_template.yml>` from RTMet's repository
 by clicking :octicon:`download` **Download raw file**.
+
+:download:`/../../etc/influx_templates/bioreactor_template.yml`
+
+Then, import it into your InfluxDB instance. From the InfluxDB UI:

@@ -20,7 +20,7 @@ release = "0.1"
 version = "0.1.0"
 
 # Versions used for intersphinx links
-cylc_version = "8.3.2"
+cylc_version = "8.3.0"
 rose_version = "2.3.0"
 
 # Branch of the project to use for :repofile: external links

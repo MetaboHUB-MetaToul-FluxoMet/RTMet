@@ -6,9 +6,6 @@ Visualizing results with InfluxDB
 
 .. highlight:: console
 
-.. attention:: 
-    🏗 Work in Progress 🏗
-
 InfluxDB is a time-series database that is used to store and visualize the results of the workflow
 in real-time. This guide provides an overview of how to set up and use InfluxDB with RTMet.
 
@@ -21,7 +18,7 @@ the cloud solution, the steps should be similar.
 Linking the workflow to the database
 ------------------------------------
 
-You'll first need to create an all access token for the workflow to use. From the InfluxDB UI (web
+You'll first need to create an all-access token for the workflow to use. From the InfluxDB UI (web
 interface):
 
 - Navigate to :octicon:`upload` **Load Data > API Tokens** using the left navigation bar.
@@ -56,7 +53,8 @@ At cycle 0, you should see the task **create_bucket** run then succeed. If it is
 workflow can properly access the InfluxDB instance and your all-access token is valid. Well done !
 
 Access your InfluxDB instance via the web interface. Go to :octicon:`upload` **Load Data > Buckets**.
-You should see a new bucket named **influxdb-guide**. You may have to refresh the page.
+You should see a new bucket named **bioreactor-workflow/influxdb-guide**. You may have to refresh the
+page.
 
 .. error::
     If the **create_bucket** job failed or you don't see the bucket, check the logs of the job for
@@ -88,15 +86,16 @@ https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/blob/main/etc/influx_templa
 Ignore the warning that the template isn't from the Community Templates repository, and click
 **Lookup Template** then **Install Template**.
 
-Now, go to :octicon:`apps` **Dashboard** and open **Bioreactor Dashboard**.
+Now, go to :octicon:`apps` **Dashboards** and open **Bioreactor Dashboard**.
 
 .. image:: /_static/screenshots/bioreactor_dashboard.png
     :alt: InfluxDB dashboard named Bioreactor Dashboard
 
-You probably won't see any data yet. Start by enabling **Show Variables**. The most important one is
-:octicon:`three-bars` **bucket**. Set it to the **influxdb-guide** bucket you created earlier.
+You probably won't see any data yet. Start by enabling :octicon:`checkbox` **Show Variables**. The
+most important one is :octicon:`three-bars` **bucket**. Set it to the
+**bioreactor-workflow/influxdb-guide** bucket you created earlier.
 
-The timestamp given to results uploaded to InfluxDB is the one written in the .raw file by the
+The timestamp given to InfluxDB when uploading results is the one written in the .raw file by the
 instrument. If you're looking at historical data, you may want to adjust the :octicon:`clock` **Time
 Range** of the dashboard at the top right.
 

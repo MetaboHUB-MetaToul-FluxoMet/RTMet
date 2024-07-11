@@ -36,6 +36,8 @@ extensions = [
     # core sphinx extensions
     "sphinx.ext.intersphinx",
     "sphinx.ext.extlinks",
+    # community extensions
+    "sphinx_design",
     # cylc.sphinx_ext extensions (from cylc.sphinx_ext-extensions library)
     "cylc.sphinx_ext.cylc_lang",
     # Custom extensions (in ext/ directory)

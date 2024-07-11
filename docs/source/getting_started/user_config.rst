@@ -1,4 +1,4 @@
-.. _user_config_tutorial:
+.. _tutorial.user-config:
 
 ========================
 Configuring the workflow

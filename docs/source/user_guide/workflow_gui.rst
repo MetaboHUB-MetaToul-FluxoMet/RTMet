@@ -10,4 +10,4 @@ provides a graphical representation of the workflow, allowing users to monitor t
 tasks, view logs, and control the execution of the workflow.
 
 :ref:`cylc:user-guide.cheat_sheet`
-https://cylc.github.io/cylc-doc/8.3.0/html/user-guide/interventions/index.html#user-guide-interventions
+:ref:`cylc:user-guide.interventions`

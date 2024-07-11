@@ -10,4 +10,5 @@ User Guide
     workflow_gui
     influxdb
     sampling_automation
+    file_transfers
     real_time

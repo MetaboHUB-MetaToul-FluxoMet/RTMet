@@ -1,8 +1,10 @@
+.. _glossary:
+
 ========
 Glossary
 ========
 
-.. Use intersphinx mapping to reference Cylc glossary terms.
+.. Uses intersphinx mapping to reference Cylc glossary terms.
 
 .. glossary::
     :sorted:

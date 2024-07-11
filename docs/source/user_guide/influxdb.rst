@@ -1,4 +1,4 @@
-.. _influxdb-guide:
+.. _user-guide.influxdb:
 
 =================================
 Visualizing results with InfluxDB
@@ -10,7 +10,7 @@ InfluxDB is a time-series database that is used to store and visualize the resul
 in real-time. This guide provides an overview of how to set up and use InfluxDB with RTMet.
 
 You should have an InfluxDB instance running, with an organization and first user. To set it up,
-please refer to the :ref:`installation <installing-influxdb>` section.
+please refer to the :ref:`installation <installation.influxdb>` section.
 
 The following instructions assume you're using the self-hosted version of InfluxDB. If you're using
 the cloud solution, the steps should be similar.
@@ -68,7 +68,7 @@ Uploading data to InfluxDB
 --------------------------
 
 Since we're gonna try to visualize data, you'll need to give the workflow run some .raw files to
-process, like you did in the :ref:`basic-tutorial`. This time, you may want to use some data of your
+process, like you did in the :ref:`tutorial.basic-tutorial`. This time, you may want to use some data of your
 own, generated recently.
 
 Add the .raw files to the :file:`raws/` subdirectory of the **influxdb-guide** run directory.

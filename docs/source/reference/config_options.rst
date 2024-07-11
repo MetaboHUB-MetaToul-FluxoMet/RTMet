@@ -7,7 +7,7 @@ that is subsequently installed. Changes in a run directory will only apply to th
 you use :command:`cylc reload`
 
 .. seealso:: 
-    :ref:`user_config_tutorial`
+    :ref:`tutorial.user-config`
 
 Configuration Options
 =====================

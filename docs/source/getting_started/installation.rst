@@ -1,3 +1,5 @@
+.. _installation:
+
 ============
 Installation
 ============
@@ -20,7 +22,7 @@ Some optional features will require:
 If you're using MacOS, follow the `instructions`_ from Cylc documentation explaining additional
 dependencies.
 
-.. _installing-the-workflow:
+.. _installation.workflow:
 
 Installing the workflow
 =======================
@@ -97,7 +99,7 @@ purposes. For binneR, you'll need to install it from the R console::
     $ conda activate wf-binner && Rscript -e "remotes::install_github('aberHRML/binneR', dependencies=FALSE, upgrade_dependencies=FALSE)"
     $ conda deactivate
 
-.. _installing-influxdb:
+.. _installation.influxdb:
 
 Optional: Installing InfluxDB
 =============================
@@ -114,6 +116,7 @@ The other one is to use the self-hosted version, InfluxDB OSS v2. See installati
 `InfluxDB's documentation`_.
 Either way, make sure to setup your InfluxDB instance by creating an organization and a first user.
 
+.. _installation.jupyterhub:
 
 Optional: Installing JupyterHub
 ===============================

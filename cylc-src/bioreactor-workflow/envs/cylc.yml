@@ -3,10 +3,10 @@ channels:
   - conda-forge
 dependencies:
   - python=3.9
-  - cylc-flow=8.2
-  - cylc-uiserver=1.4.4
-  - metomi-rose=2.2
-  - cylc-rose=1.3
+  - cylc-flow=8.3.2
+  - cylc-uiserver=1.5.0
+  - metomi-rose=2.3.0
+  - cylc-rose=1.4.0
 
 # cylc requires `bash`, GNU `coreutils` and `mail` (optional) which are not installed by conda.
 

@@ -15,8 +15,8 @@ in real-time. This guide provides an overview of how to set up and use InfluxDB 
 You should have an InfluxDB instance running, with an organization and first user. To set it up,
 please refer to the :ref:`installation <installing-influxdb>` section.
 
-The following instructions assume you're using the self-hosted version of InfluxDB, and references
-that version of their documentation. If you're using the cloud solution, the steps should be similar.
+The following instructions assume you're using the self-hosted version of InfluxDB. If you're using
+the cloud solution, the steps should be similar.
 
 Linking the workflow to the database
 ------------------------------------
@@ -24,9 +24,9 @@ Linking the workflow to the database
 You'll first need to create an all access token for the workflow to use. From the InfluxDB UI (web
 interface):
 
-- Navigate to **Load Data > API Tokens** using the left navigation bar.
-- Click **➕ Generate API token** and select **All Access API Token**.
-- Enter a description for the API token and click **✔️ Save**.
+- Navigate to :octicon:`upload` **Load Data > API Tokens** using the left navigation bar.
+- Click :octicon:`plus` **Generate API token** and select **All Access API Token**.
+- Enter a description for the API token and click :octicon:`check` **Save**.
 - Copy the generated token and store it for safe keeping. If you lose it, you'll need to generate a
   new one.
 
@@ -55,7 +55,7 @@ Manually start the **influxdb-guide** run from there, by opening the context men
 At cycle 0, you should see the task **create_bucket** run then succeed. If it is the case, the
 workflow can properly access the InfluxDB instance and your all-access token is valid. Well done !
 
-Access your InfluxDB instance via the web interface. Go to **Load Data > Buckets**. You should see
+Access your InfluxDB instance via the web interface. Go to :octicon:`upload` **Load Data > Buckets**. You should see
 a new bucket named **influxdb-guide**. You may have to refresh the page.
 
 .. error::
@@ -69,10 +69,17 @@ a new bucket named **influxdb-guide**. You may have to refresh the page.
 Setting up the bioreactor dashboard
 -----------------------------------
 
-We're gonna use a preconfigured dashboard to visualize the data. Download the following
-:reporawfile:`template <etc/influx_templates/bioreactor_template.yml>` from RTMet's repository
-by clicking :octicon:`download` **Download raw file**.
+We're gonna use a preconfigured dashboard to visualize the data. Download the following template:
 
-:download:`/../../etc/influx_templates/bioreactor_template.yml`
+:download:`bioreactor_template.yml </../../etc/influx_templates/bioreactor_template.yml>`.
 
-Then, import it into your InfluxDB instance. From the InfluxDB UI:
+Then, import it into your InfluxDB instance. From the InfluxDB UI, go to :octicon:`gear`
+**Settings > Templates** using the left navigation bar. Paste the following url in the
+**Import Template** field:
+
+https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/blob/main/etc/influx_templates/bioreactor_template.yml
+
+Ignore the warning that the template isn't from the Community Templates repository, and click
+**Lookup Template** then **Install Template**.
+
+Now, go to :octicon:`apps` **Dashboard** and open **Bioreactor Dashboard**

@@ -10,7 +10,7 @@ Visualizing results with InfluxDB
     🏗 Work in Progress 🏗
 
 InfluxDB is a time-series database that is used to store and visualize the results of the workflow
-in real-time. This section provides an overview of how to set up and use InfluxDB with RTMet.
+in real-time. This guide provides an overview of how to set up and use InfluxDB with RTMet.
 
 You should have an InfluxDB instance running, with an organization and first user. To set it up,
 please refer to the :ref:`installation <installing-influxdb>` section.
@@ -33,14 +33,42 @@ interface):
 Now edit the main config file, :file:`~/cylc-src/bioreactor-workflow/rose-suite.conf`, to set the
 following options:
 
-- :rose:conf:`rose-suite.conf[template variables]cfg__toggle_influxdb`
-- :rose:conf:`rose-suite.conf[template variables]cfg__influxdb_url`
-- :rose:conf:`rose-suite.conf[template variables]cfg__influxdb_org`
-- :rose:conf:`rose-suite.conf[template variables]cfg__influxdb_auth_token`
+- :rose:conf:`rose-suite.conf[template variables]cfg__toggle_influxdb` : `True`
+- :rose:conf:`rose-suite.conf[template variables]cfg__influxdb_url` : URL of the running InfluxDB
+  instance.
+- :rose:conf:`rose-suite.conf[template variables]cfg__influxdb_org` : Organization to write to.
+- :rose:conf:`rose-suite.conf[template variables]cfg__influxdb_auth_token` : The API token you just
+  generated.
 
-Set the first one to `True` to enable the integration. The other 3 should match the credentials you
-used to set up InfluxDB.
 
-Now, create a new run of the workflow::
+Now, create and start a new run of the workflow::
 
-    $ cylc run bioreactor-workflow --run-name=test-influxdb
+    $ cylc install bioreactor-workflow --run-name=influxdb-guide
+
+Then open the TUI::
+
+    $ cylc tui
+
+Manually start the **influxdb-guide** run from there, by opening the context menu and choosing
+**<play>**.
+
+At cycle 0, you should see the task **create_bucket** run then succeed. If it is the case, the
+workflow can properly access the InfluxDB instance and your all-access token is valid. Well done !
+
+Access your InfluxDB instance via the web interface. Go to **Load Data > Buckets**. You should see
+a new bucket named **influxdb-guide**. You may have to refresh the page.
+
+.. error::
+    If the **create_bucket** job failed or you don't see the bucket, check the logs of the job for
+    any errors.
+
+    They should be located in
+    :file:`~/cylc-run/bioreactor-workflow/influxdb-guide/log/job/0/create_bucket/01/` as
+    :file:`job.out` and :file:`job.err`.
+
+Setting up the bioreactor dashboard
+-----------------------------------
+
+We're gonna use a preconfigured dashboard to visualize the data. Download the following
+:reporawfile:`template <etc/influx_templates/bioreactor_template.yml>` from RTMet's repository
+

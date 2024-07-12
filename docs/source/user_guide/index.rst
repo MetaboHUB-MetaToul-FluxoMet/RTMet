@@ -7,7 +7,7 @@ User Guide
 .. toctree::
     :maxdepth: 2
 
-    workflow_gui
+    workflow_control
     influxdb
     sampling_automation
     file_transfers

@@ -116,13 +116,6 @@ The other one is to use the self-hosted version, InfluxDB OSS v2. See installati
 `InfluxDB's documentation`_.
 Either way, make sure to setup your InfluxDB instance by creating an organization and a first user.
 
-.. _installation.jupyterhub:
-
-Optional: Installing JupyterHub
-===============================
-...
-
-
 .. External References:
 .. _Instructions: https://cylc.github.io/cylc-doc/latest/html/installation.html#installing-on-mac-os
 .. _InfluxData's official cloud solution: https://cloud2.influxdata.com/signup

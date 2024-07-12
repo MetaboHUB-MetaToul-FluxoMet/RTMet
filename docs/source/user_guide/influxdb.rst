@@ -16,7 +16,7 @@ The following instructions assume you're using the self-hosted version of Influx
 the cloud solution, the steps should be similar.
 
 Linking the workflow to the database
-------------------------------------
+====================================
 
 You'll first need to create an all-access token for the workflow to use. From the InfluxDB UI (web
 interface):
@@ -65,7 +65,7 @@ page.
     :file:`job.out` and :file:`job.err`.
 
 Uploading data to InfluxDB
---------------------------
+==========================
 
 Since we're gonna try to visualize data, you'll need to give the workflow run some .raw files to
 process, like you did in the :ref:`tutorial.basic-tutorial`. This time, you may want to use some data of your
@@ -75,7 +75,7 @@ Add the .raw files to the :file:`raws/` subdirectory of the **influxdb-guide** r
 Watch the TUI to see the workflow process the files, and then automatically upload it to influxDB.
 
 Setting up the bioreactor dashboard
------------------------------------
+===================================
 
 We're gonna use a preconfigured dashboard to visualize the data. From the InfluxDB UI, go to
 :octicon:`gear` **Settings > Templates** using the left navigation bar. Paste the following url in

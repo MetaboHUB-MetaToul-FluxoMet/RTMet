@@ -5,15 +5,15 @@ Controlling the workflow using Cylc GUI, TUI and CLI
 Cylc GUI
 --------
 
-:doc:`Cylc GUI <cylc:7-to-8/major-changes/ui.html#cylc-web-gui>` is a web-based interface that allows
+:doc:`Cylc GUI <cylc:7-to-8/major-changes/ui.html>` is a web-based interface that allows
 users to interact with the Cylc workflow manager. It provides a graphical representation of the
 workflow, allowing users to monitor the progress of tasks, view logs, and control the execution of
 the workflow.
 
 .. figure:: /_static/screenshots/cylc-ui-tree-official.png
-   :alt: Cylc Graphical User Interface
-   :figwidth: 80%
-   :align: center
+    :alt: Cylc Graphical User Interface
+    :figwidth: 80%
+    :align: center
 
    The GUI displaying a workflow using the "tree" view. @CylcDoc,2024
 
@@ -29,15 +29,15 @@ started by the ``cylc hub`` command.
 
 .. figure:: /_static/screenshots/cylc-hub-official.png
     :alt: Jupyter Hub authentication page
-   :figwidth: 80%
-   :align: center
+    :figwidth: 80%
+    :align: center
 
    The Jupyter Hub authentication page in a multi-user setup. @CylcDoc,2024
 
 Cylc TUI
 --------
 
-:doc:`Cylc TUI <cylc:7-to-8/major-changes/ui.html#cylc-tui>` is a terminal-based graphical interface
+:doc:`Cylc TUI <cylc:7-to-8/major-changes/ui.html>` is a terminal-based graphical interface
 that ports most of Cylc UI's features to the terminal. It provides a beginner-friendly interface when
 you're remotely accessing the machine running the workflow, and not exposing a Cylc Hub (JupyterHub)
 instance. It requires no setup, and can be opened by running the ``cylc tui`` command.

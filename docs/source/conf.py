@@ -77,7 +77,7 @@ extlinks = {
 
 # Build CSV files snippet to use with `csv-table` directive
 original_csvs = [
-    "../../cylc-src/bioreactor-workflow/meta/exemples/compounds_db.csv",
+    "../../cylc-src/bioreactor-workflow/config/compounds_db.csv",
 ]
 static_tables_path = "_static/tables"
 os.makedirs(static_tables_path, exist_ok=True)

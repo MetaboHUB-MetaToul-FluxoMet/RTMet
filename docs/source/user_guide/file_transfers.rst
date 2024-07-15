@@ -4,9 +4,6 @@
 Automating file transfers from the spectrometer
 ===============================================
 
-.. attention:: 
-    🏗 Work in Progress 🏗
-
 This guide gives some guidance on how you can link the spectrometer computer to the server running RTMet.
 It's up to you to decide how you want to do this, as it can be quite dependent on your specific
 setup, local network security policies, etc.
@@ -81,16 +78,19 @@ Approaches for synchronized file access
 Option 1: Mount a shared folder on local network with Samba
 -----------------------------------------------------------
 
-1. **Set up a Samba server**:
+#. **Set up a Samba server**:
+
    * Install and configure Samba server software on the server running RTMet.
    * Create a shared directory accessible by the spectrometer computer.
    * Set up a user account and workgroup which will have permissions for file access.
   
-2. **Access the shared folder from the spectrometer**:
+#. **Access the shared folder from the spectrometer**:
+
    * On the spectrometer computer, log in as the user + workgroup created in step 1.
    * From Windows Explorer, map a network drive to the shared folder on the server.
   
-3. **Automate file retrieval**:
+#. **Automate file retrieval**:
+
    * Make sure to output .raw files to subdirectories of the shared folder.
    * Set :rose:conf:`rose-suite.conf[template variables]cfg__local_runs_dir` to point to the shared folder.
    * Run the workflow using the subdirectory name as the :term:`run` name.
@@ -103,19 +103,26 @@ Option 1: Mount a shared folder on local network with Samba
 Option 2: rsync over SSH (spectrometer as server)
 -------------------------------------------------
 
-1. **Set up OpenSSH server on the spectrometer computer**:
+#. **Set up OpenSSH server on the spectrometer computer**:
+
    * Install the `OpenSSH Server`_ Windows extension on the spectrometer computer.
-   * Make sure you can SSH into the spectrometer computer from the RTMet server, using the existing Windows user and password.
+   * Make sure you can SSH into the spectrometer computer from the RTMet server, using the existing
+     Windows user and password.
    * Set up `key-based authentication`_ for passwordless connections.
    * Authorize `SSH multiplexing`_ for lightweight connections.
 
-2. **Add rsync to executables**:
-   * Install a Unix-like terminal emulator on the spectrometer computer: GitBash, Cygwin or WSL. Make it the default shell for SSH connections.
+#. **Add rsync to executables**:
+
+   * Install a Unix-like terminal emulator on the spectrometer computer: GitBash, Cygwin or WSL. Make
+     it the default shell for SSH connections.
    * Install rsync if it's not already available. See `instructions`_ (french) for doing it on GitBash.
    
-3. **Set up a cron job for automated file transfers**:
-   * :reporawfile:`etc/deployment/crontab` inside RTMet repository contains an example of a cron job that uses rsync to transfer files from the spectrometer to the RTMet server.
-   * :reporawfile:`etc/deployment/root_ssh_config` contains an example of a SSH configuration file that can be used to use key-based authentication and multiplexing.
+#. **Set up a cron job for automated file transfers**:
+
+   * :reporawfile:`etc/deployment/crontab` inside RTMet repository contains an example of a cron job
+     that uses rsync to transfer files from the spectrometer to the RTMet server.
+   * :reporawfile:`etc/deployment/root_ssh_config` contains an example of a SSH configuration file
+     that can be used to use key-based authentication and multiplexing.
 
 Other options
 -------------

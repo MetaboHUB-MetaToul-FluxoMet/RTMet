@@ -106,21 +106,21 @@ Option 2: rsync over SSH (spectrometer as server)
 1. **Set up OpenSSH server on the spectrometer computer**:
    - Install the `OpenSSH Server`_ Windows extension on the spectrometer computer.
    - Make sure you can SSH into the spectrometer computer from the RTMet server, using the existing
-       Windows user and password.
+     Windows user and password.
    - Set up `key-based authentication`_ for passwordless connections.
    - Authorize `SSH multiplexing`_ for lightweight connections.
 
 2. **Add rsync to executables**:
    - Install a Unix-like terminal emulator on the spectrometer computer: GitBash, Cygwin or WSL.
-       Make it the default shell for SSH connections.
+     Make it the default shell for SSH connections.
    - Install rsync if it's not already available. See `instructions`_ (french) for doing it on 
-       GitBash.
+     GitBash.
    
 3. **Set up a cron job for automated file transfers**:
    - :reporawfile:`etc/deployment/crontab` inside RTMet repository contains an example of a cron job
-       that uses rsync to transfer files from the spectrometer to the RTMet server.
+     that uses rsync to transfer files from the spectrometer to the RTMet server.
    - :reporawfile:`etc/deployment/root_ssh_config` contains an example of a SSH configuration file
-       that can be used to use key-based authentication and multiplexing.
+     that can be used to use key-based authentication and multiplexing.
 
 Other options
 -------------

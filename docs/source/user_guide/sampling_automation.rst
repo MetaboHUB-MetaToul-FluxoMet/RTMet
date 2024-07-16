@@ -5,7 +5,7 @@ Automating bioreactor sampling and analysis
 ===========================================
 
 "On-line untargeted metabolomics monitoring of an Escherichia coli succinate fermentation process"
-================================================================================================
+==================================================================================================
 
 .. article-info::
     :avatar: /_static/doi_logo.bmp
@@ -16,7 +16,7 @@ Automating bioreactor sampling and analysis
     :class-container: sd-p-2 sd-outline-muted sd-rounded-1
 
 "On-line targeted metabolomics for real-time monitoring of relevant compounds in fermentation processes"
-======================================================================================================
+========================================================================================================
 
 .. article-info::
     :avatar: /_static/doi_logo.bmp

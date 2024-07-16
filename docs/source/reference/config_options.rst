@@ -7,13 +7,13 @@ that is subsequently installed. Changes in a run directory will only apply to th
 you use :command:`cylc reload`
 
 .. seealso:: 
-    :ref:`user_config_tutorial`
+    :ref:`tutorial.user-config`
 
 Configuration Options
 =====================
 
-The main configuration file can be found in the :file:`rose-suite.conf` file at the root of the workflow
-directory.
+The main configuration file can be found in the :file:`rose-suite.conf` file at the root of the
+workflow directory.
 
 .. rose:file:: rose-suite.conf
 
@@ -23,7 +23,6 @@ Input Tables
 ============
 
 The input tables are stored in the :file:`config/` directory at the root of the workflow directory.
-
 
 compounds_db.csv
 ----------------

@@ -1,3 +1,5 @@
+.. _installation:
+
 ============
 Installation
 ============
@@ -20,7 +22,7 @@ Some optional features will require:
 If you're using MacOS, follow the `instructions`_ from Cylc documentation explaining additional
 dependencies.
 
-.. _installing-the-workflow:
+.. _installation.workflow:
 
 Installing the workflow
 =======================
@@ -97,6 +99,8 @@ purposes. For binneR, you'll need to install it from the R console::
     $ conda activate wf-binner && Rscript -e "remotes::install_github('aberHRML/binneR', dependencies=FALSE, upgrade_dependencies=FALSE)"
     $ conda deactivate
 
+.. _installation.influxdb:
+
 Optional: Installing InfluxDB
 =============================
 
@@ -104,17 +108,15 @@ Visualizing results in real time requires an InfluxDB instance. One option is to
 `InfluxData's official cloud solution`_. It's quick and easy to set up, so we recommend it for testing
 the workflow.
 
-.. warning:: The free-tier of InfluxData's cloud solution has a retention policy of 30 days, which
-    means your data will be deleted one month after it being uploaded. Don't use it as a primary backup.
+.. warning:: The free-tier of InfluxData's cloud solution is quite limited. Buckets have a retention
+    policy of 30 days, which means your data will be deleted one month after it being uploaded.
+    Don't use it as a primary backup.
 
-The other is to use the self-hosted version, InfluxDB OSS v2. See installation instructions `here`_. 
-
-Optional: Installing JupyterHub
-===============================
-...
-
+The other one is to use the self-hosted version, InfluxDB OSS v2. See installation instructions from
+`InfluxDB's documentation`_.
+Either way, make sure to setup your InfluxDB instance by creating an organization and a first user.
 
 .. External References:
 .. _Instructions: https://cylc.github.io/cylc-doc/latest/html/installation.html#installing-on-mac-os
 .. _InfluxData's official cloud solution: https://cloud2.influxdata.com/signup
-.. _here: https://docs.influxdata.com/influxdb/v2/install/
+.. _InfluxDB's documentation: https://docs.influxdata.com/influxdb/v2/install/

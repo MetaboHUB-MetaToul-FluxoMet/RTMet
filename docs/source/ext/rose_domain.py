@@ -384,7 +384,7 @@ class RoseDirective(ObjectDescription):
 
         # Add children if initialised via python - see RoseAutoDirective.
         block = block_quote()  # Create indented section.
-        for child_node in self.registered_children:
+        for child_node in reversed(self.registered_children):
             block.append(child_node)  # Add child node to indented section.
         cont_node.append(block)  # Add indented section to this node.
 

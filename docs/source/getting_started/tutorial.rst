@@ -1,13 +1,15 @@
-========
-Tutorial
-========
+.. _tutorial.basic-tutorial:
+
+==============
+Basic Tutorial
+==============
 
 .. highlight:: console
 
 In this tutorial, we'll see how RTMet's workflow can automatically ingest and process .raw files.
 You'll be using the command line, so we assume you are at least familiar with it.
 
-If you don't have RTMet installed already, see how to do that :ref:`here <installing-the-workflow>`.
+If you don't have RTMet installed already, see how to do that :ref:`here <installation.workflow>`.
 
 Creating a workflow run
 =======================

@@ -58,7 +58,7 @@ cylc vip bioreactor-workflow
 
 It will copy most of the files contained in `~/cylc-src/bioreactor-workflow/` (source directory) to `~/cylc-run/bioreactor-workflow/run1/` (run directory).
 
-You can monitor the workflow using the Cylc GUI or TUI (terminal user interface).
+You can monitor the workflow using the Cylc GUI (web interface) or TUI (terminal user interface).
 ```bash
 # Launch Jupyter Server and open the GUI in your browser
 cylc gui bioreactor-workflow

@@ -4,7 +4,7 @@
 Automating bioreactor sampling and analysis
 ===========================================
 
-On-line untargeted metabolomics monitoring of an Escherichia coli succinate fermentation process
+"On-line untargeted metabolomics monitoring of an Escherichia coli succinate fermentation process"
 ================================================================================================
 
 .. article-info::
@@ -15,7 +15,7 @@ On-line untargeted metabolomics monitoring of an Escherichia coli succinate ferm
     :date: July 07, 2022
     :class-container: sd-p-2 sd-outline-muted sd-rounded-1
 
-On-line targeted metabolomics for real-time monitoring of relevant compounds in fermentation processes
+"On-line targeted metabolomics for real-time monitoring of relevant compounds in fermentation processes"
 ======================================================================================================
 
 .. article-info::

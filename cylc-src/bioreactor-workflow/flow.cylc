@@ -201,20 +201,22 @@
             categories = family task
 
     [[extract_features]]
-        inherit = None, CONDA_BINNER, FORMAT_TABLE
+        inherit = None, CONDA_PROFIA, FORMAT_TABLE
         script = """
-            binner-cli \
-                --file ${mzml} \
-                --threshold ${threshold} \
-                $( [[ -n "${window}" ]] && printf %s "--window ${window}" )
+            mkdir -p ${input_dir}
+            cp ${mzml} ${input_dir}
+
+            profia
             mv *.png ${qc_dir}
+            mv detected_peaks.csv ${table}
         """
         [[[environment]]]
-            threshold = {{ cfg__tic_threshold }}
-            window = {{ cfg__scans_window }}
             mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.trimmed.mzML
             qc_dir = ${QC_RESULTS_DIR}
             table = ${RAWFILE_STEM}.features.csv
+            # Passed down to profia script
+            input_dir = ${CYLC_TASK_WORK_DIR}/mzml_tmp
+            ppm = 2
         [[[meta]]]
             title = Extract Features
             description = """

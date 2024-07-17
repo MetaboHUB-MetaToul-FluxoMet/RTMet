@@ -1,0 +1,47 @@
+#!/usr/bin/env Rscript
+
+# get path from environment variable
+path <- Sys.getenv("input_dir")
+ppm <- Sys.getenv("ppm")
+
+filter <- c("TIC") #c("regression") #c("TIC")
+dmz <- 0.001
+out_plot <- "modeled_flowgram.png"
+out_csv <- "detected_peaks.csv"
+
+cat("Variables:\n")
+cat(" - input_dir: ", path, "\n")
+cat(" - ppm: ", ppm, "\n")
+cat(" - out_plot: ", out_plot, "\n")
+cat(" - out_csv: ", out_csv, "\n")
+
+#path <- ("/home/fontain/documents/mzml/milieuWOserum_d10_8")
+#ppm <- 2
+
+# check that path is a directory and list+count number of files inside
+if (!file.exists(path)) {
+  stop("Path does not exist")
+} else if (!file.info(path)$isdir) {
+  stop("Path is not a directory")
+} else if (length(list.files(path)) == 0) {
+  stop("Directory is empty")
+} else if (length(list.files(path)) > 1) {
+  stop("Directory contains more than one file")
+}
+
+# Catch the output plot while processing the data
+png(out_plot)
+set <- proFIA::proFIAset((path), ppm=ppm, f=filter, parallel=FALSE)
+dev.off()
+
+detected_peaks <- proFIA::peaks(set)
+detected_peaks <- as.data.frame(detected_peaks)
+
+# Rename column "AreaIntensity" to "intensity"
+colnames(detected_peaks)[colnames(detected_peaks) == "areaIntensity"] <- "intensity"
+
+# Add polarity column (either this or rewrite the 'mzmatch' annotation task !)
+detected_peaks$polarity <- "positive"
+
+# export to csv
+write.table(detected_peaks, file= out_csv, sep=";", row.names=FALSE, quote=FALSE)

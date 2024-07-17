@@ -6,6 +6,7 @@
     'CONDA_DATAMUNGING': 'wf-datamunging',
     'CONDA_INFLUX': 'wf-influx',
     'CONDA_OPENMS': 'wf-pyopenms',
+    'CONDA_PROFIA': 'wf-profia',
     } %}
 
 [runtime]

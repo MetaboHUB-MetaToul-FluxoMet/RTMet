@@ -1,0 +1,15 @@
+name: wf-profia
+channels:
+- bioconda
+- conda-forge
+dependencies:
+- r-abind=1.4_5
+- bioconductor-xcms=3.22.0
+- r-minpack.lm=1.2_4
+- r-missforest=1.5
+- r-pracma=2.4.4
+- bioconductor-ropls=1.32.0
+- pip=24.0
+- r-remotes=2.5.0
+
+# Rscript -e "remotes::install_github('odisce/proFIA', upgrade=FALSE)"

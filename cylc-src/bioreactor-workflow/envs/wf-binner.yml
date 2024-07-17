@@ -14,5 +14,4 @@ dependencies:
   - bioconductor-mzr=2.36
   - bioconductor-rhdf5lib=1.24
 
-# Inside R, install the binneR package from GitHub
-# remotes::install_github('aberHRML/binneR')
+# Rscript -e "remotes::install_github('aberHRML/binneR', upgrade=FALSE)"

@@ -48,7 +48,8 @@ set <- proFIA::proFIAset(
 dev.off()
 
 detected_peaks <- as.data.frame(set@peaks)
-detected_peaks$polarity <- -1 # either this or rewrite the 'mzmatch' annotation task !
+detected_peaks$polarity <- "n" # Emulate the format of binneR output table. Either this or rewrite the 'mzmatch' annotation task !
+
 colnames(detected_peaks)[colnames(detected_peaks) == "areaIntensity"] <- "intensity"
 
 write.table(detected_peaks, file= out_csv, sep=";", row.names=FALSE, quote=FALSE)

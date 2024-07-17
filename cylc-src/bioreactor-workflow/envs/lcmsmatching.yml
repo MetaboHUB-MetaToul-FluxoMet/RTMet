@@ -1,0 +1,8 @@
+name: wf-lcmsmatching
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconductor-biodb>=1.10.0
+  - r-getopt>=1.20.4
+  - r-codetools>=0.2_20

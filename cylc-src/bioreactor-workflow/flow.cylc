@@ -216,7 +216,9 @@
             table = ${RAWFILE_STEM}.features.csv
             # Passed down to profia script
             input_dir = ${CYLC_TASK_WORK_DIR}/mzml_tmp
-            ppm = 2
+            ppm = 8
+            dmz = 0.01
+            filter = regression
         [[[meta]]]
             title = Extract Features
             description = """

@@ -1,0 +1,149 @@
+---
+title: "Tests autour de proFIA"
+---
+
+
+*R Markdown* permet de mélanger :
+
+- du texte libre mis en forme
+- des blocs de code R
+
+Les blocs de code sont exécutés et leur résultat affiché, par exemple :
+
+```{r}
+mean(mtcars$mpg)
+```
+
+## Graphiques
+
+On peut également inclure des graphiques :
+
+```{r}
+plot(mtcars$hp, mtcars$mpg)
+```
+
+## Suivi de la vignette proFIA
+
+Import packages et données
+
+```{r}
+library(proFIA)
+library(plasFIA)
+
+# finding the directory of the raw files
+path <- system.file(package="plasFIA", "mzML")
+list.files(path)
+```
+
+Processing
+
+```{r}
+# defining the ppm parameter adapted to the Orbitrap Fusion
+ppm <- 2
+
+# performing the first step of the workflow
+plasSet <- proFIAset(path, ppm=ppm, parallel=FALSE)
+```
+
+Plotting pour diphenhydramine
+```{r}	
+# loading the spiked molecules data frame
+data("plasMols")
+plasMols[7,]
+mzrange <- c(plasMols[7,"mass_M+H"]-0.1,plasMols[7,"mass_M+H"]+0.1)
+
+# plotting the raw region aroung the Diphenhydramine mass signal
+plotRaw(plasSet, type="r", sample=3, ylim=mzrange, size=0.6)
+
+```
+
+```{r}
+# plotting the filter Dipehnhydramine region.
+plotRaw(plasSet, type="p", sample=3, ylim=mzrange, size=0.6)
+```
+
+Voir les courbes pour la detection du pic d'injection
+
+```{r}
+# plotting the injection peak
+plotSamplePeaks(plasSet)
+```
+
+Creer la datamatrix
+```{r}
+# building the data matrix
+data_matrix <- makeDataMatrix(plasSet, maxo=FALSE)
+```
+
+Peak grouping
+
+
+
+## Avec nos données
+
+```{r}
+path <- ("/home/fontain/documents/mzml/sample1")
+out_csv <- "detected_peaks_sample1_tic_dmzE-3.csv"
+ppm <- 2
+dmz <- 0.001
+filter <- c("TIC") #c("regression") #c("TIC")
+
+set <- proFIA::proFIAset(path, ppm=ppm, dmz=dmz, f=filter, parallel=FALSE)
+```
+
+plot le flowgram
+```{r}
+proFIA::plotFlowgrams(set,mz=140.9395)
+```
+
+Plot tout
+```{r}
+proFIA::plotRaw(set, type="raw", sample=1, ylim=c(45,500), size=0.6)
+```
+
+Plot tout filtré
+```{r}
+proFIA::plotRaw(set, type="peak", sample=1, ylim=c(45,500), size=0.6)
+```
+
+Plotting pour diphenhydramine
+```{r}	
+# loading the spiked molecules data frame
+data("plasMols")
+plasMols[7,]
+mzrange <- c(plasMols[7,"mass_M+H"]-0.1,plasMols[7,"mass_M+H"]+0.1)
+
+# plotting the raw region aroung the Diphenhydramine mass signal
+proFIA::plotRaw(set, type="raw", sample=1, ylim=mzrange, size=0.6)
+
+```
+
+```{r}
+# plotting the filter Dipehnhydramine region.
+proFIA::plotRaw(set, type="peak", sample=1, ylim=mzrange, size=0.6)
+```
+
+Voir les courbes pour la detection du pic d'injection
+
+```{r}
+# plotting the injection peak
+proFIA::plotSamplePeaks(set)
+```
+
+"j’obtiens la peak table. Elle comprend notamment des
+indicateurs sur la qualité des pics."
+```{r}
+peaks <- proFIA::peaks(set)
+```
+
+
+Write to file
+```{r}
+peaks_df <- as.data.frame(peaks)
+write.table(peaks_df, file= out_csv, sep=";", row.names=FALSE)
+```
+
+
+```{r}
+groups <- proFIA::group.FIA(set, ppmGroup=1, fracGroup=1)
+```

@@ -8,6 +8,13 @@ Here are discussed some of the choices made during the development of the projec
 different languages, pattern used in Cylc, etc). There are also some guidelines on how to add a new
 task or a new configuration option to the workflow.
 
+.. note:: 
+    It is assumed that you have a basic understanding of:
+        * Cylc,
+        * Python, R and Bash.
+
+    For further information on Cylc, please consult their :ref:`cylc:user guide`.
+
 .. toctree::
     :maxdepth: 2
 

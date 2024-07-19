@@ -5,8 +5,9 @@ Development
 ===========
 
 Here are discussed some of the choices made during the development of the project (coding styles for
-different languages, pattern used in Cylc, etc). There are also some guidelines on how to add a new
-task or a new configuration option to the workflow.
+different languages, pattern used in Cylc, etc).
+
+You'll also find some guidelines on how to add a new task or configuration option to the workflow.
 
 .. note:: 
     It is assumed that you have a basic understanding of:

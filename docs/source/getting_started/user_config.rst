@@ -26,7 +26,7 @@ Inside, you'll find :file:`rose-suite.conf`, which is a global configuration fil
     # ...
 
 Actually, you may find a tolerance of 10 ppm to be a bit too high. Open the file in a text editor,
-and reduce the value to 1 ppm:
+and reduce the value of :rose:conf:`rose-suite.conf[template variables]cfg__ppm_tol` to 1.
 
 .. code-block:: diff
 

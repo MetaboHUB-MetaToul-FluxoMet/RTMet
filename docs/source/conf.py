@@ -46,6 +46,8 @@ extensions = [
     "exec",
 ]
 
+pygments_style = "dracula"  # 🧛🏻‍♂️
+
 templates_path = ["_templates"]
 exclude_patterns = []
 

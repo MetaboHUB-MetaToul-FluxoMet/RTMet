@@ -17,7 +17,7 @@ workflow directory.
 
 .. rose:file:: rose-suite.conf
 
-    .. autoconfig:: cylc-src/bioreactor-workflow/rose-suite.conf
+    .. autoconfig:: ../../cylc-src/bioreactor-workflow/rose-suite.conf
 
 Input Tables
 ============

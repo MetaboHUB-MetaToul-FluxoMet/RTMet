@@ -35,10 +35,6 @@
             annotate => upload_features
             quantify => upload_concentrations
         """
-        # +P3/P1 = """
-        #    compute_fluxes => upload_fluxes
-        #    compute_fluxes => upload_metadata
-        # """
 {% endif %}
     [[queues]]
         [[[default]]]
@@ -151,7 +147,8 @@
         [[[meta]]]
             title = Trim Spectra
             description = """
-                Remove the first and last `n_start` and `n_end` spectra from the mzML file.
+                Remove the first `n_start` and last `n_end` scans from the mzML file. This is useful
+                if the shape of the flowgram is not stable at the beginning or end of the run.
             """
             categories = bioinformatics
 

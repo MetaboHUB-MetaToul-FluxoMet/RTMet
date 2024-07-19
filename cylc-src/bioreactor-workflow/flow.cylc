@@ -8,7 +8,7 @@
     URL = https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet
 
 # Create task families for conda environments.
-    %include 'envs/conda.cylc'
+%include 'envs/conda.cylc'
 
 [scheduling]
     cycling mode = integer

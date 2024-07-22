@@ -98,7 +98,7 @@ for csv_path in original_csvs:
 
 html_theme = "furo"
 # html_static_path = ["_static"]
-html_favicon = "favicon.ico"
+html_favicon = "_static/favicon.ico"
 html_theme_options = {
     "sidebar_hide_name": True,
     "light_logo": "logo-blue.png",

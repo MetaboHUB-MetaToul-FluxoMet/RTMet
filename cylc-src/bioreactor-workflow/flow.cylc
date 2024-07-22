@@ -153,7 +153,7 @@
             categories = bioinformatics
 
     [[get_timestamp]]
-        # Regex should be replaced with XML parsing.
+        # Regex could be replaced by pyOpenMS.
         script = """
             RUN_TIMESTAMP=$(grep '<run' ${mzml} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
 

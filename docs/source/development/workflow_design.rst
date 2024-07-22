@@ -4,19 +4,8 @@
 Workflow design choices
 =======================
 
-.. attention:: 
-    🏗 Work in Progress 🏗
-
-* Following Cylc's best practices
-* Jinja2 templating
-* Rose for configuration management
-* Task inheritance to avoid code duplication
-* Run setup is done at the first cyclepoint
-* Tasks can run in specific conda environments
-* `dataflow` and `qc` directories
-* Data is stored in plain text `.csv` files
-* Libraries/packages to be favored
-* InfluxDB is an optional dependency
+The choices described here are the ones currently implemented in the RTMet workflow. They are subject
+to change, and could be brought up for discussion.
 
 Following Cylc's best practices
 ===============================
@@ -108,14 +97,144 @@ Rose for configuration management
 =================================
 
 Rose is used for its :ref:`rose:rose suites` capabilities. It interfaces with our workflow using the
-:ref:`cylc:cylc rose` plugin. 
-
-Just think of it as workflow configuration being outsourced to another package, since Cylc doesn't
+:ref:`cylc:cylc rose` plugin. Just think of it as workflow configuration being outsourced to another package, since Cylc doesn't
 have it built-in (yet?)
 
 User configuration options are stored in the :rose:file:`rose-suite.conf` file at the root of the
-workflow directory. They are passed down to the workflow as Jinja2 variables.
+workflow directory. They are in the :strong:`[template variables]` section, which means they are passed
+down to the workflow as Jinja2 variables.
+
+The chosen naming convention for configuration items is *cfg__<item_name>*. This is both to avoid
+conflicts with other environment variables and to make it clear that these are configuration items.
 
 .. seealso::  
     * :ref:`tutorial.user-config`
     * :ref:`reference.user-config`
+
+Task inheritance to avoid code duplication
+==========================================
+
+Workflow tasks can inherit from other tasks, which mean script blocks (:strong:`[script]`,
+:strong:`[pre-script]` and :strong:`[post-script]`) but also :strong:`[environment]` variables are taken
+from the parent task. Our workflow uses this feature for:
+
+* Conda environment activation (see :ref:`below <development.conda-envs>`)
+* Sharing InfluxDB configuration (URL, token, organization, etc.)
+* Format some of the intermediary tables in a :strong:`[post-script]` block (adding *datetime*,
+  *cycle* and *instrument_id* columns).
+
+
+.. seealso:: 
+    :ref:`cylc:sharing by inheritance` in Cylc's documentation.
+
+Run setup is done at the first cyclepoint
+=========================================
+
+This include user configuration validation, input data validation, and other tasks that need to be
+done before the main workflow starts:
+
+* :strong:`[validate_cfg]`
+* :strong:`[validate_compounds_db]`
+* :strong:`[validate_met_model]` (to be implemented)
+* :strong:`[[INFLUXDB][create_bucket]]`
+
+Cyclepoint 0 is reserved for setup tasks. processing of .raw files starts at cyclepoint 1.
+
+.. _development.conda-envs:
+
+Tasks can run in specific conda environments
+============================================
+
+Conda environments activation is handled by a `pre-script`_. :file:`envs/conda.cylc` defines
+family tasks, one for each conda environment:
+
+.. code-block:: cylc
+    :lineno-start: 10
+    :caption: ``flow.cylc``
+
+    # Create task families for conda environments.
+    %include 'envs/conda.cylc'
+
+.. code-block:: jinja
+    :caption: ``conda.cylc``
+
+    {% set conda_envs = {
+        'CONDA_TRFP': 'wf-trfp',
+        'CONDA_BINNER': 'wf-binner',
+        'CONDA_DATAMUNGING': 'wf-datamunging',
+        'CONDA_INFLUX': 'wf-influx',
+        'CONDA_OPENMS': 'wf-pyopenms',
+        } %}
+
+    [runtime]
+    {% for env, conda_env_name in conda_envs.items() %}
+        [[{{env}}]]
+            pre-script = """
+                set +eu
+                conda activate {{ conda_env_name }}
+                set -eu
+            """
+    {% endfor %}
+
+Individual tasks in the workflow can then inherit from these families to run in the desired conda
+environment:
+
+.. code-block:: cylc
+    :caption: ``flow.cylc``
+    :emphasize-lines: 3
+
+    [runtime]
+        [[trim_spectra]]
+            inherit = None, CONDA_OPENMS
+            script = """
+                trimms ${mzml} ${n_start} ${n_end}
+            """
+            [[[environment]]]
+                mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
+                n_start = {{ cfg__trim_values[0] }}
+                n_end = {{ cfg__trim_values[1] }}
+
+.. warning:: 
+    If you override the `pre-script`_ in a task while inheriting from a conda family task, you will
+    lose the conda environment activation.
+
+.. _pre-script: https://cylc.github.io/cylc-doc/8.3.0/html/reference/config/workflow.html#flow.cylc[runtime][%3Cnamespace%3E]pre-script
+
+:file:`dataflow/` and :file:`qc/` directories for results
+=========================================================
+
+Our workflow follows the convention described in :ref:`cylc:shared task io paths`. In addition,
+the :file:`share/cycle/{{n}}` directories are further divided into :file:`dataflow/` and :file:`qc/`.
+
+* :file:`dataflow/` contains the results of the main workflow tasks. It is used to pass data between
+  tasks.
+* :file:`qc/` contains quality control results to be analyzed by the user: plots, statistics, etc.
+
+Data tables are stored in plain text CSV files
+=======================================================
+
+Intermediary results in :file:`dataflow/` are stored in a delimiter-separated format, using semicolons
+as separators. It allows for easy inspection and debugging, as well as compatibility with most
+spreadsheet softwares.
+
+Furthermore, they can easily be edited using :command:`awk`/:command:`sed`/:command:`grep`
+or :command:`csvkit` without the need to load them as dataframes in Python or R.
+
+Libraries/packages to be favored
+================================
+
+* Data wrangling: :bdg-link-success:`csvkit <https://anaconda.org/conda-forge/csvkit>` (CLI),
+  :bdg-link-success:`pandas <https://anaconda.org/conda-forge/pandas>` (Python) and
+  :bdg-link-success:`tidyverse <https://anaconda.org/conda-forge/r-tidyverse>` (R).
+* Data validation: :bdg-link-success:`frictionless <https://anaconda.org/conda-forge/frictionless>`
+* Editing/Querying mzML files: :bdg-link-success:`pyopenms <https://anaconda.org/bioconda/pyopenms>`
+
+InfluxDB is an optional dependency
+==================================
+
+InfluxDB is used for real-time visualization of the results. It is not a strict requirement for the
+workflow to run. It can be enabled by setting
+:rose:file:`rose-suite.conf[template variables]cfg__toggle_influxdb` to :strong:`True`.
+
+Data is uploaded to InfluxDB using its Python API. :file:`influx_utils.py` contains functions to
+convert our CSV files into the correct upload format.

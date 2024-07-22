@@ -223,7 +223,7 @@ or :command:`csvkit` without the need to load them as dataframes in Python or R.
 Libraries/packages to be favored
 ================================
 
-* Data wrangling: :bdg-link-success:`csvkit <https://anaconda.org/conda-forge/csvkit>` (CLI),
+* Data wrangling: :bdg-link-success:`csvtk <https://anaconda.org/conda-forge/csvtk>` (CLI),
   :bdg-link-success:`pandas <https://anaconda.org/conda-forge/pandas>` (Python) and
   :bdg-link-success:`tidyverse <https://anaconda.org/conda-forge/r-tidyverse>` (R).
 * Data validation: :bdg-link-success:`frictionless <https://anaconda.org/conda-forge/frictionless>`
@@ -234,7 +234,7 @@ InfluxDB is an optional dependency
 
 InfluxDB is used for real-time visualization of the results. It is not a strict requirement for the
 workflow to run. It can be enabled by setting
-:rose:file:`rose-suite.conf[template variables]cfg__toggle_influxdb` to :strong:`True`.
+:rose:conf:`rose-suite.conf[template variables]cfg__toggle_influxdb` to :strong:`True`.
 
 Data is uploaded to InfluxDB using its Python API. :file:`influx_utils.py` contains functions to
 convert our CSV files into the correct upload format.

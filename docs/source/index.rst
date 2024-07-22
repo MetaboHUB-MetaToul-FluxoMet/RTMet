@@ -57,6 +57,7 @@ If you want to use RTMet for real-time monitoring, there are a few additional re
    getting_started/index
    user_guide/index
    reference/index
+   development/index
    glossary
    contributing
    license

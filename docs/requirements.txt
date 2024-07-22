@@ -1,5 +1,5 @@
 sphinx-rtd-theme==2.0.0
 sphinx-design==0.6.0
-metomi-rose
-cylc-flow
+cylc-flow==8.3.0
+metomi-rose==2.3.0
 cylc-sphinx-extensions

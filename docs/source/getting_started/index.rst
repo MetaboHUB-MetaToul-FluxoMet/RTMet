@@ -8,5 +8,5 @@ Getting Started
     :maxdepth: 2
 
     installation
-    tutorial
+    basic_tutorial
     user_config

@@ -8,7 +8,7 @@
     URL = https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet
 
 # Create task families for conda environments.
-    %include 'envs/conda.cylc'
+%include 'envs/conda.cylc'
 
 [scheduling]
     cycling mode = integer
@@ -35,10 +35,6 @@
             annotate => upload_features
             quantify => upload_concentrations
         """
-        # +P3/P1 = """
-        #    compute_fluxes => upload_fluxes
-        #    compute_fluxes => upload_metadata
-        # """
 {% endif %}
     [[queues]]
         [[[default]]]
@@ -151,12 +147,13 @@
         [[[meta]]]
             title = Trim Spectra
             description = """
-                Remove the first and last `n_start` and `n_end` spectra from the mzML file.
+                Remove the first `n_start` and last `n_end` scans from the mzML file. This is useful
+                if the shape of the flowgram is not stable at the beginning or end of the run.
             """
             categories = bioinformatics
 
     [[get_timestamp]]
-        # Regex should be replaced with XML parsing.
+        # Regex could be replaced by pyOpenMS.
         script = """
             RUN_TIMESTAMP=$(grep '<run' ${mzml} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
 

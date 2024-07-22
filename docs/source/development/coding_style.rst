@@ -4,14 +4,15 @@
 Coding styles for Python, R, Bash and Cylc
 ==========================================
 
-Scripts: environment variables or command line arguments?
-=========================================================
+:file:`bin/` scripts: environment variables or command line arguments?
+======================================================================
 
 When writing scripts (Python, R, Bash) for the workflow, you have the choice between loading
 environment variables from inside the script, or parsing command line arguments.
 
 On a rule of thumb, use environment variables when you don't expect the script to be reused outside
-the workflow, and command line arguments when you want to make the script more portable.
+the workflow, and command line arguments with strong input validation when you want to make the script
+more portable.
 
 Python
 ======

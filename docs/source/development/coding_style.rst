@@ -1,8 +1,8 @@
 .. _development.coding-style:
 
-==========================================
-Coding styles for Python, R, Bash and Cylc
-==========================================
+============
+Coding style
+============
 
 :file:`bin/` scripts: environment variables or command line arguments?
 ======================================================================
@@ -10,26 +10,9 @@ Coding styles for Python, R, Bash and Cylc
 When writing scripts (Python, R, Bash) for the workflow, you have the choice between loading
 environment variables from inside the script, or parsing command line arguments.
 
-On a rule of thumb, use environment variables when you don't expect the script to be reused outside
+As a rule of thumb, use environment variables when you don't expect the script to be reused outside
 the workflow, and command line arguments with strong input validation when you want to make the script
 more portable.
-
-Python
-======
-
-Python code should follow the `PEP 8`_ style guide. The `Black`_ code formatter should be used to
-automatically format the code.
-
-You should also use a linter / static code analyser like `Pylint`_ to catch potential bugs, commented
-out code, code smells, etc.
-
-R 
-=
-[TODO]
-
-Bash
-====
-[TODO]
 
 Cylc
 ====
@@ -75,3 +58,20 @@ do it in the :strong:`[environment]` block of the task, not in the script itself
                     if the shape of the flowgram is not stable at the beginning or end of the run.
                 """
                 categories = bioinformatics
+
+Python
+======
+
+Python code should follow the `PEP 8`_ style guide. The `Black`_ code formatter should be used to
+automatically format the code.
+
+You should also use a linter / static code analyser like `Pylint`_ to catch potential bugs, commented
+out code, code smells, etc.
+
+Bash
+====
+[TODO]
+
+R 
+=
+[TODO]

@@ -41,8 +41,8 @@ In the :strong:`[validate_cfg]` task, change the :strong:`metadata` environment 
 During run installation, the value will now be replaced by the one set in :rose:file:`rose-suite.conf`.
 If you want to change the value at runtime, you can follow the instructions in :ref:`tutorial.user-config`.
 
-Adding validation for the new configuration item
-================================================
+Validate the new configuration item
+===================================
 
 Rose (the configuration manager) allows us to validate the user configuration. It is done at runtime
 at cyclepoint 0 with the :strong:`[validate_cfg]` task. Let's add a new validation rule for our item.

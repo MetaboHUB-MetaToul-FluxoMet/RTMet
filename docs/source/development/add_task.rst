@@ -30,7 +30,7 @@ paste the following content:
     def main():
         """
         Usage:
-            ./get-instrument
+            ./get-scans-number
 
         Get number of scans from mzML file. `$mzml` shell 
         environment variable must be set to the path of the file.

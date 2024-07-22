@@ -1,5 +1,6 @@
 furo==2024.7.18
 sphinx-design==0.6.0
+sphinx-new-tab-link==0.5.0
 cylc-flow==8.3.0
 metomi-rose==2.3.0
 cylc-sphinx-extensions

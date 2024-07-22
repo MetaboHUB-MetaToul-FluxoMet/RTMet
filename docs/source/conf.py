@@ -38,6 +38,7 @@ extensions = [
     "sphinx.ext.extlinks",
     # community extensions
     "sphinx_design",
+    "sphinx_new_tab_link",
     # cylc.sphinx_ext extensions (from cylc.sphinx_ext-extensions library)
     "cylc.sphinx_ext.cylc_lang",
     # Custom extensions (in ext/ directory)
@@ -46,7 +47,7 @@ extensions = [
     "exec",
 ]
 
-pygments_style = "dracula"  # 🧛🏻‍♂️
+# pygments_style = "dracula"  # 🧛🏻‍♂️
 
 templates_path = ["_templates"]
 exclude_patterns = []
@@ -101,15 +102,12 @@ html_theme = "furo"
 html_favicon = "_static/favicon.ico"
 html_theme_options = {
     "sidebar_hide_name": True,
-    "light_logo": "logo-blue.png",
+    "light_logo": "logo_blue.png",
     "dark_logo": "logo_white.png",
 }
 
-# html_theme_options = {
-#     "logo_only": True,
-#     "display_version": False,
-#     "style_external_links": True,
-# }
+new_tab_link_show_external_link_icon = True
+
 
 def setup(app):
     app.config.html_static_path.append("_static")

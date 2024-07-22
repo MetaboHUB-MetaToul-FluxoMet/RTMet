@@ -96,7 +96,7 @@ Bioinformatics tools are installed in separate Conda environments, for isolation
 purposes. For binneR, you'll need to install it from the R console::
 
     $ for file in wf-*.yml; do conda env create -f $file; done
-    $ conda activate wf-binner && Rscript -e "remotes::install_github('aberHRML/binneR', dependencies=FALSE, upgrade_dependencies=FALSE)"
+    $ conda activate wf-binner && Rscript -e "remotes::install_github('aberHRML/binneR', upgrade='never')"
     $ conda deactivate
 
 .. _installation.influxdb:

@@ -39,6 +39,7 @@ extensions = [
     # community extensions
     "sphinx_design",
     "sphinx_new_tab_link",
+    "sphinx_copybutton",
     # cylc.sphinx_ext extensions (from cylc.sphinx_ext-extensions library)
     "cylc.sphinx_ext.cylc_lang",
     # Custom extensions (in ext/ directory)
@@ -107,6 +108,8 @@ html_theme_options = {
 }
 
 new_tab_link_show_external_link_icon = True
+copybutton_exclude = ".linenos, .gp, .go"
+copybutton_copy_empty_lines = False
 
 
 def setup(app):

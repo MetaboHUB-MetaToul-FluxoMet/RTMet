@@ -1,4 +1,4 @@
-furo==2024
+furo==2024.7.18
 sphinx-design==0.6.0
 cylc-flow==8.3.0
 metomi-rose==2.3.0

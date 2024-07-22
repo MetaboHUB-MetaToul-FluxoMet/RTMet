@@ -98,14 +98,18 @@ for csv_path in original_csvs:
 
 html_theme = "furo"
 # html_static_path = ["_static"]
-html_logo = "_static/logo_white.png"
-html_favicon = "_static/favicon.ico"
+html_favicon = "favicon.ico"
 html_theme_options = {
-    "logo_only": True,
-    "display_version": False,
-    "style_external_links": True,
+    "sidebar_hide_name": True,
+    "light_logo": "logo-blue.png",
+    "dark_logo": "logo_white.png",
 }
 
+# html_theme_options = {
+#     "logo_only": True,
+#     "display_version": False,
+#     "style_external_links": True,
+# }
 
 def setup(app):
     app.config.html_static_path.append("_static")

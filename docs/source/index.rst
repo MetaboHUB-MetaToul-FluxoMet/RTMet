@@ -8,6 +8,13 @@ Welcome to RTMet's documentation!
 =================================
 
 .. image:: _static/logo_blue.png
+   :class: only-light
+   :align: center
+   :alt: RTMet Logo
+   :scale: 50
+
+.. image:: _static/logo_white.png
+   :class: only-dark
    :align: center
    :alt: RTMet Logo
    :scale: 50

@@ -15,21 +15,21 @@ the workflow.
     :figwidth: 80%
     :align: center
 
-    The GUI displaying a workflow using the "tree" view. @CylcDoc,2024
+    :emphasis:`The GUI displaying a workflow using the "tree" view. @CylcDoc,2024`
 
-The GUI is accessible through a web browser, and can be launched by running the ``cylc gui`` command.
-This will open a new tab in your default web browser, displaying the Cylc GUI home page.
+The GUI is accessible through a web browser, and can be launched by running the :command:`cylc gui`
+command. This will open a new tab in your default web browser, displaying the Cylc GUI home page.
 
 It can be deployed with Jupyter Hub to support remote and multi-user access. This is useful when you
 want to access the workflow manager from another computer on the same network. The central server is
-started by the ``cylc hub`` command.
+started by the :command:`cylc hub` command.
 
 .. figure:: /_static/screenshots/cylc-hub-official.png
     :alt: Jupyter Hub authentication page
     :figwidth: 80%
     :align: center
 
-    The Jupyter Hub authentication page in a multi-user setup. @CylcDoc,2024
+    :emphasis:`Jupyter Hub authentication page in a multi-user setup. @CylcDoc,2024`
 
 Cylc TUI
 ========
@@ -37,14 +37,14 @@ Cylc TUI
 :doc:`Cylc TUI <cylc:7-to-8/major-changes/ui>` is a terminal-based graphical interface
 that ports most of Cylc UI's features to the terminal. It provides a beginner-friendly interface when
 you're remotely accessing the machine running the workflow, and not exposing a Cylc Hub (JupyterHub)
-instance. It requires no setup, and can be opened by running the ``cylc tui`` command.
+instance. It requires no setup, and can be opened by running the :command:`cylc tui` command.
 
 .. figure:: /_static/screenshots/cylc-tui-preview-official.png
     :alt: Cylc terminal user interface
     :align: center
     :figwidth: 80%
 
-    Tui showing the details of a failed job. @CylcDoc,2024
+    :emphasis:`The TUI showing the details of a failed job. @CylcDoc,2024`
 
 Cylc CLI
 ========

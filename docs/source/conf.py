@@ -38,6 +38,8 @@ extensions = [
     "sphinx.ext.extlinks",
     # community extensions
     "sphinx_design",
+    "sphinx_new_tab_link",
+    "sphinx_copybutton",
     # cylc.sphinx_ext extensions (from cylc.sphinx_ext-extensions library)
     "cylc.sphinx_ext.cylc_lang",
     # Custom extensions (in ext/ directory)
@@ -46,7 +48,7 @@ extensions = [
     "exec",
 ]
 
-pygments_style = "dracula"  # 🧛🏻‍♂️
+# pygments_style = "dracula"  # 🧛🏻‍♂️
 
 templates_path = ["_templates"]
 exclude_patterns = []
@@ -96,15 +98,18 @@ for csv_path in original_csvs:
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 # html_static_path = ["_static"]
-html_logo = "_static/logo_white.png"
 html_favicon = "_static/favicon.ico"
 html_theme_options = {
-    "logo_only": True,
-    "display_version": False,
-    "style_external_links": True,
+    "sidebar_hide_name": True,
+    "light_logo": "logo_blue.png",
+    "dark_logo": "logo_white.png",
 }
+
+new_tab_link_show_external_link_icon = True
+copybutton_exclude = ".linenos, .gp, .go"
+copybutton_copy_empty_lines = False
 
 
 def setup(app):

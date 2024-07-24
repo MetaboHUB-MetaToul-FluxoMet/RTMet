@@ -1,0 +1,36 @@
+name: ⏬ Install Script
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/install-script.yml'
+      - 'install.sh'
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installation-from-script:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    name: Install RTMet from shell script
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -eul {0}
+    steps:
+      - uses: actions/checkout@v3
+      - name: install
+        run: |
+          bash install.sh
+      - name: check for cylc
+        run: |
+          cylc --help
+      - name: check for rose
+        run: |
+          rose --help

@@ -47,6 +47,7 @@ _mainScript_() {
     else
         info "conda is already installed"
     fi
+    conda init "$(basename "$SHELL")" ${VERBOSE:+--verbose}
     conda config --set auto_activate_base false ${VERBOSE:+--verbose}
 
     info "Cloning RTMet"
@@ -123,7 +124,6 @@ _installMiniforge_() {
     URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
     curl -LO "${URL}" ${VERBOSE:+--verbose}
     bash Miniforge3-"$(uname)"-"$(uname -m)".sh -b
-    conda init "$(basename "$SHELL")" ${VERBOSE:+--verbose}
 }
 
 _setupCylcWrapper_() {
@@ -801,10 +801,10 @@ _usage_() {
 $(_columns_ -b -- '-h, --help' "Display this help and exit" 2)
 $(_columns_ -b -- "--loglevel [LEVEL]" "One of: FATAL, ERROR (default), WARN, INFO, NOTICE, DEBUG, ALL, OFF" 2)
 $(_columns_ -b -- "--logfile [FILE]" "Full PATH to logfile.  (Default is '\${HOME}/logs/$(basename "$0").log')" 2)
-$(_columns_ -b -- "-n, --dryrun" "Non-destructive. Makes no permanent changes." 2)
+$(_columns_ -b -- "-n, --dryrun" "[NOT IMPLEMENTED] Non-destructive. Makes no permanent changes." 2)
 $(_columns_ -b -- "-q, --quiet" "Quiet (no output)" 2)
 $(_columns_ -b -- "-v, --verbose" "Output more information. (Items echoed to 'verbose')" 2)
-$(_columns_ -b -- "--force" "Skip all user interaction.  Implied 'Yes' to all actions." 2)
+$(_columns_ -b -- "--force" "[NOT IMPLEMENTED] Skip all user interaction.  Implied 'Yes' to all actions." 2)
 
   ${bold}${underline}Example Usage:${reset}
 

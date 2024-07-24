@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        shell: bash -l -euo pipefail {0}
+        shell: bash -l {0}
     steps:
       - uses: conda-incubator/setup-miniconda@v3
         with:

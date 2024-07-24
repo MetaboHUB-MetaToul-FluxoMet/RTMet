@@ -793,7 +793,8 @@ _usage_() {
 
   ${bold}$(basename "$0") [OPTION]... [FILE]...${reset}
 
-  This is a script template.  Edit this description to print help to users.
+  RTMet Installer script:
+  https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet
 
   ${bold}${underline}Options:${reset}
 $(_columns_ -b -- '-h, --help' "Display this help and exit" 2)

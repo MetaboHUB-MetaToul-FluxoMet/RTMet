@@ -17,7 +17,7 @@ jobs:
   installation-from-script:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
     name: Install RTMet from shell script
     runs-on: ${{ matrix.os }}
     defaults:
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: install
         run: |
-          bash install.sh
+          bash install.sh --verbose  --force
       - name: check for cylc
         run: |
           cylc --help

@@ -47,7 +47,16 @@ _mainScript_() {
     else
         info "conda is already installed"
     fi
+    
     conda init "$(basename "$SHELL")" ${VERBOSE:+--verbose}
+    if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+    elif [ -f ~/.bash_profile ]; then
+        . ~/.bash_profile
+    else
+        error "Could not find .bashrc or .bash_profile. Exiting."
+        return 1
+    fi
     conda config --set auto_activate_base false ${VERBOSE:+--verbose}
 
     info "Cloning RTMet"

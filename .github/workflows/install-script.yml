@@ -35,6 +35,7 @@ jobs:
           conda activate base
       - name: install RTMet
         run: |
+          source $CONDA/etc/profile.d/conda.sh
           bash install.sh --verbose  --force
       - name: check for cylc
         run: |

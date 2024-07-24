@@ -24,6 +24,10 @@ jobs:
       run:
         shell: bash -eul {0}
     steps:
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-activate-base: false
+          miniforge-version: latest
       - uses: actions/checkout@v3
       - name: install
         run: |

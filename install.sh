@@ -47,16 +47,7 @@ _mainScript_() {
     else
         info "conda is already installed"
     fi
-    
-    conda init "$(basename "$SHELL")" ${VERBOSE:+--verbose}
-    if [ -f ~/.bashrc ]; then
-        . ~/.bashrc
-    elif [ -f ~/.bash_profile ]; then
-        . ~/.bash_profile
-    else
-        error "Could not find .bashrc or .bash_profile. Exiting."
-        return 1
-    fi
+
     conda config --set auto_activate_base false ${VERBOSE:+--verbose}
 
     info "Cloning RTMet"
@@ -133,6 +124,17 @@ _installMiniforge_() {
     URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
     curl -LO "${URL}" ${VERBOSE:+--verbose}
     bash Miniforge3-"$(uname)"-"$(uname -m)".sh -b
+    conda init "$(basename "$SHELL")" ${VERBOSE:+--verbose}
+    if [ -f ~/.bashrc ]; then
+        debug "Sourcing .bashrc"
+        . ~/.bashrc
+    elif [ -f ~/.bash_profile ]; then
+        debug "Sourcing .bash_profile"
+        . ~/.bash_profile
+    else
+        error "Could not find .bashrc or .bash_profile. Exiting."
+        return 1
+    fi
 }
 
 _setupCylcWrapper_() {

@@ -10,11 +10,12 @@
 import os
 import sys
 import csv
+from datetime import datetime
 
 import metomi.rose
 
 project = "RTMet"
-copyright = "2024, MetaToul"
+copyright = f"MetaToul, {datetime.now().year}"
 author = "Elliot Fontaine"
 release = "0.1"
 version = "0.1.0"

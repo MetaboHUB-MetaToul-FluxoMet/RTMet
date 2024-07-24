@@ -1,63 +1,77 @@
 #!/usr/bin/env bash
-
+#
+# RTMet Installer script
+#
+# Copyright (c) 2024 MetaboHUB-MetaToul-FluxoMet
+# Author: Elliot Fontaine
+# GNU General Public License v3.0
+# https://www.gnu.org/licenses/gpl-3.0.html
+#
 # Based on 'shell-scripting-templates' by Nathaniel Landau
 # https://github.com/natelandau/shell-scripting-templates
-    # MIT License
-    # Copyright (c) 2021 Nathaniel Landau
-    # Permission is hereby granted, free of charge, to any person obtaining a copy
-    # of this software and associated documentation files (the "Software"), to deal
-    # in the Software without restriction, including without limitation the rights
-    # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    # copies of the Software, and to permit persons to whom the Software is
-    # furnished to do so, subject to the following conditions:
-    # The above copyright notice and this permission notice shall be included in all
-    # copies or substantial portions of the Software.
-    # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    # SOFTWARE.
+# MIT License
+# Copyright (c) 2021 Nathaniel Landau
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 _mainScript_() {
 
     # Replace everything in _mainScript_() with your script's code
-    header "Showing alert colors"
-    debug "This is debug text"
-    info "This is info text"
-    notice "This is notice text"
-    dryrun "This is dryrun text"
-    warning "This is warning text"
-    error "This is error text"
-    success "This is success text"
-    input "This is input text"
-    
-    OS=$(_detectOS_)
-    debug "OS: ${OS}"
-    if [[ ${OS} == "windows" ]]; then
+    # header "Showing alert colors"
+    # debug "This is debug text"
+    # info "This is info text"
+    # notice "This is notice text"
+    # dryrun "This is dryrun text"
+    # warning "This is warning text"
+    # error "This is error text"
+    # success "This is success text"
+    # input "This is input text"
+
+    echo
+    header "Welcome to RTMet's installer script !"
+
+    debug "OS: $(_detectOS_)"
+    if [[ $(_detectOS_) == "windows" ]]; then
         error "RTMet does not support Windows. Exiting."
         return 1
     fi
 
     info "Checking for local Conda installation:"
-    if ! command -v conda &> /dev/null; then
-        info "conda is not installed. Installing miniforge..."
+    if true; then
+        notice "Conda is not installed. Installing miniforge..."
         _installMiniforge_
+        info "↪ The miniforge distribution has been installed."
     else
-        info "conda is already installed"
+        info "↪ Conda is already installed."
     fi
+    debug "$(conda info)"
+    conda config --set auto_activate_base false ${VFLAG}
 
-    conda config --set auto_activate_base false ${VERBOSE:+--verbose}
-
-    info "Cloning RTMet"
-    git clone https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet.git ${VERBOSE:+--verbose}
+    info "Downloading Workflow from GitHub repository..."
+    _downloadFile_ ${WORKFLOW_ZIP}
+    workflow=$(basename ${WORKFLOW_ZIP} .zip)
+    unzip "${workflow}".zip
+    rm "${workflow}".zip
     mkdir ~/cylc-src
-    ln -s "$(pwd)"/RTMet/cylc-src/bioreactor-workflow ~/cylc-src/bioreactor-workflow
-    ENV_TEMPLATES=~/cylc-src/bioreactor-workflow/envs
-    
+    mv "${workflow}" ~/cylc-src/
+
+    local env_templates=~/cylc-src/"${workflow}"/envs
+
     info "Creating Cylc conda environment:"
-    conda env create -f ${ENV_TEMPLATES}/cylc.yml ${VERBOSE:+--verbose}
+    conda env create -f "${env_templates}"/cylc.yml ${VFLAG}
 
     info "Setting up Cylc wrapper script:"
     _setupCylcWrapper_
@@ -75,6 +89,56 @@ DRYRUN=false
 declare -a ARGS=()
 
 # Script specific
+VFLAG=""; [[ ${VERBOSE} == true ]] && VFLAG="--verbose"
+FFLAG=""; [[ ${FORCE} == true ]] && FFLAG="--force"
+#RTMET_VERSION=0.1.0
+WORKFLOW_ZIP=https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/releases/download/alpha/bioreactor-workflow.zip
+
+# ################################## Custom utility functions (RTMet)
+
+_downloadFile_() {
+    local url=$1
+    if _commandExists_ curl; then
+        curl -LO "${url}" ${VFLAG}
+    elif _commandExists_ wget; then
+        wget "${url}" ${VFLAG}
+    else
+        error "Neither curl nor wget is installed. Exiting."
+        return 1
+    fi
+}
+
+_installMiniforge_() {
+    local mf_script
+    local url
+    mf_script="Miniforge3-$(uname)-$(uname -m).sh"
+    url="https://github.com/conda-forge/miniforge/releases/latest/download/${mf_script}"
+    _downloadFile_ "${url}"
+    bash "${mf_script}" -b
+    rm "${mf_script}"
+    conda init "$(basename "$SHELL")" ${VFLAG}
+    if [ -f ~/.bashrc ]; then
+        debug "Sourcing .bashrc"
+        . ~/.bashrc
+    elif [ -f ~/.bash_profile ]; then
+        debug "Sourcing .bash_profile"
+        . ~/.bash_profile
+    else
+        error "Could not find .bashrc or .bash_profile. Exiting."
+        return 1
+    fi
+}
+
+_setupCylcWrapper_() {
+    local wrapper_dir='/usr/local/bin'
+    local conda_envs
+    conda_envs=$(conda info --base)/envs
+    conda activate cylc
+    cylc get-resources cylc ${wrapper_dir} && chmod +x ${wrapper_dir}/cylc
+    sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${conda_envs}|" ${wrapper_dir}/cylc
+    ln -s ${wrapper_dir}/cylc ${wrapper_dir}/rose
+    conda deactivate
+}
 
 # ################################## Custom utility functions (Pasted from official repository)
 
@@ -117,35 +181,24 @@ _detectOS_() {
 
 }
 
-# ################################## Custom utility functions (RTMet)
+_commandExists_() {
+    # DESC:
+    #         Check if a binary exists in the search PATH
+    # ARGS:
+    #         $1 (Required) - Name of the binary to check for existence
+    # OUTS:
+    #         0 if true
+    #         1 if false
+    # USAGE:
+    #         (_commandExists_ ffmpeg ) && [SUCCESS] || [FAILURE]
 
-_installMiniforge_() {
-    local URL
-    URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-    curl -LO "${URL}" ${VERBOSE:+--verbose}
-    bash Miniforge3-"$(uname)"-"$(uname -m)".sh -b
-    conda init "$(basename "$SHELL")" ${VERBOSE:+--verbose}
-    if [ -f ~/.bashrc ]; then
-        debug "Sourcing .bashrc"
-        . ~/.bashrc
-    elif [ -f ~/.bash_profile ]; then
-        debug "Sourcing .bash_profile"
-        . ~/.bash_profile
-    else
-        error "Could not find .bashrc or .bash_profile. Exiting."
+    [[ $# == 0 ]] && fatal "Missing required argument to ${FUNCNAME[0]}"
+
+    if ! command -v "$1" >/dev/null 2>&1; then
+        debug "Did not find dependency: '${1}'"
         return 1
     fi
-}
-
-_setupCylcWrapper_() {
-    local WRAPPER_DIR='/usr/local/bin'
-    local CONDA_ENVS
-    CONDA_ENVS=$(conda info --base)/envs
-    conda activate cylc 
-    cylc get-resources cylc ${WRAPPER_DIR} && chmod +x ${WRAPPER_DIR}/cylc
-    sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${CONDA_ENVS}|" ${WRAPPER_DIR}/cylc
-    ln -s ${WRAPPER_DIR}/cylc ${WRAPPER_DIR}/rose
-    conda deactivate
+    return 0
 }
 
 # ################################## Functions required for this template to work

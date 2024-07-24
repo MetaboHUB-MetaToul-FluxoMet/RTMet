@@ -22,14 +22,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        shell: bash -eul {0}
+        shell: bash -l -euo pipefail {0}
     steps:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-activate-base: false
           miniforge-version: latest
       - uses: actions/checkout@v3
-      - name: install
+      - name: test conda activate
+        run: |
+          conda activate base
+      - name: install RTMet
         run: |
           bash install.sh --verbose  --force
       - name: check for cylc

@@ -82,12 +82,20 @@ _mainScript_() {
     _execute_ "mkdir ~/cylc-src"
     _execute_ "mv \"${workflow}\" ~/cylc-src/"
 
-    local env_templates=~/cylc-src/"${workflow}"/envs
-    info "Creating Cylc conda environment:"
-    _execute_ "${_conda} env create -f \"${env_templates}\"/cylc.yml ${VFLAG}"
+    local _env_templates=~/cylc-src/"${workflow}"/envs
+    info "Creating Cylc conda environment."
+    _createCondaEnv_ "${_env_templates}"/cylc.yml
 
-    info "Setting up Cylc wrapper script:"
+    info "Setting up Cylc wrapper script."
     _setupCylcWrapper_
+
+    info "Installing tasks' conda environments."
+    local _env_count
+    _env_count=$(find "${_env_templates}" -type f -name "wf-*.yml" | wc -l)
+    for env in "${_env_templates}/"wf-*.yml; do
+        _createCondaEnv_ "${env}"
+        _progressBar_ "${_env_count}" "${env}"
+    done
 }
 # end _mainScript_
 
@@ -104,8 +112,8 @@ declare -a ARGS=()
 # Script specific
 VFLAG=""
 [[ ${VERBOSE} == true ]] && VFLAG="--verbose"
-FFLAG=""
-[[ ${FORCE} == true ]] && FFLAG="--force"
+# FFLAG=""
+# [[ ${FORCE} == true ]] && FFLAG="--force"
 #RTMET_VERSION=0.1.0
 WORKFLOW_ZIP=https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/releases/download/alpha/bioreactor-workflow.zip
 
@@ -131,7 +139,12 @@ _installMiniforge_() {
     _downloadFile_ "${_scriptUrl}"
     _execute_ "bash \"${_miniforgeScript}\" -b"
     _execute_ "rm \"${_miniforgeScript}\""
-    _execute "${_conda} init ${VFLAG}"
+    _execute_ "${_conda} init ${VFLAG}"
+}
+
+_createCondaEnv_() {
+    local _envFile=$1
+    _execute_ "${_conda} env create -f \"${_envFile}\" ${VFLAG}"
 }
 
 _setupCylcWrapper_() {
@@ -451,6 +464,76 @@ _isInternetAvailable_() {
     if [[ -z ${_checkInternet-} ]]; then
         return 1
     fi
+}
+
+_progressBar_() {
+    # DESC:
+    #         Prints a progress bar within a for/while loop. For this to work correctly you
+    #         MUST know the exact number of iterations. If you don't know the exact number use _spinner_
+    # ARGS:
+    #         $1 (Required) - The total number of items counted
+    #         $2 (Optional) - The optional title of the progress bar
+    # OUTS:
+    #         stdout: progress bar
+    # USAGE:
+    #         for i in $(seq 0 100); do
+    #             sleep 0.1
+    #             _progressBar_ "100" "Counting numbers"
+    #         done
+
+    [[ $# == 0 ]] && return   # Do nothing if no arguments are passed
+    (${QUIET:-}) && return    # Do nothing in quiet mode
+    (${VERBOSE:-}) && return  # Do nothing if verbose mode is enabled
+    [ ! -t 1 ] && return      # Do nothing if the output is not a terminal
+    [[ ${1} == 1 ]] && return # Do nothing with a single element
+
+    local _n="${1}"
+    local _width=30
+    local _barCharacter="#"
+    local _percentage
+    local _num
+    local _bar
+    local _progressBarLine
+    local _barTitle="${2:-Running Process}"
+
+    ((_n = _n - 1))
+
+    # Reset the count
+    [ -z "${PROGRESS_BAR_PROGRESS:-}" ] && PROGRESS_BAR_PROGRESS=0
+
+    # Hide the cursor
+    tput civis
+
+    if [[ ! ${PROGRESS_BAR_PROGRESS} -eq ${_n} ]]; then
+
+        # Compute the percentage.
+        _percentage=$((PROGRESS_BAR_PROGRESS * 100 / $1))
+
+        # Compute the number of blocks to represent the percentage.
+        _num=$((PROGRESS_BAR_PROGRESS * _width / $1))
+
+        # Create the progress bar string.
+        _bar=""
+        if [[ ${_num} -gt 0 ]]; then
+            _bar=$(printf "%0.s${_barCharacter}" $(seq 1 "${_num}"))
+        fi
+
+        # Print the progress bar.
+        _progressBarLine=$(printf "%s [%-${_width}s] (%d%%)" "  ${_barTitle}" "${_bar}" "${_percentage}")
+        printf "%s\r" "${_progressBarLine}"
+
+        PROGRESS_BAR_PROGRESS=$((PROGRESS_BAR_PROGRESS + 1))
+
+    else
+        # Replace the cursor
+        tput cnorm
+
+        # Clear the progress bar when complete
+        printf "\r\033[0K"
+
+        unset PROGRESS_BAR_PROGRESS
+    fi
+
 }
 
 # ################################## Functions required for this template to work

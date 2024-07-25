@@ -23,9 +23,10 @@ jobs:
           - --force --verbose
           - --force --verbose --loglevel ERROR
           - --force --quiet
+          - --force --dryrun
         include:
-          - options: --force
-            dryrun: --dryrun
+          - options: --force --dryrun
+            is_dryrun: true
 
     name: Install RTMet from shell script
     runs-on: ${{ matrix.os }}
@@ -36,12 +37,12 @@ jobs:
       - uses: actions/checkout@v3
       - name: install RTMet
         run: |
-          bash install.sh ${{ matrix.options }} ${{ matrix.dryrun }}
-      - if: ${{ !matrix.dryrun }}
+          bash install.sh ${{ matrix.options }}
+      - if: ${{ !matrix.is_dryrun }}
         name: check for cylc
         run: |
           cylc --help
-      - if: ${{ !matrix.dryrun }}
+      - if: ${{ !matrix.is_dryrun }}
         name: check for rose
         run: |
           rose --help

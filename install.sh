@@ -52,13 +52,16 @@ _mainScript_() {
     info "Checking for local Conda installation:"
     if true; then
         notice "Conda is not installed. Installing miniforge..."
+        local conda
+        conda=~/miniforge3/condabin/conda
         _installMiniforge_
         info "↪ The miniforge distribution has been installed."
     else
         info "↪ Conda is already installed."
+        conda=$(command -v conda)
     fi
-    debug "$(conda info)"
-    conda config --set auto_activate_base false ${VFLAG}
+    debug "conda info: $(${conda} info)"
+    ${conda} config --set auto_activate_base false ${VFLAG}
 
     info "Downloading Workflow from GitHub repository..."
     _downloadFile_ ${WORKFLOW_ZIP}
@@ -71,7 +74,7 @@ _mainScript_() {
     local env_templates=~/cylc-src/"${workflow}"/envs
 
     info "Creating Cylc conda environment:"
-    conda env create -f "${env_templates}"/cylc.yml ${VFLAG}
+    ${conda} env create -f "${env_templates}"/cylc.yml ${VFLAG}
 
     info "Setting up Cylc wrapper script:"
     _setupCylcWrapper_
@@ -116,28 +119,27 @@ _installMiniforge_() {
     _downloadFile_ "${url}"
     bash "${mf_script}" -b
     rm "${mf_script}"
-    conda init "$(basename "$SHELL")" ${VFLAG}
-    if [ -f ~/.bashrc ]; then
-        debug "Sourcing .bashrc"
-        . ~/.bashrc
-    elif [ -f ~/.bash_profile ]; then
-        debug "Sourcing .bash_profile"
-        . ~/.bash_profile
-    else
-        error "Could not find .bashrc or .bash_profile. Exiting."
-        return 1
-    fi
+    ${conda} init "$(basename "$SHELL")" ${VFLAG}
+    # if [ -f ~/.bashrc ]; then
+    #     debug "Sourcing .bashrc"
+    #     . ~/.bashrc
+    # elif [ -f ~/.bash_profile ]; then
+    #     debug "Sourcing .bash_profile"
+    #     . ~/.bash_profile
+    # else
+    #     error "Could not find .bashrc or .bash_profile. Exiting."
+    #     return 1
+    # fi
 }
 
 _setupCylcWrapper_() {
     local wrapper_dir='/usr/local/bin'
     local conda_envs
     conda_envs=$(conda info --base)/envs
-    conda activate cylc
-    cylc get-resources cylc ${wrapper_dir} && chmod +x ${wrapper_dir}/cylc
+    conda run -n cylc cylc get-resources cylc ${wrapper_dir}
+    chmod +x ${wrapper_dir}/cylc
     sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${conda_envs}|" ${wrapper_dir}/cylc
     ln -s ${wrapper_dir}/cylc ${wrapper_dir}/rose
-    conda deactivate
 }
 
 # ################################## Custom utility functions (Pasted from official repository)

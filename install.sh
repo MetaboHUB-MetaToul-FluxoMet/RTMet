@@ -135,7 +135,7 @@ _installMiniforge_() {
 _setupCylcWrapper_() {
     local wrapper_dir='/usr/local/bin'
     local conda_envs
-    conda_envs=$(conda info --base)/envs
+    conda_envs=$(${conda} info --base)/envs
     ${conda} run -n cylc cylc get-resources cylc ${wrapper_dir}
     chmod +x ${wrapper_dir}/cylc
     sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${conda_envs}|" ${wrapper_dir}/cylc

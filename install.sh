@@ -76,7 +76,7 @@ _mainScript_() {
     info "Downloading Workflow from GitHub repository..."
     _downloadFile_ ${WORKFLOW_ZIP}
     workflow=$(basename ${WORKFLOW_ZIP} .zip)
-    unzip "${workflow}".zip
+    _execute_ "unzip \"${workflow}\".zip"
     rm "${workflow}".zip
     mkdir ~/cylc-src
     mv "${workflow}" ~/cylc-src/
@@ -128,7 +128,7 @@ _installMiniforge_() {
     _miniforgeScript="Miniforge3-$(uname)-$(uname -m).sh"
     _scriptUrl="https://github.com/conda-forge/miniforge/releases/latest/download/${_miniforgeScript}"
     _downloadFile_ "${_scriptUrl}"
-    bash "${_miniforgeScript}" -b
+    _execute_ "bash \"${_miniforgeScript}\" -b"
     rm "${_miniforgeScript}"
     ${_conda} init "$(basename "${SHELL}")" ${VFLAG}
 }
@@ -202,6 +202,167 @@ _commandExists_() {
         return 1
     fi
     return 0
+}
+
+_execute_() {
+    # DESC:
+    #         Executes commands while respecting global DRYRUN, VERBOSE, LOGGING, and QUIET flags
+    # ARGS:
+    #         $1 (Required) - The command to be executed.  Quotation marks MUST be escaped.
+    #         $2 (Optional) - String to display after command is executed
+    # OPTS:
+    #         -v    Always print output from the execute function to STDOUT
+    #         -n    Use NOTICE level alerting (default is INFO)
+    #         -p    Pass a failed command with 'return 0'.  This effectively bypasses set -e.
+    #         -e    Bypass _alert_ functions and use 'printf RESULT'
+    #         -s    Use '_alert_ success' for successful output. (default is 'info')
+    #         -q    Do not print output (QUIET mode)
+    # OUTS:
+    #         stdout: Configurable output
+    # USE :
+    #         _execute_ "cp -R \"~/dir/somefile.txt\" \"someNewFile.txt\"" "Optional message"
+    #         _execute_ -sv "mkdir \"some/dir\""
+    # NOTE:
+    #         If $DRYRUN=true, no commands are executed and the command that would have been executed
+    #         is printed to STDOUT using dryrun level alerting
+    #         If $VERBOSE=true, the command's native output is printed to stdout. This can be forced
+    #         with '_execute_ -v'
+
+    local _localVerbose=false
+    local _passFailures=false
+    local _echoResult=false
+    local _echoSuccessResult=false
+    local _quietMode=false
+    local _echoNoticeResult=false
+    local opt
+
+    local OPTIND=1
+    while getopts ":vVpPeEsSqQnN" opt; do
+        case ${opt} in
+        v | V) _localVerbose=true ;;
+        p | P) _passFailures=true ;;
+        e | E) _echoResult=true ;;
+        s | S) _echoSuccessResult=true ;;
+        q | Q) _quietMode=true ;;
+        n | N) _echoNoticeResult=true ;;
+        *)
+            {
+                error "Unrecognized option '$1' passed to _execute_. Exiting."
+                _safeExit_
+            }
+            ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    [[ $# == 0 ]] && fatal "Missing required argument to ${FUNCNAME[0]}"
+
+    local _command="${1}"
+    local _executeMessage="${2:-$1}"
+
+    local _saveVerbose=${VERBOSE}
+    if "${_localVerbose}"; then
+        VERBOSE=true
+    fi
+
+    if "${DRYRUN:-}"; then
+        if "${_quietMode}"; then
+            VERBOSE=${_saveVerbose}
+            return 0
+        fi
+        if [ -n "${2:-}" ]; then
+            dryrun "${1} (${2})" "$(caller)"
+        else
+            dryrun "${1}" "$(caller)"
+        fi
+    elif ${VERBOSE:-}; then
+        if eval "${_command}"; then
+            if "${_quietMode}"; then
+                VERBOSE=${_saveVerbose}
+            elif "${_echoResult}"; then
+                printf "%s\n" "${_executeMessage}"
+            elif "${_echoSuccessResult}"; then
+                success "${_executeMessage}"
+            elif "${_echoNoticeResult}"; then
+                notice "${_executeMessage}"
+            else
+                info "${_executeMessage}"
+            fi
+        else
+            if "${_quietMode}"; then
+                VERBOSE=${_saveVerbose}
+            elif "${_echoResult}"; then
+                printf "%s\n" "warning: ${_executeMessage}"
+            else
+                warning "${_executeMessage}"
+            fi
+            VERBOSE=${_saveVerbose}
+            "${_passFailures}" && return 0 || return 1
+        fi
+    else
+        if eval "${_command}" >/dev/null 2>&1; then
+            if "${_quietMode}"; then
+                VERBOSE=${_saveVerbose}
+            elif "${_echoResult}"; then
+                printf "%s\n" "${_executeMessage}"
+            elif "${_echoSuccessResult}"; then
+                success "${_executeMessage}"
+            elif "${_echoNoticeResult}"; then
+                notice "${_executeMessage}"
+            else
+                info "${_executeMessage}"
+            fi
+        else
+            if "${_quietMode}"; then
+                VERBOSE=${_saveVerbose}
+            elif "${_echoResult}"; then
+                printf "%s\n" "error: ${_executeMessage}"
+            else
+                warning "${_executeMessage}"
+            fi
+            VERBOSE=${_saveVerbose}
+            "${_passFailures}" && return 0 || return 1
+        fi
+    fi
+    VERBOSE=${_saveVerbose}
+    return 0
+}
+
+_rootAvailable_() {
+    # DESC:
+    #         Validate we have superuser access as root (via sudo if requested)
+    # ARGS:
+    #         $1 (optional): Set to any value to not attempt root access via sudo
+    # OUTS:
+    #         0 if true
+    #         1 if false
+    # CREDIT:
+    #         https://github.com/ralish/bash-script-template
+
+    local _superuser
+
+    if [[ ${EUID} -eq 0 ]]; then
+        _superuser=true
+    elif [[ -z ${1-} ]]; then
+        debug 'Sudo: Updating cached credentials ...'
+        if sudo -v; then
+            if [[ $(sudo -H -- "${BASH}" -c 'printf "%s" "$EUID"') -eq 0 ]]; then
+                _superuser=true
+            else
+                _superuser=false
+            fi
+        else
+            _superuser=false
+        fi
+    fi
+
+    if [[ ${_superuser} == true ]]; then
+        debug 'Successfully acquired superuser credentials.'
+        return 0
+    else
+        debug 'Unable to acquire superuser credentials.'
+        return 1
+    fi
 }
 
 _runAsRoot_() {

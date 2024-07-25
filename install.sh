@@ -82,19 +82,24 @@ _mainScript_() {
     _execute_ "mkdir ~/cylc-src"
     _execute_ "mv \"${workflow}\" ~/cylc-src/"
 
-    local _env_templates=~/cylc-src/"${workflow}"/envs
+    local _envTemplates=~/cylc-src/"${workflow}"/envs
     info "Creating Cylc conda environment."
-    _createCondaEnv_ "${_env_templates}"/cylc.yml
+    _createCondaEnv_ "${_envTemplates}"/cylc.yml
 
     info "Setting up Cylc wrapper script."
     _setupCylcWrapper_
 
     info "Installing tasks' conda environments."
-    local _env_count
-    _env_count=$(find "${_env_templates}" -type f -name "wf-*.yml" | wc -l)
-    for env in "${_env_templates}/"wf-*.yml; do
+    local _taskEnvs
+    local _envCount
+    _taskEnvs=_execute_ "_listFiles_ glob \"wf-*.yml\" ${_envTemplates}"
+    _envCount=$(echo "${_taskEnvs}" | wc -l)
+    debug "Task environments: ${_taskEnvs}"
+    debug "Count: ${_envCount}"
+    #_envCount=$(_find "${_envTemplates}" -type f -name "wf-*.yml" | wc -l)
+    for env in ${_taskEnvs}; do
         _createCondaEnv_ "${env}"
-        _progressBar_ "${_env_count}" "${env}"
+        _progressBar_ "${_envCount}" "${env}"
     done
 }
 # end _mainScript_
@@ -462,6 +467,56 @@ _isInternetAvailable_() {
         _checkInternet="$(curl --compressed -Is google.com -m 10)"
     fi
     if [[ -z ${_checkInternet-} ]]; then
+        return 1
+    fi
+}
+
+_listFiles_() {
+    # DESC:
+    #         Find files in a directory.  Use either glob or regex
+    # ARGS:
+    #         $1 (Required) - 'g|glob' or 'r|regex'
+    #         $2 (Required) - pattern to match
+    #         $3 (Optional) - directory (defaults to .)
+    # OUTS:
+    #         0: if files found
+    #         1: if no files found
+    #         stdout: List of files
+    # NOTE:
+    #         Searches are NOT case sensitive and MUST be quoted
+    # USAGE:
+    #         _listFiles_ glob "*.txt" "some/backup/dir"
+    #         _listFiles_ regex ".*\.[sha256|md5|txt]" "some/backup/dir"
+    #         readarray -t array < <(_listFiles_ g "*.txt")
+
+    [[ $# -lt 2 ]] && fatal "Missing required argument to ${FUNCNAME[0]}"
+
+    local _searchType="${1}"
+    local _pattern="${2}"
+    local _directory="${3:-.}"
+    local _fileMatch
+    declare -a _matchedFiles=()
+
+    case "${_searchType}" in
+    [Gg]*)
+        while read -r _fileMatch; do
+            _matchedFiles+=("$(realpath "${_fileMatch}")")
+        done < <(find "${_directory}" -maxdepth 1 -iname "${_pattern}" -type f | sort)
+        ;;
+    [Rr]*)
+        while read -r _fileMatch; do
+            _matchedFiles+=("$(realpath "${_fileMatch}")")
+        done < <(find "${_directory}" -maxdepth 1 -regextype posix-extended -iregex "${_pattern}" -type f | sort)
+        ;;
+    *)
+        fatal "_listFiles_: Could not determine if search was glob or regex"
+        ;;
+    esac
+
+    if [[ ${#_matchedFiles[@]} -gt 0 ]]; then
+        printf "%s\n" "${_matchedFiles[@]}"
+        return 0
+    else
         return 1
     fi
 }

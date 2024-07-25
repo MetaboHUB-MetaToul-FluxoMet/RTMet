@@ -49,24 +49,27 @@ _mainScript_() {
         return 1
     fi
 
-    _seekConfirmation_ "Do something?" && printf "okay" || printf "not okay"
-
     if ! _isInternetAvailable_; then
         error "No internet connection detected. Exiting."
         return 1
     fi
 
     info "Checking for local Conda installation:"
-    if true; then
-        notice "Conda is not installed. Installing miniforge..."
-        local _conda=~/miniforge3/condabin/conda
-        _installMiniforge_
-        info "↪ The miniforge distribution has been installed."
-    else
+    if _commandExists_ conda; then
         info "↪ Conda is already installed."
         local _conda
         _conda=$(command -v conda)
+    else
+        notice "Conda is not installed."
+        if ! _seekConfirmation_ "Do you want to install Miniforge3?"; then
+            error "Conda is required to install and run RTMet. Exiting."
+            return 1
+        fi
+        local _conda=~/miniforge3/condabin/conda
+        _installMiniforge_
+        info "↪ The miniforge distribution has been installed."
     fi
+
     debug "$(${_conda} info)"
     ${_conda} config --set auto_activate_base false ${VFLAG}
 
@@ -79,7 +82,6 @@ _mainScript_() {
     mv "${workflow}" ~/cylc-src/
 
     local env_templates=~/cylc-src/"${workflow}"/envs
-
     info "Creating Cylc conda environment:"
     ${_conda} env create -f "${env_templates}"/cylc.yml ${VFLAG}
 
@@ -200,6 +202,70 @@ _commandExists_() {
         return 1
     fi
     return 0
+}
+
+_runAsRoot_() {
+    # DESC:
+    #         Run the requested command as root (via sudo if requested)
+    # ARGS:
+    #         $1 (optional): Set to zero to not attempt execution via sudo
+    #         $@ (required): Passed through for execution as root user
+    # OUTS:
+    #         Runs the requested command as root
+    # CREDIT:
+    #         https://github.com/ralish/bash-script-template
+
+    [[ $# == 0 ]] && fatal "Missing required argument to ${FUNCNAME[0]}"
+
+    local _skip_sudo=false
+
+    if [[ ${1} =~ ^0$ ]]; then
+        _skip_sudo=true
+        shift
+    fi
+
+    if [[ ${EUID} -eq 0 ]]; then
+        "$@"
+    elif [[ -z ${_skip_sudo} ]]; then
+        sudo -H -- "$@"
+    else
+        fatal "Unable to run requested command as root: $*"
+    fi
+}
+
+_seekConfirmation_() {
+    # DESC:
+    #         Seek user input for yes/no question
+    # ARGS:
+    #         $1 (Required) - Question being asked
+    # OUTS:
+    #         0 if answer is "yes"
+    #         1 if answer is "no"
+    # USAGE:
+    #         _seekConfirmation_ "Do something?" && printf "okay" || printf "not okay"
+    #         OR
+    #         if _seekConfirmation_ "Answer this question"; then
+    #           something
+    #         fi
+
+    [[ $# == 0 ]] && fatal "Missing required argument to ${FUNCNAME[0]}"
+
+    local _yesNo
+    input "${1}"
+    if "${FORCE:-}"; then
+        debug "Forcing confirmation with '--force' flag set"
+        printf "%s\n" " "
+        return 0
+    else
+        while true; do
+            read -r -p " (y/n) " _yesNo
+            case ${_yesNo} in
+            [Yy]*) return 0 ;;
+            [Nn]*) return 1 ;;
+            *) input "Please answer yes or no." ;;
+            esac
+        done
+    fi
 }
 
 _isInternetAvailable_() {

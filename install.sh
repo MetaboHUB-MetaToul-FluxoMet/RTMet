@@ -52,16 +52,16 @@ _mainScript_() {
     info "Checking for local Conda installation:"
     if true; then
         notice "Conda is not installed. Installing miniforge..."
-        local conda=~/miniforge3/condabin/conda
+        local _conda=~/miniforge3/condabin/conda
         _installMiniforge_
         info "↪ The miniforge distribution has been installed."
     else
         info "↪ Conda is already installed."
-        local conda
-        conda=$(command -v conda)
+        local _conda
+        _conda=$(command -v conda)
     fi
-    debug "conda info: $(${conda} info)"
-    ${conda} config --set auto_activate_base false ${VFLAG}
+    debug "$(${_conda} info)"
+    ${_conda} config --set auto_activate_base false ${VFLAG}
 
     info "Downloading Workflow from GitHub repository..."
     _downloadFile_ ${WORKFLOW_ZIP}
@@ -74,7 +74,7 @@ _mainScript_() {
     local env_templates=~/cylc-src/"${workflow}"/envs
 
     info "Creating Cylc conda environment:"
-    ${conda} env create -f "${env_templates}"/cylc.yml ${VFLAG}
+    ${_conda} env create -f "${env_templates}"/cylc.yml ${VFLAG}
 
     info "Setting up Cylc wrapper script:"
     _setupCylcWrapper_
@@ -100,11 +100,11 @@ WORKFLOW_ZIP=https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/releases/downl
 # ################################## Custom utility functions (RTMet)
 
 _downloadFile_() {
-    local url=$1
+    local _url=$1
     if _commandExists_ curl; then
-        curl -LO "${url}" ${VFLAG}
+        curl -LO "${_url}" ${VFLAG}
     elif _commandExists_ wget; then
-        wget "${url}" ${VFLAG}
+        wget "${_url}" ${VFLAG}
     else
         error "Neither curl nor wget is installed. Exiting."
         return 1
@@ -112,34 +112,24 @@ _downloadFile_() {
 }
 
 _installMiniforge_() {
-    local mf_script
-    local url
-    mf_script="Miniforge3-$(uname)-$(uname -m).sh"
-    url="https://github.com/conda-forge/miniforge/releases/latest/download/${mf_script}"
-    _downloadFile_ "${url}"
-    bash "${mf_script}" -b
-    rm "${mf_script}"
-    ${conda} init "$(basename "$SHELL")" ${VFLAG}
-    # if [ -f ~/.bashrc ]; then
-    #     debug "Sourcing .bashrc"
-    #     . ~/.bashrc
-    # elif [ -f ~/.bash_profile ]; then
-    #     debug "Sourcing .bash_profile"
-    #     . ~/.bash_profile
-    # else
-    #     error "Could not find .bashrc or .bash_profile. Exiting."
-    #     return 1
-    # fi
+    local _miniforgeScript
+    local _scriptUrl
+    _miniforgeScript="Miniforge3-$(uname)-$(uname -m).sh"
+    _scriptUrl="https://github.com/conda-forge/miniforge/releases/latest/download/${_miniforgeScript}"
+    _downloadFile_ "${_scriptUrl}"
+    bash "${_miniforgeScript}" -b
+    rm "${_miniforgeScript}"
+    ${_conda} init "$(basename "${SHELL}")" ${VFLAG}
 }
 
 _setupCylcWrapper_() {
-    local wrapper_dir='/usr/local/bin'
-    local conda_envs
-    conda_envs=$(${conda} info --base)/envs
-    ${conda} run -n cylc cylc get-resources cylc ${wrapper_dir}
-    chmod +x ${wrapper_dir}/cylc
-    sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${conda_envs}|" ${wrapper_dir}/cylc
-    ln -s ${wrapper_dir}/cylc ${wrapper_dir}/rose
+    local _wrapperDir='/usr/local/bin'
+    local _condaEnvs
+    _condaEnvs="$(${_conda} info --base)/envs"
+    ${_conda} run -n cylc cylc get-resources cylc ${_wrapperDir}
+    chmod +x ${_wrapperDir}/cylc
+    sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${_condaEnvs}|" ${_wrapperDir}/cylc
+    ln -s ${_wrapperDir}/cylc ${_wrapperDir}/rose
 }
 
 # ################################## Custom utility functions (Pasted from official repository)
@@ -924,7 +914,7 @@ _parseOptions_ "$@"
 # _makeTempDir_ "$(basename "$0")"
 
 # Acquire script lock
-# _acquireScriptLock_
+_acquireScriptLock_
 
 # Add Homebrew bin directory to PATH (MacOS)
 # _homebrewPath_

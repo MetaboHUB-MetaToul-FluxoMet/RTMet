@@ -21,7 +21,6 @@ jobs:
         verbosity: [--verbose, --quiet]
         loglevel: [ERROR, INFO, DEBUG, ALL, OFF]
         dryrun: ["", --dry-run]
-        force: ["", --force]
 
     name: Install RTMet from shell script
     runs-on: ${{ matrix.os }}
@@ -32,11 +31,9 @@ jobs:
       - uses: actions/checkout@v3
       - name: install RTMet
         run: |
-          bash install.sh \
+          bash install.sh --force ${{ matrix.dryrun }} \
             ${{ matrix.verbosity }} \
-            --loglevel ${{ matrix.loglevel }} \
-            ${{ matrix.dryrun }} \
-            ${{ matrix.force }}
+            --loglevel ${{ matrix.loglevel }} 
       - name: check for cylc
         run: |
           cylc --help

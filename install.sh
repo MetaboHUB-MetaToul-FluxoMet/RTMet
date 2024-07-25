@@ -92,8 +92,10 @@ DRYRUN=false
 declare -a ARGS=()
 
 # Script specific
-VFLAG=""; [[ ${VERBOSE} == true ]] && VFLAG="--verbose"
-FFLAG=""; [[ ${FORCE} == true ]] && FFLAG="--force"
+VFLAG=""
+[[ ${VERBOSE} == true ]] && VFLAG="--verbose"
+FFLAG=""
+[[ ${FORCE} == true ]] && FFLAG="--force"
 #RTMET_VERSION=0.1.0
 WORKFLOW_ZIP=https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/releases/download/alpha/bioreactor-workflow.zip
 
@@ -152,19 +154,19 @@ _detectOS_() {
     local _os
     if _uname=$(command -v uname); then
         case $("${_uname}" | tr '[:upper:]' '[:lower:]') in
-            linux*)
-                _os="linux"
-                ;;
-            darwin*)
-                _os="mac"
-                ;;
-            msys* | cygwin* | mingw* | nt | win*)
-                # or possible 'bash on windows'
-                _os="windows"
-                ;;
-            *)
-                return 1
-                ;;
+        linux*)
+            _os="linux"
+            ;;
+        darwin*)
+            _os="mac"
+            ;;
+        msys* | cygwin* | mingw* | nt | win*)
+            # or possible 'bash on windows'
+            _os="windows"
+            ;;
+        *)
+            return 1
+            ;;
         esac
     else
         return 1
@@ -334,45 +336,45 @@ _alert_() {
 
     # Write specified log level data to logfile
     case "${LOGLEVEL:-ERROR}" in
-        ALL | all | All)
+    ALL | all | All)
+        _writeToLog_
+        ;;
+    DEBUG | debug | Debug)
+        _writeToLog_
+        ;;
+    INFO | info | Info)
+        if [[ ${_alertType} =~ ^(error|fatal|warning|info|notice|success) ]]; then
             _writeToLog_
-            ;;
-        DEBUG | debug | Debug)
+        fi
+        ;;
+    NOTICE | notice | Notice)
+        if [[ ${_alertType} =~ ^(error|fatal|warning|notice|success) ]]; then
             _writeToLog_
-            ;;
-        INFO | info | Info)
-            if [[ ${_alertType} =~ ^(error|fatal|warning|info|notice|success) ]]; then
-                _writeToLog_
-            fi
-            ;;
-        NOTICE | notice | Notice)
-            if [[ ${_alertType} =~ ^(error|fatal|warning|notice|success) ]]; then
-                _writeToLog_
-            fi
-            ;;
-        WARN | warn | Warn)
-            if [[ ${_alertType} =~ ^(error|fatal|warning) ]]; then
-                _writeToLog_
-            fi
-            ;;
-        ERROR | error | Error)
-            if [[ ${_alertType} =~ ^(error|fatal) ]]; then
-                _writeToLog_
-            fi
-            ;;
-        FATAL | fatal | Fatal)
-            if [[ ${_alertType} =~ ^fatal ]]; then
-                _writeToLog_
-            fi
-            ;;
-        OFF | off)
-            return 0
-            ;;
-        *)
-            if [[ ${_alertType} =~ ^(error|fatal) ]]; then
-                _writeToLog_
-            fi
-            ;;
+        fi
+        ;;
+    WARN | warn | Warn)
+        if [[ ${_alertType} =~ ^(error|fatal|warning) ]]; then
+            _writeToLog_
+        fi
+        ;;
+    ERROR | error | Error)
+        if [[ ${_alertType} =~ ^(error|fatal) ]]; then
+            _writeToLog_
+        fi
+        ;;
+    FATAL | fatal | Fatal)
+        if [[ ${_alertType} =~ ^fatal ]]; then
+            _writeToLog_
+        fi
+        ;;
+    OFF | off)
+        return 0
+        ;;
+    *)
+        if [[ ${_alertType} =~ ^(error|fatal) ]]; then
+            _writeToLog_
+        fi
+        ;;
     esac
 
 } # /_alert_
@@ -404,12 +406,12 @@ _printFuncStack_() {
     declare -a _funcStackResponse=()
     for ((_i = 1; _i < ${#BASH_SOURCE[@]}; _i++)); do
         case "${FUNCNAME[${_i}]}" in
-            _alert_ | _trapCleanup_ | fatal | error | warning | notice | info | debug | dryrun | header | success)
-                continue
-                ;;
-            *)
-                _funcStackResponse+=("${FUNCNAME[${_i}]}:$(basename "${BASH_SOURCE[${_i}]}"):${BASH_LINENO[_i - 1]}")
-                ;;
+        _alert_ | _trapCleanup_ | fatal | error | warning | notice | info | debug | dryrun | header | success)
+            continue
+            ;;
+        *)
+            _funcStackResponse+=("${FUNCNAME[${_i}]}:$(basename "${BASH_SOURCE[${_i}]}"):${BASH_LINENO[_i - 1]}")
+            ;;
         esac
 
     done
@@ -448,6 +450,7 @@ _safeExit_() {
     exit "${1:-0}"
 }
 
+# shellcheck disable=SC2317
 _trapCleanup_() {
     # DESC:
     #         Log errors and cleanup from script when an error is trapped.  Called by 'trap'
@@ -493,6 +496,7 @@ _trapCleanup_() {
     fi
 }
 
+# shellcheck disable=SC2317
 _makeTempDir_() {
     # DESC:
     #         Creates a temp directory to house temporary files
@@ -551,6 +555,7 @@ _acquireScriptLock_() {
     fi
 }
 
+# shellcheck disable=SC2317
 _setPATH_() {
     # DESC:
     #         Add directories to $PATH so script can find executables
@@ -573,13 +578,13 @@ _setPATH_() {
 
     while getopts ":xX" opt; do
         case ${opt} in
-            x | X) _failIfNotFound=true ;;
-            *)
-                {
-                    error "Unrecognized option '${1}' passed to _backupFile_" "${LINENO}"
-                    return 1
-                }
-                ;;
+        x | X) _failIfNotFound=true ;;
+        *)
+            {
+                error "Unrecognized option '${1}' passed to _backupFile_" "${LINENO}"
+                return 1
+            }
+            ;;
         esac
     done
     shift $((OPTIND - 1))
@@ -608,6 +613,7 @@ _setPATH_() {
     return 0
 }
 
+# shellcheck disable=SC2317
 _useGNUutils_() {
     # DESC:
     #					Add GNU utilities to PATH to allow consistent use of sed/grep/tar/etc. on MacOS
@@ -642,6 +648,7 @@ _useGNUutils_() {
 
 }
 
+# shellcheck disable=SC2317
 _homebrewPath_() {
     # DESC:
     #					Add homebrew bin dir to PATH
@@ -691,26 +698,26 @@ _parseOptions_() {
     local i
     while (($#)); do
         case $1 in
-            # If option is of type -ab
-            -[!-]?*)
-                # Loop over each character starting with the second
-                for ((i = 1; i < ${#1}; i++)); do
-                    _c=${1:i:1}
-                    _options+=("-${_c}") # Add current char to options
-                    # If option takes a required argument, and it's not the last char make
-                    # the rest of the string its argument
-                    if [[ ${_optstring} == *"${_c}:"* && -n ${1:i+1} ]]; then
-                        _options+=("${1:i+1}")
-                        break
-                    fi
-                done
-                ;;
-            # If option is of type --foo=bar
-            --?*=*) _options+=("${1%%=*}" "${1#*=}") ;;
-            # add --endopts for --
-            --) _options+=(--endopts) ;;
-            # Otherwise, nothing special
-            *) _options+=("$1") ;;
+        # If option is of type -ab
+        -[!-]?*)
+            # Loop over each character starting with the second
+            for ((i = 1; i < ${#1}; i++)); do
+                _c=${1:i:1}
+                _options+=("-${_c}") # Add current char to options
+                # If option takes a required argument, and it's not the last char make
+                # the rest of the string its argument
+                if [[ ${_optstring} == *"${_c}:"* && -n ${1:i+1} ]]; then
+                    _options+=("${1:i+1}")
+                    break
+                fi
+            done
+            ;;
+        # If option is of type --foo=bar
+        --?*=*) _options+=("${1%%=*}" "${1#*=}") ;;
+        # add --endopts for --
+        --) _options+=(--endopts) ;;
+        # Otherwise, nothing special
+        *) _options+=("$1") ;;
         esac
         shift
     done
@@ -721,37 +728,37 @@ _parseOptions_() {
     # shellcheck disable=SC2034
     while [[ ${1:-} == -?* ]]; do
         case $1 in
-            # Custom options
+        # Custom options
 
-            # Common options
-            -h | --help)
-                _usage_
-                _safeExit_
-                ;;
-            --loglevel)
-                shift
-                LOGLEVEL=${1}
-                ;;
-            --logfile)
-                shift
-                LOGFILE="${1}"
-                ;;
-            -n | --dryrun) DRYRUN=true ;;
-            -v | --verbose) VERBOSE=true ;;
-            -q | --quiet) QUIET=true ;;
-            --force) FORCE=true ;;
-            --endopts)
-                shift
-                break
-                ;;
-            *)
-                if declare -f _safeExit_ &>/dev/null; then
-                    fatal "invalid option: $1"
-                else
-                    printf "%s\n" "ERROR: Invalid option: $1"
-                    exit 1
-                fi
-                ;;
+        # Common options
+        -h | --help)
+            _usage_
+            _safeExit_
+            ;;
+        --loglevel)
+            shift
+            LOGLEVEL=${1}
+            ;;
+        --logfile)
+            shift
+            LOGFILE="${1}"
+            ;;
+        -n | --dryrun) DRYRUN=true ;;
+        -v | --verbose) VERBOSE=true ;;
+        -q | --quiet) QUIET=true ;;
+        --force) FORCE=true ;;
+        --endopts)
+            shift
+            break
+            ;;
+        *)
+            if declare -f _safeExit_ &>/dev/null; then
+                fatal "invalid option: $1"
+            else
+                printf "%s\n" "ERROR: Invalid option: $1"
+                exit 1
+            fi
+            ;;
         esac
         shift
     done
@@ -789,10 +796,10 @@ _columns_() {
     local _style=""
     while getopts ":bBuUrR" opt; do
         case ${opt} in
-            b | B) _style="${_style}${bold}" ;;
-            u | U) _style="${_style}${underline}" ;;
-            r | R) _style="${_style}${reverse}" ;;
-            *) fatal "Unrecognized option '${1}' passed to ${FUNCNAME[0]}. Exiting." ;;
+        b | B) _style="${_style}${bold}" ;;
+        u | U) _style="${_style}${underline}" ;;
+        r | R) _style="${_style}${reverse}" ;;
+        *) fatal "Unrecognized option '${1}' passed to ${FUNCNAME[0]}. Exiting." ;;
         esac
     done
     shift $((OPTIND - 1))

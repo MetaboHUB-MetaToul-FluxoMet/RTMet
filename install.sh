@@ -89,18 +89,24 @@ _mainScript_() {
     info "Setting up Cylc wrapper script."
     _setupCylcWrapper_
 
+    # For now, do dryrun check instead of wrapping in _execute_
     info "Installing tasks' conda environments."
-    local _taskEnvs
-    local _envCount
-    _taskEnvs=_execute_ "_listFiles_ glob \"wf-*.yml\" ${_envTemplates}"
-    _envCount=$(echo "${_taskEnvs}" | wc -l)
-    debug "Task environments: ${_taskEnvs}"
-    debug "Count: ${_envCount}"
-    #_envCount=$(_find "${_envTemplates}" -type f -name "wf-*.yml" | wc -l)
-    for env in ${_taskEnvs}; do
-        _createCondaEnv_ "${env}"
-        _progressBar_ "${_envCount}" "${env}"
-    done
+    if ! ${DRYRUN}; then
+        local _taskEnvs
+        local _envCount
+        _taskEnvs=$(_listFiles_ glob "wf-*.yml" "${_envTemplates}")
+        debug "Task environments: ${_taskEnvs}"
+        _envCount=$(echo "${_taskEnvs}" | wc -l)
+        debug "Count: ${_envCount}"
+        #_envCount=$(_find "${_envTemplates}" -type f -name "wf-*.yml" | wc -l)
+        for env in ${_taskEnvs}; do
+            _createCondaEnv_ "${env}"
+            _progressBar_ "${_envCount}" "${env}"
+        done
+    else
+        dryrun "Dry-run mode enabled. Skipping task environments installation."
+    fi
+
 }
 # end _mainScript_
 

@@ -95,10 +95,8 @@ _mainScript_() {
         local _taskEnvs
         local _envCount
         _taskEnvs=$(_listFiles_ glob "wf-*.yml" "${_envTemplates}")
-        debug "Task environments: ${_taskEnvs}"
+        info "Task environments: ${_taskEnvs}"
         _envCount=$(echo "${_taskEnvs}" | wc -l)
-        debug "Count: ${_envCount}"
-        #_envCount=$(_find "${_envTemplates}" -type f -name "wf-*.yml" | wc -l)
         for env in ${_taskEnvs}; do
             _createCondaEnv_ "${env}"
             _progressBar_ "${_envCount}" "${env}"
@@ -106,6 +104,12 @@ _mainScript_() {
     else
         dryrun "Dry-run mode enabled. Skipping task environments installation."
     fi
+
+    if ${DRYRUN}; then
+        dryrun "RTMet would (could?) have been successfully installed."
+        return 0
+    fi
+    success "RTMet has been successfully installed."
 
 }
 # end _mainScript_

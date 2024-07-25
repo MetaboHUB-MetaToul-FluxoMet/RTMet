@@ -71,19 +71,20 @@ _mainScript_() {
     fi
 
     debug "$(${_conda} info)"
-    ${_conda} config --set auto_activate_base false ${VFLAG}
+    _execute_ "${_conda} config --set auto_activate_base false ${VFLAG}"
 
     info "Downloading Workflow from GitHub repository..."
     _downloadFile_ ${WORKFLOW_ZIP}
     workflow=$(basename ${WORKFLOW_ZIP} .zip)
+    info "Moving workflow to ~/cylc-src/"
     _execute_ "unzip \"${workflow}\".zip"
-    rm "${workflow}".zip
-    mkdir ~/cylc-src
-    mv "${workflow}" ~/cylc-src/
+    _execute_ "rm \"${workflow}\".zip"
+    _execute_ "mkdir ~/cylc-src"
+    _execute_ "mv \"${workflow}\" ~/cylc-src/"
 
     local env_templates=~/cylc-src/"${workflow}"/envs
     info "Creating Cylc conda environment:"
-    ${_conda} env create -f "${env_templates}"/cylc.yml ${VFLAG}
+    _execute_ "${_conda} env create -f \"${env_templates}\"/cylc.yml ${VFLAG}"
 
     info "Setting up Cylc wrapper script:"
     _setupCylcWrapper_
@@ -113,9 +114,9 @@ WORKFLOW_ZIP=https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/releases/downl
 _downloadFile_() {
     local _url=$1
     if _commandExists_ curl; then
-        curl -LO "${_url}" ${VFLAG}
+        _execute_ "curl -LO \"${_url}\" ${VFLAG}"
     elif _commandExists_ wget; then
-        wget "${_url}" ${VFLAG}
+        _execute_ "wget \"${_url}\" ${VFLAG}"
     else
         error "Neither curl nor wget is installed. Exiting."
         return 1
@@ -129,18 +130,18 @@ _installMiniforge_() {
     _scriptUrl="https://github.com/conda-forge/miniforge/releases/latest/download/${_miniforgeScript}"
     _downloadFile_ "${_scriptUrl}"
     _execute_ "bash \"${_miniforgeScript}\" -b"
-    rm "${_miniforgeScript}"
-    ${_conda} init "$(basename "${SHELL}")" ${VFLAG}
+    _execute_ "rm \"${_miniforgeScript}\""
+    _execute "${_conda} init ${VFLAG}"
 }
 
 _setupCylcWrapper_() {
     local _wrapperDir='/usr/local/bin'
     local _condaEnvs
     _condaEnvs="$(${_conda} info --base)/envs"
-    ${_conda} run -n cylc cylc get-resources cylc ${_wrapperDir}
-    chmod +x ${_wrapperDir}/cylc
-    sed -i "s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${_condaEnvs}|" ${_wrapperDir}/cylc
-    ln -s ${_wrapperDir}/cylc ${_wrapperDir}/rose
+    _execute_ "${_conda} run -n cylc cylc get-resources cylc ${_wrapperDir}"
+    _execute_ "chmod +x ${_wrapperDir}/cylc"
+    _execute_ "sed -i \"s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${_condaEnvs}|\" ${_wrapperDir}/cylc"
+    _execute_ "ln -s ${_wrapperDir}/cylc ${_wrapperDir}/rose"
 }
 
 # ################################## Custom utility functions (Pasted from official repository)

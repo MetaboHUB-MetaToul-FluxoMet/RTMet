@@ -24,15 +24,7 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          auto-activate-base: false
-          miniforge-version: latest
       - uses: actions/checkout@v3
-      - name: test conda activate
-        run: |
-          source $CONDA/etc/profile.d/conda.sh
-          conda activate base
       - name: install RTMet
         run: |
           source $CONDA/etc/profile.d/conda.sh

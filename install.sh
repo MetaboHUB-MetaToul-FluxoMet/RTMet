@@ -52,12 +52,12 @@ _mainScript_() {
     info "Checking for local Conda installation:"
     if true; then
         notice "Conda is not installed. Installing miniforge..."
-        local conda
-        conda=~/miniforge3/condabin/conda
+        local conda=~/miniforge3/condabin/conda
         _installMiniforge_
         info "↪ The miniforge distribution has been installed."
     else
         info "↪ Conda is already installed."
+        local conda
         conda=$(command -v conda)
     fi
     debug "conda info: $(${conda} info)"

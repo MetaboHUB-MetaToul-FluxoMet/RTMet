@@ -49,6 +49,13 @@ _mainScript_() {
         return 1
     fi
 
+    _seekConfirmation_ "Do something?" && printf "okay" || printf "not okay"
+
+    if ! _isInternetAvailable_; then
+        error "No internet connection detected. Exiting."
+        return 1
+    fi
+
     info "Checking for local Conda installation:"
     if true; then
         notice "Conda is not installed. Installing miniforge..."
@@ -193,6 +200,29 @@ _commandExists_() {
         return 1
     fi
     return 0
+}
+
+_isInternetAvailable_() {
+    # DESC:
+    #         Check if internet connection is available
+    # ARGS:
+    #         None
+    # OUTS:
+    #					0 - Success: Internet connection is available
+    #					1 - Failure: Internet connection is not available
+    #					stdout:
+    # USAGE:
+    #					_isInternetAvailable_
+
+    local _checkInternet
+    if [[ -t 1 || -z ${TERM} ]]; then
+        _checkInternet="$(sh -ic 'exec 3>&1 2>/dev/null; { curl --compressed -Is google.com 1>&3; kill 0; } | { sleep 10; kill 0; }' || :)"
+    else
+        _checkInternet="$(curl --compressed -Is google.com -m 10)"
+    fi
+    if [[ -z ${_checkInternet-} ]]; then
+        return 1
+    fi
 }
 
 # ################################## Functions required for this template to work

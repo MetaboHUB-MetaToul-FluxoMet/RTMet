@@ -90,7 +90,7 @@ _mainScript_() {
         info "↪ The miniforge distribution has been installed to ${_condaPrefix}."
     fi
 
-    _execute_ "$(${_condaCmd} info)"
+    _execute_ "${_condaCmd} info)"
     _execute_ "${_condaCmd} config --set auto_activate_base false ${VFLAG}"
 
     info "Downloading Workflow from GitHub repository..."

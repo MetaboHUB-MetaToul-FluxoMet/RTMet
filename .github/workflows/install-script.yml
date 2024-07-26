@@ -39,7 +39,7 @@ jobs:
         with:
           key: rtmet-${{ runner.os }}-envs-${{ hashFiles('cylc-src/bioreactor-workflow/envs/*') }}-script-${{ hashFiles('install.sh') }}
           path: |
-            /usr/share/miniconda/envs/
+            /home/runner/miniforge3/
             /home/runner/cylc-src/
             /home/runner/.bashrc
             /usr/local/bin/cylc

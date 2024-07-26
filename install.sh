@@ -70,7 +70,9 @@ _mainScript_() {
     # fi
 
     info "Checking for local Conda installation:"
-    if _commandExists_ conda; then
+    # force miniforge install (to fix Github Actions shenanigans)
+    #if _commandExists_ conda; then
+    if false; then
         info "↪ Conda is already installed."
         local _conda
         _conda=$(command -v conda)

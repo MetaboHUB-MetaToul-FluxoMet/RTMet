@@ -16,6 +16,7 @@ concurrency:
 jobs:
   installation-from-script:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         flags:

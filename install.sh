@@ -64,10 +64,10 @@ _mainScript_() {
         fi
     fi
 
-    if _detectInteractiveguard_ "${HOME}/.bashrc"; then
-        error "Interactive guard detected in ${HOME}/.bashrc. Exiting."
-        return 1
-    fi
+    # if _detectInteractiveguard_ "${HOME}/.bashrc"; then
+    #     error "Interactive guard detected in ${HOME}/.bashrc. Exiting."
+    #     return 1
+    # fi
 
     info "Checking for local Conda installation:"
     if _commandExists_ conda; then
@@ -102,7 +102,19 @@ _mainScript_() {
     _createCondaEnv_ "${_envTemplates}"/cylc.yml
 
     info "Setting up Cylc wrapper script."
-    _setupCylcWrapper_ "/usr/local/bin"
+    if _rootAvailable_; then
+        _runAsRoot_ _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_SYS}"
+    else
+        _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_USR}"
+        if ! _inUserPath_ "${DEFAULT_WRAPPERS_DIR_USR}"; then
+            debug "The user's PATH does not contain ${DEFAULT_WRAPPERS_DIR_USR}."
+            if [[ $(_detectOS_) == "mac" ]]; then
+                _execute_ "echo 'export PATH=\"${DEFAULT_WRAPPERS_DIR_USR}:\$PATH\"' >> ${HOME}/.bash_profile"
+            else
+                _execute_ "echo 'export PATH=\"${DEFAULT_WRAPPERS_DIR_USR}:\$PATH\"' >> ${HOME}/.bashrc"
+            fi
+        fi
+    fi
 
     # For now, do dryrun check instead of wrapping in _execute_
     info "Installing tasks' conda environments."
@@ -125,7 +137,6 @@ _mainScript_() {
         return 0
     fi
     success "RTMet has been successfully installed."
-
 }
 # end _mainScript_
 
@@ -147,6 +158,8 @@ VFLAG=""
 #RTMET_VERSION=0.1.0
 WORKFLOW_ZIP=https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/releases/download/alpha/bioreactor-workflow.zip
 DEFAULT_MINIFORGE_PREFIX=${HOME}/miniforge3
+DEFAULT_WRAPPERS_DIR_USR=${HOME}/.local/bin
+DEFAULT_WRAPPERS_DIR_SYS=/usr/local/bin
 
 # ################################## Custom utility functions (RTMet)
 
@@ -189,6 +202,7 @@ _setupCylcWrapper_() {
     local _condaEnvsPrefix
     _targetDir="$1"
     _condaEnvsPrefix="$(${_conda} info --base)/envs"
+    _execute_ "mkdir -p ${_targetDir}"
     _execute_ "${_conda} run -n cylc cylc get-resources cylc ${_targetDir}"
     _execute_ "chmod +x ${_targetDir}/cylc"
     _execute_ "sed -i \"s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${_condaEnvsPrefix}|\" ${_targetDir}/cylc"
@@ -229,7 +243,32 @@ esac"
         debug "Interactive block not found in $_rcFile"
         return 1
     fi
+}
 
+_inUserPath_() {
+    # DESC:
+    #         Check if the given directory is in the user's PATH
+    # ARGS:
+    #         $1 (required): The directory to check
+    # OUTS:
+    #         Returns 0 if the directory is in the PATH, 1 otherwise
+
+    local dir="$1"
+
+    if [[ -z "$dir" ]]; then
+        echo "Missing required argument: directory path"
+        return 1
+    fi
+
+    # Loop through each element in the PATH
+    IFS=":" read -r -a path_array <<<"$PATH"
+    for path in "${path_array[@]}"; do
+        if [[ "$path" == "$dir" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
 }
 
 # ################################## Custom utility functions (Pasted from official repository)

@@ -222,6 +222,8 @@ esac"
     # Search for the code block in the .bashrc file
     if grep -qF "$_codeBlock" "$_rcFile"; then
         warning "Interactive block detected in $_rcFile"
+        debug "Interactive block: $_codeBlock"
+        debug "$(cat "${_rcFile}")"
         return 0
     else
         debug "Interactive block not found in $_rcFile"

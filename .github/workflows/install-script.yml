@@ -19,7 +19,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         options:
-          - --force
           - --force --verbose
           - --force --dryrun
           - --verbose
@@ -28,6 +27,8 @@ jobs:
             is_dryrun: true
           - options: --verbose
             interactive: "yes | "
+          - options: --force --verbose
+            cache: true
 
     name: Install RTMet from shell script
     runs-on: ${{ matrix.os }}
@@ -46,4 +47,26 @@ jobs:
       - if: ${{ !matrix.is_dryrun }}
         name: check for rose
         run: |
+          rose --help
+      - if : ${{ matrix.cache }}
+        name: Cache Workflow installation
+        uses: actions/cache@v3
+        env:
+          cache-name: rtmet-cache
+        with:
+          key: ${{ runner.os }}-build-${{ env.cache-name }}
+          path: |
+            ~/miniforge3
+            ~/.bashrc
+            ~/cylc-src
+            /usr/local/bin/cylc
+            /usr/local/bin/rose
+  validate-installation:
+    name: Validate RTMet installation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: validate RTMet
+        run: |
+          cylc --help
           rose --help

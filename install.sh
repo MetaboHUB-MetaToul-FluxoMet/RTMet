@@ -74,21 +74,24 @@ _mainScript_() {
     #if _commandExists_ conda; then
     if false; then
         info "↪ Conda is already installed."
-        local _conda
-        _conda=$(command -v conda)
+        local _condaCmd
+        local _condaPrefix
+        _condaCmd=$(command -v conda)
+        _condaPrefix=$(${_condaCmd} info --base)
     else
         notice "Conda is not installed."
         if ! _seekConfirmation_ "Do you want to install Miniforge3?"; then
             error "Conda is required to install and run RTMet. Exiting."
             return 1
         fi
-        local _conda="${DEFAULT_MINIFORGE_PREFIX}/condabin/conda"
-        _installMiniforge_ "${DEFAULT_MINIFORGE_PREFIX}"
-        info "↪ The miniforge distribution has been installed to ${DEFAULT_MINIFORGE_PREFIX}."
+        local _condaCmd="${DEFAULT_MINIFORGE_PREFIX}/condabin/conda"
+        local _condaPrefix="${DEFAULT_MINIFORGE_PREFIX}"
+        _installMiniforge_ "${_condaPrefix}"
+        info "↪ The miniforge distribution has been installed to ${_condaPrefix}."
     fi
 
-    debug "$(${_conda} info)"
-    _execute_ "${_conda} config --set auto_activate_base false ${VFLAG}"
+    _execute_ "$(${_condaCmd} info)"
+    _execute_ "${_condaCmd} config --set auto_activate_base false ${VFLAG}"
 
     info "Downloading Workflow from GitHub repository..."
     _downloadFile_ ${WORKFLOW_ZIP}
@@ -106,9 +109,9 @@ _mainScript_() {
     info "Setting up Cylc wrapper script."
     if _rootAvailable_; then
         # _runAsRoot_ _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_SYS}"
-        _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_SYS}"
+        _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_SYS}" "${_condaPrefix}"
     else
-        _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_USR}"
+        _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_USR}" "${_condaPrefix}"
         if ! _inUserPath_ "${DEFAULT_WRAPPERS_DIR_USR}"; then
             debug "The user's PATH does not contain ${DEFAULT_WRAPPERS_DIR_USR}."
             if [[ $(_detectOS_) == "mac" ]]; then
@@ -192,23 +195,23 @@ _installMiniforge_() {
         _execute_ "bash \"${_miniforgeScript}\" -p \"${_prefix}\" ${VFLAG}"
     fi
     _execute_ "rm \"${_miniforgeScript}\""
-    _execute_ "${_conda} init ${VFLAG}"
+    _execute_ "${_condaCmd} init ${VFLAG}"
 }
 
 _createCondaEnv_() {
     local _envFile=$1
-    _execute_ "${_conda} env create -f \"${_envFile}\" ${VFLAG}"
+    _execute_ "${_condaCmd} env create -f \"${_envFile}\" ${VFLAG}"
 }
 
 _setupCylcWrapper_() {
     local _targetDir
-    local _condaEnvsPrefix
+    local _condaPrefix
     _targetDir="$1"
-    _condaEnvsPrefix="$(${_conda} info --base)/envs"
+    _condaPrefix="$2"
     _execute_ "mkdir -p ${_targetDir}"
-    _execute_ "${_conda} run -n cylc cylc get-resources cylc ${_targetDir}"
+    _execute_ "${_condaCmd} run -n cylc cylc get-resources cylc ${_targetDir}"
     _execute_ "chmod +x ${_targetDir}/cylc"
-    _execute_ "sed -i \"s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${_condaEnvsPrefix}|\" ${_targetDir}/cylc"
+    _execute_ "sed -i \"s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${_condaPrefix}/envs|\" ${_targetDir}/cylc"
     _execute_ "ln -s ${_targetDir}/cylc ${_targetDir}/rose"
 }
 

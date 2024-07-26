@@ -69,3 +69,4 @@ jobs:
         run: |
           cylc --help
           rose --help
+          conda activate wf-binner

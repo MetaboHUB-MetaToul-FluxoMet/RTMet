@@ -21,7 +21,6 @@ jobs:
         options:
           - --force
           - --force --verbose
-          - --force --quiet
           - --force --dryrun
           - --verbose
         include:

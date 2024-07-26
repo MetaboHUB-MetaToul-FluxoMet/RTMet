@@ -54,6 +54,21 @@ _mainScript_() {
         return 1
     fi
 
+    if _rootAvailable_; then
+        debug "Root access available."
+    else
+        info "No root access available."
+        warning "Root access is required to install Cylc's wrapper script to /usr/local/bin."
+        if ! _seekConfirmation_ "Do you wish to proceed anyway?"; then
+            return 1
+        fi
+    fi
+
+    if _detectInteractiveguard_ "${HOME}/.bashrc"; then
+        error "Interactive guard detected in ${HOME}/.bashrc. Exiting."
+        return 1
+    fi
+
     info "Checking for local Conda installation:"
     if _commandExists_ conda; then
         info "↪ Conda is already installed."
@@ -65,9 +80,9 @@ _mainScript_() {
             error "Conda is required to install and run RTMet. Exiting."
             return 1
         fi
-        local _conda=~/miniforge3/condabin/conda
-        _installMiniforge_
-        info "↪ The miniforge distribution has been installed."
+        local _conda="${DEFAULT_MINIFORGE_PREFIX}/condabin/conda"
+        _installMiniforge_ "${DEFAULT_MINIFORGE_PREFIX}"
+        info "↪ The miniforge distribution has been installed to ${DEFAULT_MINIFORGE_PREFIX}."
     fi
 
     debug "$(${_conda} info)"
@@ -76,18 +91,18 @@ _mainScript_() {
     info "Downloading Workflow from GitHub repository..."
     _downloadFile_ ${WORKFLOW_ZIP}
     workflow=$(basename ${WORKFLOW_ZIP} .zip)
-    info "Moving workflow to ~/cylc-src/"
+    info "Moving workflow to ${HOME}/cylc-src/"
     _execute_ "unzip \"${workflow}\".zip"
     _execute_ "rm \"${workflow}\".zip"
-    _execute_ "mkdir ~/cylc-src"
-    _execute_ "mv \"${workflow}\" ~/cylc-src/"
+    _execute_ "mkdir ${HOME}/cylc-src"
+    _execute_ "mv \"${workflow}\" ${HOME}/cylc-src/"
 
-    local _envTemplates=~/cylc-src/"${workflow}"/envs
+    local _envTemplates=${HOME}/cylc-src/"${workflow}"/envs
     info "Creating Cylc conda environment."
     _createCondaEnv_ "${_envTemplates}"/cylc.yml
 
     info "Setting up Cylc wrapper script."
-    _setupCylcWrapper_
+    _setupCylcWrapper_ "/usr/local/bin"
 
     # For now, do dryrun check instead of wrapping in _execute_
     info "Installing tasks' conda environments."
@@ -131,6 +146,7 @@ VFLAG=""
 # [[ ${FORCE} == true ]] && FFLAG="--force"
 #RTMET_VERSION=0.1.0
 WORKFLOW_ZIP=https://github.com/MetaboHUB-MetaToul-FluxoMet/RTMet/releases/download/alpha/bioreactor-workflow.zip
+DEFAULT_MINIFORGE_PREFIX=${HOME}/miniforge3
 
 # ################################## Custom utility functions (RTMet)
 
@@ -147,12 +163,18 @@ _downloadFile_() {
 }
 
 _installMiniforge_() {
+    local _prefix
     local _miniforgeScript
     local _scriptUrl
+    _prefix=$1
     _miniforgeScript="Miniforge3-$(uname)-$(uname -m).sh"
     _scriptUrl="https://github.com/conda-forge/miniforge/releases/latest/download/${_miniforgeScript}"
     _downloadFile_ "${_scriptUrl}"
-    _execute_ "bash \"${_miniforgeScript}\" -b"
+    if [ "$FORCE" = true ]; then
+        _execute_ "bash \"${_miniforgeScript}\" -p \"${_prefix}\" ${VFLAG} -b"
+    else
+        _execute_ "bash \"${_miniforgeScript}\" -p \"${_prefix}\" ${VFLAG}"
+    fi
     _execute_ "rm \"${_miniforgeScript}\""
     _execute_ "${_conda} init ${VFLAG}"
 }
@@ -163,13 +185,49 @@ _createCondaEnv_() {
 }
 
 _setupCylcWrapper_() {
-    local _wrapperDir='/usr/local/bin'
-    local _condaEnvs
-    _condaEnvs="$(${_conda} info --base)/envs"
-    _execute_ "${_conda} run -n cylc cylc get-resources cylc ${_wrapperDir}"
-    _execute_ "chmod +x ${_wrapperDir}/cylc"
-    _execute_ "sed -i \"s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${_condaEnvs}|\" ${_wrapperDir}/cylc"
-    _execute_ "ln -s ${_wrapperDir}/cylc ${_wrapperDir}/rose"
+    local _targetDir
+    local _condaEnvsPrefix
+    _targetDir="$1"
+    _condaEnvsPrefix="$(${_conda} info --base)/envs"
+    _execute_ "${_conda} run -n cylc cylc get-resources cylc ${_targetDir}"
+    _execute_ "chmod +x ${_targetDir}/cylc"
+    _execute_ "sed -i \"s|^CYLC_HOME_ROOT=.*|CYLC_HOME_ROOT=${_condaEnvsPrefix}|\" ${_targetDir}/cylc"
+    _execute_ "ln -s ${_targetDir}/cylc ${_targetDir}/rose"
+}
+
+_detectInteractiveguard_() {
+    # DESC:
+    #         Detect if a rc file contains the interactive guard.
+    # ARGS:
+    #         $1 (Required) - The rc file to search
+    # OUTS:
+    #         0 if true
+    #         1 if false
+    # USAGE:
+    #         _detectInteractiveguard
+    local _rcFile="$1"
+
+    if [ ! -f "$_rcFile" ]; then
+        warning "File not found: $_rcFile"
+        return 1
+    fi
+
+    # Define the code block to search for
+    local _codeBlock="# If not running interactively, don't do anything
+case \$- in
+    *i*) ;;
+      *) return;;
+esac"
+
+    # Search for the code block in the .bashrc file
+    if grep -qF "$_codeBlock" "$_rcFile"; then
+        warning "Interactive block detected in $_rcFile"
+        return 0
+    else
+        debug "Interactive block not found in $_rcFile"
+        return 1
+    fi
+
 }
 
 # ################################## Custom utility functions (Pasted from official repository)
@@ -357,6 +415,7 @@ _execute_() {
     return 0
 }
 
+# shellcheck disable=SC2120
 _rootAvailable_() {
     # DESC:
     #         Validate we have superuser access as root (via sudo if requested)

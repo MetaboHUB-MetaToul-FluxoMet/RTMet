@@ -103,7 +103,8 @@ _mainScript_() {
 
     info "Setting up Cylc wrapper script."
     if _rootAvailable_; then
-        _runAsRoot_ _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_SYS}"
+        # _runAsRoot_ _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_SYS}"
+        _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_SYS}"
     else
         _setupCylcWrapper_ "${DEFAULT_WRAPPERS_DIR_USR}"
         if ! _inUserPath_ "${DEFAULT_WRAPPERS_DIR_USR}"; then

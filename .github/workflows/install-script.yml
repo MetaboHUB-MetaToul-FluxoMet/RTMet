@@ -35,20 +35,20 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v3
-      - name: install RTMet
-        run: |
-          ${{ matrix.interactive }} bash install.sh ${{ matrix.options }}
-      - name: Cache Workflow installation
+      - uses: actions/cache@v3
+        name: Cache Workflow installation
         if: ${{ matrix.to_cache }}
-        uses: actions/cache@v3
         with:
           key: rtmet-${{ runner.os }}-workflow${{ hashFiles('cylc-src/**/*') }}-script${{ hashFiles('install.sh') }}
           path: |
-            ~/miniforge3
-            ~/.bashrc
-            ~/cylc-src
+            /usr/share/miniconda/
+            /home/runner/cylc-src/
+            /home/runner/.bashrc
             /usr/local/bin/cylc
             /usr/local/bin/rose
+      - name: install RTMet
+        run: |
+          ${{ matrix.interactive }} bash install.sh ${{ matrix.options }}
 
   validate-installation:
     needs: installation-from-script
@@ -60,9 +60,9 @@ jobs:
         with:
           key: rtmet-${{ runner.os }}-workflow${{ hashFiles('cylc-src/**/*') }}-script${{ hashFiles('install.sh') }}
           path: |
-            ~/miniforge3
-            ~/.bashrc
-            ~/cylc-src
+            /home/runner/miniforge3/
+            /home/runner/cylc-src/
+            /home/runner/.bashrc
             /usr/local/bin/cylc
             /usr/local/bin/rose
       - name: validate RTMet

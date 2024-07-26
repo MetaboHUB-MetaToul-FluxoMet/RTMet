@@ -59,6 +59,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           key: rtmet-${{ runner.os }}-workflow${{ hashFiles('cylc-src/**/*') }}-script${{ hashFiles('install.sh') }}
+          fail-on-cache-miss: true
           path: |
             /home/runner/miniforge3/
             /home/runner/cylc-src/

@@ -75,9 +75,9 @@ jobs:
           conda run -p /home/runner/miniforge3/envs/wf-datamunging \
             frictionless --help
 
-          cylc validate bioreactor-workflow
           cylc install bioreactor-workflow \
             -run-name=test-run
+          cylc validate bioreactor-workflow/test-run
           cp -R $GITHUB_WORKSPACE/test/tutorial_raws/* \
             $HOME/cylc-run/bioreactor-workflow/test-run/raws/
           cylc play bioreactor-workflow/test-run \

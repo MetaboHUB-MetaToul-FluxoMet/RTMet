@@ -76,7 +76,7 @@ jobs:
             frictionless --help
 
           cylc install bioreactor-workflow \
-            -run-name=test-run
+            --run-name=test-run
           cylc validate bioreactor-workflow/test-run
           cp -R $GITHUB_WORKSPACE/test/tutorial_raws/* \
             $HOME/cylc-run/bioreactor-workflow/test-run/raws/

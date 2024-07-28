@@ -74,3 +74,14 @@ jobs:
           rose --help
           conda run -p /home/runner/miniforge3/envs/wf-datamunging \
             frictionless --help
+
+          cylc validate bioreactor-workflow
+          cylc install bioreactor-workflow \
+            -run-name=test-run
+          cp -R $GITHUB_WORKSPACE/test/tutorial_raws/* \
+            $HOME/cylc-run/bioreactor-workflow/test-run/raws/
+          cylc play bioreactor-workflow/test-run \
+            --no-detach \
+            --abort-if-any-task-fails \
+            --final-cycle-point=3
+          

@@ -70,9 +70,9 @@ _mainScript_() {
     # fi
 
     info "Checking for local Conda installation:"
-    # force miniforge install (to fix Github Actions shenanigans)
-    #if _commandExists_ conda; then
-    if false; then
+    # Only skip Miniforge installation if already there AND not running in CI.
+    # We want full control over conda when in GitHub Actions.
+    if _commandExists_ conda && [[ -z ${CI:-} ]]; then
         info "↪ Conda is already installed."
         local _condaCmd
         local _condaPrefix

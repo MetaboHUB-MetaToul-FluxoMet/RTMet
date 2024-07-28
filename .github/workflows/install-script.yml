@@ -49,8 +49,9 @@ jobs:
         run: |
           bash install.sh ${{ matrix.flags }}
       - name: install binneR
+        env: 
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat $HOME/.bashrc
           conda run -p /home/runner/miniforge3/envs/wf-binner \
             Rscript -e "remotes::install_github('aberHRML/binneR', upgrade='never')"
       - name: force conda path
@@ -61,6 +62,9 @@ jobs:
     needs: installation-from-script
     name: Validate RTMet installation
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -li {0}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3

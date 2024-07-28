@@ -44,10 +44,17 @@ jobs:
             /home/runner/.bashrc
             /usr/local/bin/cylc
             /usr/local/bin/rose
-      - name: install RTMet
+      - name: run install.sh script
         if: ${{ steps.cache-rtmet.outputs.cache-hit != 'true' || !matrix.to_cache }}
         run: |
           bash install.sh ${{ matrix.flags }}
+      - name: install binneR
+        run: |
+          cat $HOME/.bashrc
+          conda activate wf-datamunging
+          conda run -p /home/runner/miniforge3/envs/wf-binner \
+            Rscript -e "remotes::install_github('aberHRML/binneR', upgrade='never')"
+          conda deactivate
       - name: force conda path
         run: |
           echo "export PATH=/home/runner/miniforge3/condabin:$PATH" >> $HOME/.bashrc

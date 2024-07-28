@@ -41,7 +41,6 @@ jobs:
           key: rtmet-${{ runner.os }}-envs-${{ hashFiles('cylc-src/bioreactor-workflow/envs/*') }}-script-${{ hashFiles('install.sh') }}
           path: |
             /home/runner/miniforge3/
-            /home/runner/cylc-src/
             /home/runner/.bashrc
             /usr/local/bin/cylc
             /usr/local/bin/rose
@@ -62,12 +61,15 @@ jobs:
           fail-on-cache-miss: true
           path: |
             /home/runner/miniforge3/
-            /home/runner/cylc-src/
             /home/runner/.bashrc
             /usr/local/bin/cylc
             /usr/local/bin/rose
+      - name: Copy bioreactor-workflow to sources
+        run: |
+          mkdir -p $HOME/cylc-src
+          cp -r cylc-src/bioreactor-workflow/ $HOME/cylc-src/
       - name: validate RTMet
         run: |
           cylc --help
           rose --help
-          conda activate wf-binner
+          conda run -n wf-datamunging frictionless --help

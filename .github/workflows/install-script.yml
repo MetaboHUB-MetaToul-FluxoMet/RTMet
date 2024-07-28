@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -li {0}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -51,10 +51,8 @@ jobs:
       - name: install binneR
         run: |
           cat $HOME/.bashrc
-          conda activate wf-datamunging
           conda run -p /home/runner/miniforge3/envs/wf-binner \
             Rscript -e "remotes::install_github('aberHRML/binneR', upgrade='never')"
-          conda deactivate
       - name: force conda path
         run: |
           echo "export PATH=/home/runner/miniforge3/condabin:$PATH" >> $HOME/.bashrc

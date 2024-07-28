@@ -78,7 +78,9 @@ jobs:
           cylc install bioreactor-workflow \
             --run-name=test-run
           cylc validate bioreactor-workflow/test-run
-          cp -R $GITHUB_WORKSPACE/test/tutorial_raws/* \
+
+          mkdir -p $HOME/cylc-run/bioreactor-workflow/test-run/raws/
+          cp $GITHUB_WORKSPACE/test/tutorial_raws/* \
             $HOME/cylc-run/bioreactor-workflow/test-run/raws/
           cylc play bioreactor-workflow/test-run \
             --no-detach \

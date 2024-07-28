@@ -72,4 +72,5 @@ jobs:
         run: |
           cylc --help
           rose --help
-          conda run -n wf-datamunging frictionless --help
+          conda run -p /home/runner/miniforge3/envs/wf-datamunging \
+            frictionless --help

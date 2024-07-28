@@ -1,0 +1,105 @@
+name: ⏬ Install Script
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/install-script.yml'
+      - 'install.sh'
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installation-from-script:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        flags:
+          - --force --verbose
+          - --force --dryrun
+        include:
+          - flags: --force --verbose
+            to_cache: true
+
+    name: Install RTMet from shell script
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -li {0}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        name: Cache Workflow installation
+        id: cache-rtmet
+        if: ${{ matrix.to_cache }}
+        with:
+          key: rtmet-${{ runner.os }}-envs-${{ hashFiles('cylc-src/bioreactor-workflow/envs/*') }}-script-${{ hashFiles('install.sh') }}
+          path: |
+            /home/runner/miniforge3/
+            /home/runner/.bashrc
+            /usr/local/bin/cylc
+            /usr/local/bin/rose
+      - name: run install.sh script
+        if: ${{ steps.cache-rtmet.outputs.cache-hit != 'true' || !matrix.to_cache }}
+        run: |
+          bash install.sh ${{ matrix.flags }}
+      - name: install binneR
+        if: ${{ matrix.to_cache }}
+        env: 
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          conda run -p /home/runner/miniforge3/envs/wf-binner \
+            Rscript -e "remotes::install_github('aberHRML/binneR', upgrade='never')"
+      - name: force conda path
+        run: |
+          echo "export PATH=/home/runner/miniforge3/condabin:$PATH" >> $HOME/.bashrc
+
+  validate-installation:
+    needs: installation-from-script
+    name: Validate RTMet installation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -li {0}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          key: rtmet-${{ runner.os }}-envs-${{ hashFiles('cylc-src/bioreactor-workflow/envs/*') }}-script-${{ hashFiles('install.sh') }}
+          fail-on-cache-miss: true
+          path: |
+            /home/runner/miniforge3/
+            /home/runner/.bashrc
+            /usr/local/bin/cylc
+            /usr/local/bin/rose
+      - name: Copy bioreactor-workflow to sources
+        run: |
+          mkdir -p $HOME/cylc-src
+          cp -r cylc-src/bioreactor-workflow/ $HOME/cylc-src/
+      - name: validate RTMet
+        run: |
+          cylc --help
+          rose --help
+          conda run -p /home/runner/miniforge3/envs/wf-datamunging \
+            frictionless --help
+          conda activate wf-datamunging
+          frictionless --help
+          conda deactivate
+
+          cylc install bioreactor-workflow \
+            --run-name=test-run
+          cylc validate bioreactor-workflow/test-run
+
+          mkdir -p $HOME/cylc-run/bioreactor-workflow/test-run/raws/
+          cp $GITHUB_WORKSPACE/test/tutorial_raws/* \
+            $HOME/cylc-run/bioreactor-workflow/test-run/raws/
+          cylc play bioreactor-workflow/test-run \
+            --no-detach \
+            --abort-if-any-task-fails \
+            --final-cycle-point=3
+          

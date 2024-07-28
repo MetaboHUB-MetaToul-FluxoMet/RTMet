@@ -1,7 +1,8 @@
 name: 🔗 Markdown URL Checker
 
 on:
-  pull_request:
+  schedule:
+    - cron: "49 7 25 * *"
   push:
     branches: [main]
 

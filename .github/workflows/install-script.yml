@@ -49,6 +49,7 @@ jobs:
         run: |
           bash install.sh ${{ matrix.flags }}
       - name: install binneR
+        if: ${{ matrix.to_cache }}
         env: 
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |

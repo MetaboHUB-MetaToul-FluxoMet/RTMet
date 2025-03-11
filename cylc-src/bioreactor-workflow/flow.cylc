@@ -24,8 +24,7 @@
         R1/+P1 = convert_raw => get_instrument => extract_features
         +P1/P1 = """
             is_setup[^] => _catch_raw
-            @catch_raw => _catch_raw => convert_raw => get_timestamp &
-                trim_spectra => extract_features => annotate => quantify
+            @catch_raw => _catch_raw => convert_raw => get_timestamp => extract_features => annotate => quantify
         """
         R1/+P3 = quantify => compute_fluxes
         +P4/P1 = quantify & compute_fluxes[-P1] => compute_fluxes
@@ -197,26 +196,47 @@
             """
             categories = family task
 
+    # [[extract_features]]
+    #     inherit = None, CONDA_BINNER, FORMAT_TABLE
+    #     script = """
+    #         binner-cli \
+    #             --file ${mzml} \
+    #             --threshold ${threshold} \
+    #             $( [[ -n "${window}" ]] && printf %s "--window ${window}" )
+    #         mv *.png ${qc_dir}
+    #     """
+    #     [[[environment]]]
+    #         threshold = 
+    #         window = 
+    #         mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.trimmed.mzML
+    #         qc_dir = ${QC_RESULTS_DIR}
+    #         table = ${RAWFILE_STEM}.features.csv
+    #     [[[meta]]]
+    #         title = Extract Features
+    #         description = """
+    #             Generates a feature table from the mzML file with the `binneR` R library, which uses
+    #             spectral binning.
+    #         """
+    #         categories = bioinformatics
     [[extract_features]]
-        inherit = None, CONDA_BINNER, FORMAT_TABLE
+        inherit = None, CONDA_PROFIA
         script = """
-            binner-cli \
-                --file ${mzml} \
-                --threshold ${threshold} \
-                $( [[ -n "${window}" ]] && printf %s "--window ${window}" )
-            mv *.png ${qc_dir}
+            Rscript -e "proFIA::proFIAset( \
+                path = '${mzml}',\
+                ppm = '${ppm}',\
+                dmz = '${dmz}',\
+                parallel = FALSE,\
+                noiseEstimation = TRUE,\
+                graphical = TRUE)"
         """
         [[[environment]]]
-            threshold = {{ cfg__tic_threshold }}
-            window = {{ cfg__scans_window }}
-            mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.trimmed.mzML
-            qc_dir = ${QC_RESULTS_DIR}
-            table = ${RAWFILE_STEM}.features.csv
+            mzml = ${MAIN_RESULTS_DIR}
+            ppm = {{ cfg__ppm_tol }}
+            dmz = {{ cfg__dmz_tol }}
         [[[meta]]]
             title = Extract Features
             description = """
-                Generates a feature table from the mzML file with the `binneR` R library, which uses
-                spectral binning.
+                Generates a feature table from the mzML file with ProFIA.
             """
             categories = bioinformatics
 

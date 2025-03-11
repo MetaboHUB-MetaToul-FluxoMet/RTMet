@@ -1,0 +1,10 @@
+name: wf-profia
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-remotes=2.4
+  - r-essentials=4.3
+  - r-optparse=1.7.4
+  - bioconductor-xcms
+  - zlib

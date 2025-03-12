@@ -1,7 +1,0 @@
-name: wf-profia
-channels:
-  - conda-forge
-  - bioconda
-dependencies:
-  - bioconductor-profia=1.23.0
-  - bioconductor-plasfia=1.26.0

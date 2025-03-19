@@ -219,20 +219,22 @@
     #         """
     #         categories = bioinformatics
     [[extract_features]]
-        inherit = None, CONDA_PROFIA
+        inherit = None, CONDA_PROFIA, FORMAT_TABLE
         script = """
-            Rscript -e "proFIA::proFIAset( \
-                path = '${mzml}',\
-                ppm = '${ppm}',\
-                dmz = '${dmz}',\
-                parallel = FALSE,\
-                noiseEstimation = TRUE,\
-                graphical = TRUE)"
+            mkdir -p ${input_dir}
+            cp ${mzml} ${input_dir}
+
+            profia
         """
         [[[environment]]]
-            mzml = ${MAIN_RESULTS_DIR}
+            mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
+            qc_dir = ${QC_RESULTS_DIR}
+            # arguments passed to the profia script 
+            input_dir = ${CYLC_TASK_WORK_DIR}/mzml_tmp
             ppm = {{ cfg__ppm_tol }}
             dmz = {{ cfg__dmz_tol }}
+            out_csv, table = ${RAWFILE_STEM}.features.csv
+            table = ${out_csv}
         [[[meta]]]
             title = Extract Features
             description = """

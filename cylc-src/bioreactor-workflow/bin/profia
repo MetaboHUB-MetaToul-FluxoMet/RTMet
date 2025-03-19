@@ -1,0 +1,57 @@
+#!/usr/bin/env Rscript
+
+################################################################################
+#             proFIA wrapper script for bioreactor-workflow
+################################################################################
+
+# get parameters from environment variable
+path <- Sys.getenv("input_dir")
+ppm <- Sys.getenv("ppm")
+dmz <- Sys.getenv("dmz")
+# filter <- Sys.getenv("filter")
+out_csv <- Sys.getenv("out_csv")
+
+# In current working directory (which is ${CYLC_TASK_WORK_DIR})
+# out_plot <- "modeled_flowgram.png"
+# out_csv <- "detected_peaks.csv"
+
+cat("Variables:\n")
+cat(" - input_dir: ", path, "\n")
+cat(" - ppm: ", ppm, "\n")
+cat(" - dmz: ", dmz, "\n")
+# cat(" - filter: ", filter, "\n")
+# cat(" - out_plot: ", out_plot, "\n")
+cat(" - out_csv: ", out_csv, "\n")
+
+# check that path is a directory and contains only one file
+if (!file.exists(path)) {
+  stop("Path does not exist")
+} else if (!file.info(path)$isdir) {
+  stop("Path is not a directory")
+} else if (length(list.files(path)) == 0) {
+  stop("Directory is empty")
+} else if (length(list.files(path)) > 1) {
+  stop("Directory contains more than one file")
+}
+
+cat("Processing: ", list.files(path)[1], "\n")
+
+# The png-dev.off sandwich will catch the output plot while spectrum is processed
+# png(out_plot)
+set <- proFIA::proFIAset(
+  path, 
+  ppm=ppm, 
+  dmz=dmz, 
+  f="TIC",
+  noiseEstimation = TRUE,
+  parallel=FALSE,
+  graphical = TRUE
+)
+# dev.off()
+
+detected_peaks <- as.data.frame(set@peaks)
+# detected_peaks$polarity <- "n" # Emulate the format of binneR output table. Either this or rewrite the 'mzmatch' annotation task !
+
+# colnames(detected_peaks)[colnames(detected_peaks) == "areaIntensity"] <- "intensity"
+
+write.table(detected_peaks, file= out_csv, sep="\t", row.names=FALSE, quote=FALSE)

@@ -233,8 +233,8 @@
             input_dir = ${CYLC_TASK_WORK_DIR}/mzml_tmp
             ppm = {{ cfg__ppm_tol }}
             dmz = {{ cfg__dmz_tol }}
-            out_csv, table = ${RAWFILE_STEM}.features.csv
-            table = ${out_csv}
+            out_csv = ${RAWFILE_STEM}.features.csv
+            table = ${RAWFILE_STEM}.features.csv
         [[[meta]]]
             title = Extract Features
             description = """

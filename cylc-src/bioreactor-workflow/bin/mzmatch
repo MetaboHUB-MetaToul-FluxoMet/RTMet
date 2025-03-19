@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import math
+# import math
 import argparse
 from pathlib import Path
 
@@ -28,10 +28,10 @@ def match(db_path: Path, query_path: Path, mz_tol: float) -> None:
     """
 
     database = pd.read_csv(db_path, sep=";")
-    query = pd.read_csv(query_path, sep=";")
+    query = pd.read_csv(query_path, sep="\t")
     tol_ppm = float(mz_tol)
-
-    query_dir = Path(query_path).parent
+    
+    # query_dir = Path(query_path).parent
     query_stem = ".".join(
         Path(query_path).stem.split(".")[:-1]
     )  # Removes .features.csv
@@ -40,32 +40,37 @@ def match(db_path: Path, query_path: Path, mz_tol: float) -> None:
     output_file_matches = Path(f"{query_stem}.matches.csv")
     output_file_annotated_query = Path(f"{query_stem}.features.annotated.csv")
 
-    database[pol_db] = database[pol_db].apply(lambda x: math.copysign(1, x))
-    database[pol_db] = database[pol_db].map({1: "p", -1: "n"})
+    # database[pol_db] = database[pol_db].apply(lambda x: math.copysign(1, x))
+    # database[pol_db] = database[pol_db].map({1: "p", -1: "n"})
 
     database["MASS_MIN"] = database[mz_db] - database[mz_db] * tol_ppm / 1e6
     database["MASS_MAX"] = database[mz_db] + database[mz_db] * tol_ppm / 1e6
 
-    combinaisons = query.merge(database, how="cross")
+    combinaisons = query[["mz", "areaIntensity"]].merge(database, how="cross")
 
     matches = combinaisons.query(
-        f"(MASS_MIN <= `{mz_q}`) & (`{mz_q}` <= MASS_MAX) & (`{pol_q}` == `{pol_db}`)"
+        f"(MASS_MIN <= `{mz_q}`) & (`{mz_q}` <= MASS_MAX)" #& (`{pol_q}` == `{pol_db}`)"
     )
+
+    
     matches["delta_ppm"] = (matches[mz_q] - matches[mz_db]) / matches[mz_db] * 1e6
+    
 
-    matches = matches[[ids_db, mz_q, pol_q, "delta_ppm", intensity_q]].rename(
-        columns={
-            ids_db: "isobaric_id",
-            mz_q: "feature_mz",
-            pol_q: "feature_pol",
-            intensity_q: "intensity",
-        }
-    )
+    # matches = matches[[ids_db, mz_q, pol_q, "delta_ppm", intensity_q]] .rename(
+    #     columns={
+    #         ids_db: "isobaric_id",
+    #         mz_q: "feature_mz",
+    #         pol_q: "feature_pol",
+    #         # intensity_q: "intensity",
+    #     }
+    # )
+    matches = matches.rename(columns={"mz" : "Features_mz",
+                                      "areaIntensity" : "Intensity"})
+ 
+    query["annotated"] = query[mz_q].isin(matches["Features_mz"])
 
-    query["annotated"] = query[mz_q].isin(matches["feature_mz"])
-
-    matches.to_csv(output_file_matches, sep=";", index=False, float_format="%.5f")
-    query.to_csv(output_file_annotated_query, sep=";", index=False)
+    matches.to_csv(output_file_matches, sep="\t", index=False, float_format="%.5f")
+    query.to_csv(output_file_annotated_query, sep="\t", index=False)
 
 
 def main():

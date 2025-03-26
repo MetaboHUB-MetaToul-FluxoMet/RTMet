@@ -268,8 +268,7 @@
         [[[meta]]]
             title = Annotate Features
             description = """
-                Annotates features using a user-defined molecular database. The main parameter is
-                the mass tolerance in ppm.
+                Annotates features using bank_inhouse and a user-defined molecular database.
             """
             categories = bioinformatics
 

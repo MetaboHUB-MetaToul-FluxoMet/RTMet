@@ -1,0 +1,6 @@
+name: wf-bank_inhouse
+channels:
+  - conda-forge
+dependencies:
+  - perl=5.38
+  - pandas=2.2

@@ -20,7 +20,7 @@
         catch_raw = catch_raw_local('%(point)s', '%(workflow_run_dir)s', {{ cfg__local_runs_dir }})
 {% endif %}
     [[graph]]
-        R1/^ = validate_cfg => validate_compounds_db & validate_met_model => is_setup
+        R1/^ = validate_cfg =>  validate_met_model => is_setup
         R1/+P1 = convert_raw => get_instrument => extract_features
         +P1/P1 = """
             is_setup[^] => _catch_raw
@@ -178,8 +178,8 @@
     [[FORMAT_TABLE]]
         post-script = """
             cat ${table} | \
-                sed "1s|^|datetime;cycle;instrument_id;|" | \
-                sed "2,$ s|^|$timestamp;$cycle;$instrument_name;|" > \
+                sed "1s|^|datetime\tcycle\tinstrument_id\t|" | \
+                sed "2,$ s|^|$timestamp\t$cycle\t$instrument_name\t|" > \
                 ${results_dir}/${table}
         """
         [[[environment]]]
@@ -196,28 +196,6 @@
             """
             categories = family task
 
-    # [[extract_features]]
-    #     inherit = None, CONDA_BINNER, FORMAT_TABLE
-    #     script = """
-    #         binner-cli \
-    #             --file ${mzml} \
-    #             --threshold ${threshold} \
-    #             $( [[ -n "${window}" ]] && printf %s "--window ${window}" )
-    #         mv *.png ${qc_dir}
-    #     """
-    #     [[[environment]]]
-    #         threshold = 
-    #         window = 
-    #         mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.trimmed.mzML
-    #         qc_dir = ${QC_RESULTS_DIR}
-    #         table = ${RAWFILE_STEM}.features.csv
-    #     [[[meta]]]
-    #         title = Extract Features
-    #         description = """
-    #             Generates a feature table from the mzML file with the `binneR` R library, which uses
-    #             spectral binning.
-    #         """
-    #         categories = bioinformatics
     [[extract_features]]
         inherit = None, CONDA_PROFIA, FORMAT_TABLE
         script = """
@@ -233,8 +211,8 @@
             input_dir = ${CYLC_TASK_WORK_DIR}/mzml_tmp
             ppm = {{ cfg__ppm_tol }}
             dmz = {{ cfg__dmz_tol }}
-            out_csv = ${RAWFILE_STEM}.features.csv
-            table = ${RAWFILE_STEM}.features.csv
+            out_tsv = ${RAWFILE_STEM}_features.tsv
+            table = ${RAWFILE_STEM}_features.tsv
         [[[meta]]]
             title = Extract Features
             description = """
@@ -242,22 +220,51 @@
             """
             categories = bioinformatics
 
+    # [[annotate]]
+    #     inherit = None, CONDA_DATAMUNGING, FORMAT_TABLE
+    #     script = """
+    #         mzmatch \
+    #             --db ${db_path} \
+    #             --query ${query_path} \
+    #             --ppm ${ppm_tol}
+    #         mv ${annotated_features} ${results_dir}
+    #     """
+    #     [[[environment]]]
+    #         db_path = ${USER_CONFIG_DIR}/compounds_db.csv
+    #         query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.csv
+    #         ppm_tol = 
+    #         results_dir = ${MAIN_RESULTS_DIR}
+    #         annotated_features = ${RAWFILE_STEM}.features.annotated.csv
+    #         table = ${RAWFILE_STEM}.matches.csv
+    #     [[[meta]]]
+    #         title = Annotate Features
+    #         description = """
+    #             Annotates features using a user-defined molecular database. The main parameter is
+    #             the mass tolerance in ppm.
+    #         """
+    #         categories = bioinformatics
+
     [[annotate]]
-        inherit = None, CONDA_DATAMUNGING, FORMAT_TABLE
+        inherit = None, CONDA_BANKINHOUSE, FORMAT_TABLE
         script = """
-            mzmatch \
-                --db ${db_path} \
-                --query ${query_path} \
-                --ppm ${ppm_tol}
-            mv ${annotated_features} ${results_dir}
+            perl ${CYLC_WORKFLOW_RUN_DIR}/bin/bank_inhouse/bank_inhouse.pl \
+                --input ${query_path} \
+                --bank_in ${db_path} \
+                --bank_name compounds_db \
+                --nbheader 1 \
+                --colmass 6 \
+                --mz_delta ppm \
+                --mass_delta ${ppm_tol} \
+                --mzdb 5 \
+                --outputXls ${table} \   
+                --outputTab ${tabulated_format_table}
         """
         [[[environment]]]
-            db_path = ${USER_CONFIG_DIR}/compounds_db.csv
-            query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.csv
+            db_path = ${USER_CONFIG_DIR}/compounds_db.tsv
+            query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}_features.tsv
             ppm_tol = {{ cfg__ppm_tol }}
-            results_dir = ${MAIN_RESULTS_DIR}
-            annotated_features = ${RAWFILE_STEM}.features.annotated.csv
-            table = ${RAWFILE_STEM}.matches.csv
+            tabulated_format_table = ${RAWFILE_STEM}_annotated.tabular
+            table = ${RAWFILE_STEM}_annotated.tsv
         [[[meta]]]
             title = Annotate Features
             description = """

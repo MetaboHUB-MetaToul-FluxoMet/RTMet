@@ -2,9 +2,9 @@
 
 {% set conda_envs = {
     'CONDA_TRFP': 'wf-trfp',
-    'CONDA_BINNER': 'wf-binner',
     'CONDA_PROFIA': 'wf-profia',
     'CONDA_DATAMUNGING': 'wf-datamunging',
+    'CONDA_BANKINHOUSE': 'wf-bank_inhouse',
     'CONDA_INFLUX': 'wf-influx',
     'CONDA_OPENMS': 'wf-pyopenms',
     } %}

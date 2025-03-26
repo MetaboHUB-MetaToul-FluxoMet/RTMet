@@ -9,7 +9,7 @@ path <- Sys.getenv("input_dir")
 ppm <- Sys.getenv("ppm")
 dmz <- Sys.getenv("dmz")
 # filter <- Sys.getenv("filter")
-out_csv <- Sys.getenv("out_csv")
+out_tsv <- Sys.getenv("out_tsv")
 
 # In current working directory (which is ${CYLC_TASK_WORK_DIR})
 # out_plot <- "modeled_flowgram.png"
@@ -21,7 +21,7 @@ cat(" - ppm: ", ppm, "\n")
 cat(" - dmz: ", dmz, "\n")
 # cat(" - filter: ", filter, "\n")
 # cat(" - out_plot: ", out_plot, "\n")
-cat(" - out_csv: ", out_csv, "\n")
+cat(" - out_tsv: ", out_tsv, "\n")
 
 # check that path is a directory and contains only one file
 if (!file.exists(path)) {
@@ -54,4 +54,4 @@ detected_peaks <- as.data.frame(set@peaks)
 
 # colnames(detected_peaks)[colnames(detected_peaks) == "areaIntensity"] <- "intensity"
 
-write.table(detected_peaks, file= out_csv, sep="\t", row.names=FALSE, quote=FALSE)
+write.table(detected_peaks, file= out_tsv, sep="\t", row.names=FALSE, quote=FALSE)

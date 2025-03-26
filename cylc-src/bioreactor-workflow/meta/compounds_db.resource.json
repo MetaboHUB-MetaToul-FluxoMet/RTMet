@@ -1,14 +1,14 @@
 {
   "name": "compounds_db",
   "type": "table",
-  "path": "../config/compounds_db.csv",
+  "path": "../config/compounds_db.tsv",
   "scheme": "file",
-  "format": "csv",
-  "mediatype": "text/csv",
+  "format": "tsv",
+  "mediatype": "text/tsv",
   "encoding": "utf-8",
   "dialect": {
-    "csv": {
-      "delimiter": ";",
+    "tsv": {
+      "delimiter": "\t",
       "header": true
     }
   },

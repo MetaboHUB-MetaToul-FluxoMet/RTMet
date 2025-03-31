@@ -258,6 +258,12 @@
                 --mzdb 5 \
                 --outputXls ${table} \   
                 --outputTab ${tabulated_format_table}
+
+            mzmatch \
+                --annotated_file ${table} \
+                --profia_file ${query_path} \
+                
+        
         """
         [[[environment]]]
             db_path = ${USER_CONFIG_DIR}/compounds_db.tsv
@@ -271,6 +277,7 @@
                 Annotates features using bank_inhouse and a user-defined molecular database.
             """
             categories = bioinformatics
+
 
     [[quantify]]
         inherit = None, CONDA_DATAMUNGING

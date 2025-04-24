@@ -211,8 +211,8 @@
             input_dir = ${CYLC_TASK_WORK_DIR}/mzml_tmp
             ppm = {{ cfg__ppm_tol }}
             dmz = {{ cfg__dmz_tol }}
-            out_tsv = ${RAWFILE_STEM}_features.tsv
-            table = ${RAWFILE_STEM}_features.tsv
+            out_tsv = ${RAWFILE_STEM}.features.tsv
+            table = ${RAWFILE_STEM}.features.tsv
         [[[meta]]]
             title = Extract Features
             description = """
@@ -260,17 +260,21 @@
                 --outputTab ${tabulated_format_table}
 
             mzmatch \
-                --annotated_file ${table} \
+                --query_file ${table} \
                 --profia_file ${query_path} \
-                
+                --ppm ${ppm_tol}
         
+            mv ${annotated_features} ${MAIN_RESULTS_DIR}
         """
         [[[environment]]]
             db_path = ${USER_CONFIG_DIR}/compounds_db.tsv
-            query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}_features.tsv
+            query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.tsv
             ppm_tol = {{ cfg__ppm_tol }}
-            tabulated_format_table = ${RAWFILE_STEM}_annotated.tabular
-            table = ${RAWFILE_STEM}_annotated.tsv
+            tabulated_format_table = ${RAWFILE_STEM}.annotated.tabular
+            table = ${RAWFILE_STEM}.annotated.tsv
+
+            annotated_features = ${RAWFILE_STEM}.matches.tsv
+            
         [[[meta]]]
             title = Annotate Features
             description = """

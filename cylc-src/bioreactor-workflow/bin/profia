@@ -54,4 +54,4 @@ detected_peaks <- as.data.frame(set@peaks)
 
 # colnames(detected_peaks)[colnames(detected_peaks) == "areaIntensity"] <- "intensity"
 
-write.table(detected_peaks, file= out_tsv, sep="\t", row.names=FALSE, quote=FALSE)
+write.table(round(detected_peaks, digits=5), file= out_tsv, sep="\t", row.names=FALSE, quote=FALSE)

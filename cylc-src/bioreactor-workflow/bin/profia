@@ -10,6 +10,7 @@ ppm <- Sys.getenv("ppm")
 dmz <- Sys.getenv("dmz")
 # filter <- Sys.getenv("filter")
 out_tsv <- Sys.getenv("out_tsv")
+custom_mz <- Sys.getenv("custom_mz")
 
 # In current working directory (which is ${CYLC_TASK_WORK_DIR})
 # out_plot <- "modeled_flowgram.png"
@@ -19,6 +20,7 @@ cat("Variables:\n")
 cat(" - input_dir: ", path, "\n")
 cat(" - ppm: ", ppm, "\n")
 cat(" - dmz: ", dmz, "\n")
+cat(" - custom_mz: ", custom_mz, "\n")
 # cat(" - filter: ", filter, "\n")
 # cat(" - out_plot: ", out_plot, "\n")
 cat(" - out_tsv: ", out_tsv, "\n")
@@ -38,6 +40,11 @@ cat("Processing: ", list.files(path)[1], "\n")
 
 # The png-dev.off sandwich will catch the output plot while spectrum is processed
 # png(out_plot)
+library("magrittr")
+
+custom_mz <- gsub("\\[|\\]", "", custom_mz)  # Remove square brackets
+custom_mz <- strsplit(custom_mz, ",") %>% unlist() %>% as.numeric()  # Split and convert to numeric
+
 set <- proFIA::proFIAset(
   path, 
   ppm=ppm, 
@@ -45,7 +52,8 @@ set <- proFIA::proFIAset(
   f="TIC",
   noiseEstimation = TRUE,
   parallel=FALSE,
-  graphical = TRUE
+  graphical = TRUE,
+  custom_mz = c(custom_mz)
 )
 # dev.off()
 

@@ -8,3 +8,5 @@ dependencies:
   - r-optparse=1.7.4
   - bioconductor-xcms
   - zlib
+  - r-pak
+  - r-magrittr

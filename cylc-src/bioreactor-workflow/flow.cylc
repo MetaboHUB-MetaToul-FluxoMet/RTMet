@@ -134,22 +134,20 @@
             """
             categories = bioinformatics
 
-    [[trim_spectra]]
-        inherit = None, CONDA_OPENMS
-        script = """
-            trimms ${mzml} ${n_start} ${n_end}
-        """
-        [[[environment]]]
-            mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
-            n_start = {{ cfg__trim_values[0] }}
-            n_end = {{ cfg__trim_values[1] }}
-        [[[meta]]]
-            title = Trim Spectra
-            description = """
-                Remove the first `n_start` and last `n_end` scans from the mzML file. This is useful
-                if the shape of the flowgram is not stable at the beginning or end of the run.
-            """
-            categories = bioinformatics
+    # [[trim_spectra]]
+    #     inherit = None, CONDA_OPENMS
+    #     script = """
+    #         trimms ${mzml} ${n_start} ${n_end}
+    #     """
+    #     [[[environment]]]
+    #         mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
+    #     [[[meta]]]
+    #         title = Trim Spectra
+    #         description = """
+    #             Remove the first `n_start` and last `n_end` scans from the mzML file. This is useful
+    #             if the shape of the flowgram is not stable at the beginning or end of the run.
+    #         """
+    #         categories = bioinformatics
 
     [[get_timestamp]]
         # Regex could be replaced by pyOpenMS.
@@ -211,6 +209,7 @@
             input_dir = ${CYLC_TASK_WORK_DIR}/mzml_tmp
             ppm = {{ cfg__ppm_tol }}
             dmz = {{ cfg__dmz_tol }}
+            custom_mz = {{ cfg__custom_mz }}
             out_tsv = ${RAWFILE_STEM}.features.tsv
             table = ${RAWFILE_STEM}.features.tsv
         [[[meta]]]

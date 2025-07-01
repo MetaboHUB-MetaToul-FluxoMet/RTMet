@@ -24,10 +24,10 @@
         R1/+P1 = convert_raw => extract_features
         +P1/P1 = """
             is_setup[^] => _catch_raw
-            @catch_raw => _catch_raw => convert_raw => get_timestamp => extract_features => annotate => quantify
+            @catch_raw => _catch_raw => convert_raw => get_timestamp => extract_features => annotate => concatenate_files
         """
-        R1/+P3 = quantify => compute_fluxes
-        +P4/P1 = quantify & compute_fluxes[-P1] => compute_fluxes
+        # R1/+P3 = quantify => compute_fluxes
+        # +P4/P1 = quantify & compute_fluxes[-P1] => compute_fluxes
 {% if cfg__toggle_influxdb %}
         R1/^ = validate_cfg => create_bucket => is_setup
         +P1/P1 = """
@@ -62,6 +62,8 @@
             # Runtime dir names in ROSE_DATAC
             MAIN_RESULTS_DIR = ${ROSE_DATAC}/dataflow
             QC_RESULTS_DIR = ${ROSE_DATAC}/qc
+            RESULTS = ${CYLC_WORKFLOW_RUN_DIR}/results
+            TO_CONCATENATE = ${CYLC_WORKFLOW_RUN_DIR}/share/cycle
 
     [[validate_cfg]]
         script = rose macro --validate --verbose
@@ -281,7 +283,25 @@
             """
             categories = bioinformatics
 
+    [[concatenate_files]]
+        inherit = None, CONDA_BANKINHOUSE
 
+        script = """
+            concatenate \
+                --input ${input} \
+                --output ${output} 
+        """
+            
+        [[[environment]]]
+            input = ${TO_CONCATENATE}
+            output = ${RESULTS}/all_features.tsv
+        [[[meta]]]
+            title = Concatenate Annotated Features
+            description = """
+                Concatenates the annotated features table into a single TSV file.
+            """
+            categories = bioinformatics
+        
     [[quantify]]
         inherit = None, CONDA_DATAMUNGING
         script = cp ${input} ${output}
@@ -307,68 +327,68 @@
     ###############################################################################
     # InfluxDB tasks
 
-    [[INFLUXDB]]
-        inherit = None, CONDA_INFLUX
-        [[[environment]]]
-            BUCKET_NAME = ${CYLC_WORKFLOW_ID}
-            # Canonical environment variables recognized by the InfluxDB Python library.
-            INFLUXDB_V2_URL = {{ cfg__influxdb_url }}
-            INFLUXDB_V2_ORG = {{ cfg__influxdb_org }}
-            INFLUXDB_V2_TOKEN = {{ cfg__influxdb_auth_token }}
-        [[[meta]]]
-            title = INFLUXDB (family task)
-            description = """
-                Family task to inherit InfluxDB client configuration and workflow-specific bucket,
-                in the form of environment variables.
-            """
-            categories = family task, influxdb
+    # [[INFLUXDB]]
+    #     inherit = None, CONDA_INFLUX
+    #     [[[environment]]]
+    #         BUCKET_NAME = ${CYLC_WORKFLOW_ID}
+    #         # Canonical environment variables recognized by the InfluxDB Python library.
+    #         INFLUXDB_V2_URL = {{ cfg__influxdb_url }}
+    #         INFLUXDB_V2_ORG = {{ cfg__influxdb_org }}
+    #         INFLUXDB_V2_TOKEN = {{ cfg__influxdb_auth_token }}
+    #     [[[meta]]]
+    #         title = INFLUXDB (family task)
+    #         description = """
+    #             Family task to inherit InfluxDB client configuration and workflow-specific bucket,
+    #             in the form of environment variables.
+    #         """
+    #         categories = family task, influxdb
 
-    [[create_bucket]]
-        inherit = INFLUXDB
-        script = influxdb-bucket
-        [[[environment]]]
-            reuse_bucket = {{ cfg__influxdb_reuse_bucket }}
-        [[[meta]]]
-            title = Create InfluxDB Bucket
-            description = """
-                Creates a bucket in InfluxDB dedicated to the current workflow run.
-            """
-            categories = influxdb
+    # [[create_bucket]]
+    #     inherit = INFLUXDB
+    #     script = influxdb-bucket
+    #     [[[environment]]]
+    #         reuse_bucket = {{ cfg__influxdb_reuse_bucket }}
+    #     [[[meta]]]
+    #         title = Create InfluxDB Bucket
+    #         description = """
+    #             Creates a bucket in InfluxDB dedicated to the current workflow run.
+    #         """
+    #         categories = influxdb
 
-    [[UPLOAD_TABLE]]
-        inherit = INFLUXDB
-        script = influxdb-upload
-        [[[environment]]]
-            SCHEMAS_JSON = ${META_DIR}/result_tables.json
-            table = _ # Defined in child tasks
-            schema = _ # Defined in child tasks
-        [[[meta]]]
-            title = UPLOAD TABLE (family task)
-            description = """
-                Family task. Upload a CSV table to InfluxDB.
-            """
-            categories = family task, influxdb
+    # [[UPLOAD_TABLE]]
+    #     inherit = INFLUXDB
+    #     script = influxdb-upload
+    #     [[[environment]]]
+    #         SCHEMAS_JSON = ${META_DIR}/result_tables.json
+    #         table = _ # Defined in child tasks
+    #         schema = _ # Defined in child tasks
+    #     [[[meta]]]
+    #         title = UPLOAD TABLE (family task)
+    #         description = """
+    #             Family task. Upload a CSV table to InfluxDB.
+    #         """
+    #         categories = family task, influxdb
 
-    [[upload_features]]
-        inherit = UPLOAD_TABLE
-        [[[environment]]]
-            table = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.annotated.csv
-            schema = features
-        [[[meta]]]
-            title = Upload Features Table
-            description = """
-                Uploads the features table to InfluxDB.
-            """
-            categories = influxdb
+    # [[upload_features]]
+    #     inherit = UPLOAD_TABLE
+    #     [[[environment]]]
+    #         table = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.annotated.csv
+    #         schema = features
+    #     [[[meta]]]
+    #         title = Upload Features Table
+    #         description = """
+    #             Uploads the features table to InfluxDB.
+    #         """
+    #         categories = influxdb
 
-    [[upload_concentrations]]
-        inherit = UPLOAD_TABLE
-        [[[environment]]]
-            table = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.concentrations.csv
-            schema = concentrations
-        [[[meta]]]
-            title = Upload Concentrations Table
-            description = """
-                Uploads the concentrations table to InfluxDB.
-            """
-            categories = influxdb
+    # [[upload_concentrations]]
+    #     inherit = UPLOAD_TABLE
+    #     [[[environment]]]
+    #         table = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.concentrations.csv
+    #         schema = concentrations
+    #     [[[meta]]]
+    #         title = Upload Concentrations Table
+    #         description = """
+    #             Uploads the concentrations table to InfluxDB.
+    #         """
+    #         categories = influxdb

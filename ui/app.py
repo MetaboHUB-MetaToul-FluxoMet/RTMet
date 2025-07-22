@@ -126,7 +126,7 @@ if validate:
 st.subheader("Cylc GUI")
 
 cylc_gui = st.link_button("Go to cylc_gui", 
-                          "http://10.10.100.21:8000/")
+                          "x")
 
 
 

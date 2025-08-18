@@ -6,22 +6,19 @@ from pathlib import Path
 import os
 
 
-def concatenate_files(input_files: Path, output_file:Path) -> list:
+def concatenate_files(input_files: Path, output_file:Path):
     """
-    Retrieves a list of input files from the specified directory.
+    Concatenates multiple input files into a single output file.
 
-    :param input_files: Path to the directory containing input files.
-    :return: List of file paths.
+    :param input_files: Path to the directory containing input files
+    :param output_file: Path to the output file where concatenated data will be saved
     """
-    i_files = [pd.read_csv(Path(root) / file, sep="\t") 
+    input_files = [pd.read_csv(Path(root) / file, sep="\t") 
                for root, _, files in os.walk(input_files) 
                for file in files if file.endswith(".matches.tsv")]
-    # for (root, _, files) in os.walk(input_files) :
-    #     for file in files:
-    #         if file.endswith(".matches.tsv"):
-    #             i_files.append(pd.read_csv(Path(root) / file, sep="\t"))
-
-    concatenated_df = pd.concat(i_files[::-1], ignore_index=True)
+    
+    concatenated_df = pd.concat(input_files, ignore_index=True)
+    concatenated_df = concatenated_df.sort_values(by="Datetime", ascending=True)
     concatenated_df.to_csv(output_file, sep="\t", index=False)
 
     
@@ -43,10 +40,6 @@ def main():
         args.input_files,
         args.output_file
     )
-
-# concatenate_files(
-#     input_files=Path('/home/kouakou/cylc-run/bioreactor-workflow/run1/share/cycle/'),
-#     output_file=Path('/home/kouakou/cylc-run/bioreactor-workflow/run1/share/cycle/all_features.tsv'))
 
 if __name__ == "__main__":
     main()

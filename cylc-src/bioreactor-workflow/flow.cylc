@@ -20,21 +20,21 @@
         catch_raw = catch_raw_local('%(point)s', '%(workflow_run_dir)s', {{ cfg__local_runs_dir }})
 {% endif %}
     [[graph]]
-        R1/^ = validate_cfg =>  validate_met_model => is_setup
+        R1/^ = validate_cfg => validate_met_model => is_setup
         R1/+P1 = convert_raw => extract_features
         +P1/P1 = """
             is_setup[^] => _catch_raw
-            @catch_raw => _catch_raw => convert_raw => get_timestamp => extract_features => annotate => concatenate_files
+            @catch_raw => _catch_raw => convert_raw => get_timestamp => extract_features => annotate => concatenate_files 
         """
         # R1/+P3 = quantify => compute_fluxes
         # +P4/P1 = quantify & compute_fluxes[-P1] => compute_fluxes
-{% if cfg__toggle_influxdb %}
-        R1/^ = validate_cfg => create_bucket => is_setup
-        +P1/P1 = """
-            annotate => upload_features
-            quantify => upload_concentrations
-        """
-{% endif %}
+# {if cfg__toggle_influxdb %}
+#         R1/^ = validate_cfg => create_bucket => is_setup
+#         +P1/P1 = """
+#             annotate => upload_features
+#             quantify => upload_concentrations
+#         """
+# {endif %}
     [[queues]]
         [[[default]]]
             limit = 10
@@ -62,8 +62,8 @@
             # Runtime dir names in ROSE_DATAC
             MAIN_RESULTS_DIR = ${ROSE_DATAC}/dataflow
             QC_RESULTS_DIR = ${ROSE_DATAC}/qc
-            RESULTS = ${CYLC_WORKFLOW_RUN_DIR}/results
-            TO_CONCATENATE = ${CYLC_WORKFLOW_RUN_DIR}/share/cycle
+            # RESULTS = ${CYLC_WORKFLOW_RUN_DIR}/results
+
 
     [[validate_cfg]]
         script = rose macro --validate --verbose
@@ -154,7 +154,7 @@
     [[get_timestamp]]
         # Regex could be replaced by pyOpenMS.
         script = """
-            RUN_TIMESTAMP=$(grep '<run' ${mzml} | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/')
+            RUN_TIMESTAMP=$(grep '<run' "${mzml}" | sed 's/.*startTimeStamp="\([^"]*\)".*/\1/' | cut -d'.' -f1 | sed 's/T/ /')
 
             cylc broadcast "${CYLC_WORKFLOW_ID}" \
                 -p "${CYLC_TASK_CYCLE_POINT}" \
@@ -293,15 +293,16 @@
         """
             
         [[[environment]]]
-            input = ${TO_CONCATENATE}
-            output = ${RESULTS}/all_features.tsv
+            input = ${CYLC_WORKFLOW_RUN_DIR}/share/cycle
+            output = ${ROSE_DATA}/all_features.tsv
+            
         [[[meta]]]
             title = Concatenate Annotated Features
             description = """
                 Concatenates the annotated features table into a single TSV file.
             """
             categories = bioinformatics
-        
+    
     [[quantify]]
         inherit = None, CONDA_DATAMUNGING
         script = cp ${input} ${output}
@@ -332,9 +333,9 @@
     #     [[[environment]]]
     #         BUCKET_NAME = ${CYLC_WORKFLOW_ID}
     #         # Canonical environment variables recognized by the InfluxDB Python library.
-    #         INFLUXDB_V2_URL = {{ cfg__influxdb_url }}
-    #         INFLUXDB_V2_ORG = {{ cfg__influxdb_org }}
-    #         INFLUXDB_V2_TOKEN = {{ cfg__influxdb_auth_token }}
+    #         INFLUXDB_V2_URL = {cfg__influxdb_url }}
+    #         INFLUXDB_V2_ORG = {cfg__influxdb_org }}
+    #         INFLUXDB_V2_TOKEN = {cfg__influxdb_auth_token }}
     #     [[[meta]]]
     #         title = INFLUXDB (family task)
     #         description = """
@@ -347,7 +348,7 @@
     #     inherit = INFLUXDB
     #     script = influxdb-bucket
     #     [[[environment]]]
-    #         reuse_bucket = {{ cfg__influxdb_reuse_bucket }}
+    #         reuse_bucket = {cfg__influxdb_reuse_bucket }}
     #     [[[meta]]]
     #         title = Create InfluxDB Bucket
     #         description = """

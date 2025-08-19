@@ -1,6 +1,12 @@
 name: wf-bank_inhouse
 channels:
   - conda-forge
+  - bioconda
 dependencies:
   - perl=5.38
   - pandas=2.2
+  - perl-lwp-simple
+  - perl-json
+  - perl-soap-lite
+  - perl-html-template
+  - perl-text-csv

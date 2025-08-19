@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - perl=5.38
+  - perl=5.32.1
   - pandas=2.2
   - perl-lwp-simple
   - perl-json

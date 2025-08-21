@@ -1,7 +1,0 @@
-name: wf-influx
-channels:
-  - conda-forge
-dependencies:
-  - influxdb-client=1.42
-  - pandas=2.2
-  - numpy=1.26

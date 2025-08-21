@@ -1,0 +1,7 @@
+name: wf-rtmet_ui
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - streamlit
+  - plotly

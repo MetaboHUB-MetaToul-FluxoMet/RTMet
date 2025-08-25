@@ -43,14 +43,14 @@ def catch_raw_local(
     print(f"Debug: 🟠 Filename components: {fn_components}")
 
     current_raw: Optional[str] = None
-    next_raw: Optional[str] = None
+    # next_raw: Optional[str] = None
     for filename in fn_components:
         if filename.is_cyclepoint_raw(point):
             current_raw = str(filename)
-        elif filename.is_cyclepoint_raw(point + 1):
-            next_raw = str(filename)
+        # elif filename.is_cyclepoint_raw(point + 1):
+        #     next_raw = str(filename)
 
-        if current_raw and next_raw:
+        if current_raw is not None:
             raw_path = rawfiles_dir / Path(current_raw)
             print(f"Debug: 🟢 Found raw file: {raw_path}")
             return True, {"file": str(raw_path)}

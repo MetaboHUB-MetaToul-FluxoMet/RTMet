@@ -12,21 +12,21 @@ import configparser
 # FUNCTION #
 ############
 
-def get_user_db_dir():
-    """ 
-    Open a file dialog to select a user database directory.
-    """
-    # Set up tkinter
-    root = tk.Tk()
-    root.withdraw()
+# def get_user_db_dir():
+#     """ 
+#     Open a file dialog to select a user database directory.
+#     """
+#     # Set up tkinter
+#     root = tk.Tk()
+#     root.withdraw()
 
-    # Make folder picker dialog appear on top of other windows
-    root.wm_attributes('-topmost', 1)
+#     # Make folder picker dialog appear on top of other windows
+#     root.wm_attributes('-topmost', 1)
 
-    user_db_dir = filedialog.askopenfilename(master = root,
-                                                    title = "Select your file",
-                                                    filetypes=[("TSV files", "*.tsv")])
-    st.session_state["user_db_directory"] = user_db_dir
+#     user_db_dir = filedialog.askopenfilename(master = root,
+#                                                     title = "Select your file",
+#                                                     filetypes=[("TSV files", "*.tsv")])
+#     st.session_state["user_db_directory"] = user_db_dir
 
 def replace_in_config_file(file_path, old_value, new_value):
     """
@@ -83,11 +83,13 @@ folder_choice_selectbox = st.selectbox("Select a folder:",
                                         index=st.session_state.all_folder.index(st.session_state.folder_selectbox) if st.session_state.folder_selectbox is not None else None,
                                         on_change=lambda: st.session_state.update({"folder_selectbox": st.session_state.folder_choice_selectbox}))
 
+# Update the workflow path and read the configuration file
 if st.session_state.folder_selectbox:
     st.session_state.cylc_workflow_path = Path(f"{st.session_state.cylc_workflow_path}/{st.session_state.folder_selectbox}")
     config = configparser.ConfigParser(allow_unnamed_section=True)
     config.read(f"{st.session_state.cylc_workflow_path}/rose-suite.conf")
 
+# Settings configuration and database
 with st.container(border=True):
     st.subheader("Configuration Parameters")
 
@@ -122,38 +124,45 @@ with st.container(border=True):
                             )
     st.session_state.custom_mz_new = mz_list
 
+# Load a database or modify the database
     st.subheader("Database")
-    col1, col2 = st.columns(2)
-    with col1:
+    load_database, database_modification  = st.columns(2)
+    if st.session_state.folder_selectbox:
+        default_db = pd.read_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", sep="\t")
+        st.session_state.default_db = default_db
+
+    st.session_state.edited_db = None
+
+    with load_database:
         input_button = st.button(
                 label="Load a database",
                 key="input_button",
-                disabled= True if not st.session_state.get("folder_selectbox") else False,
+                # disabled= True if not st.session_state.get("folder_selectbox") else False,
+                disabled=True,
                 help="Database must be in .tsv format.\
-                    \nMz must be in column number 5.",
-                on_click=get_user_db_dir)
+                    \nMz must be in column number 5.")
+                # on_click=get_user_db_dir)
             
-    with col2:
+    with database_modification :
         if "modify_button" not in st.session_state:
             st.session_state.modify_button = False
 
         modify_button = st.button(
-                label="Change the default database",
+                label="Edit the default database",
                 disabled= True if not st.session_state.get("folder_selectbox") else False,
                 on_click=lambda: st.session_state.update({"modify_button": True}),)
 
 if st.session_state.modify_button:
     with st.expander("Change the default database", expanded=True):
-        default_db = pd.read_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", sep="\t")
-        db_editor = st.data_editor(default_db if "new_db" not in st.session_state else st.session_state.new_db,
+        db_editor = st.data_editor(st.session_state.default_db,
                 hide_index=True,
                 num_rows= "dynamic",)
+        st.session_state.edited_db = db_editor
         
         validate_db = st.button("Validate database", 
                                 key="validate_db",)    
         if st.session_state.validate_db:
             if db_editor is not None:
-                st.session_state.new_db = db_editor
                 st.success("Database updated successfully!")
             else:
                 st.error("Database cannot be empty!")
@@ -166,8 +175,8 @@ validate_configurations = st.button("Validate configurations",
                                     key="validate_configurations",
                                     disabled= True if not st.session_state.get("folder_selectbox") else False,)
 if st.session_state.validate_configurations:
-    if "new_db" in st.session_state:
-        st.session_state.new_db.to_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", 
+    if "edited_db" in st.session_state:
+        st.session_state.edited_db.to_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", 
                                                         sep="\t", 
                                                         index=False)
     if ppm_tol:

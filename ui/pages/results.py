@@ -95,16 +95,19 @@ with db_display:
 
 # Display results based on metabolite selection
 if st.session_state.metabolite_checkbox:
-    st.subheader("Results")
-    for i in st.session_state.metabolite_checkbox:
-        if st.session_state.metabolite_checkbox[i]:
+    # st.subheader("Results")
+    for selected_metabolite in st.session_state.metabolite_checkbox:
+        if st.session_state.metabolite_checkbox[selected_metabolite]:
+            
+            st.subheader(f"{selected_metabolite}")
+
             graph, caracteristics = st.columns(2)
             df = pd.DataFrame({
-                    "Datetime": st.session_state.met_dict[i]["datetime"],
-                    "Intensity": st.session_state.met_dict[i]["intensity"]
+                    "Datetime": st.session_state.met_dict[selected_metabolite]["datetime"],
+                    "Intensity": st.session_state.met_dict[selected_metabolite]["intensity"]
                 })
             with graph:
-                fig = px.line(df, x="Datetime", y="Intensity", title=f"{i} Intensity Over Time")
+                fig = px.line(df, x="Datetime", y="Intensity", title=f"{selected_metabolite} Intensity Over Time")
                 st.plotly_chart(fig, use_container_width=True)
                 
             with caracteristics:
@@ -116,7 +119,7 @@ if st.session_state.metabolite_checkbox:
                     st.subheader("Operations")
                     operation = ["area"]
                     st.selectbox("Select an operation:", 
-                                key=f"operation_{i}",
+                                key=f"operation_{selected_metabolite}",
                                 options=operation)
 # while True:
 #     if not Path("/home/kouakou/cylc-run/bioreactor-workflow/data_test_2/results/all_features.tsv").exists():

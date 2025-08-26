@@ -1,9 +1,9 @@
 import streamlit as st
-import time
+# import time
 # import pickle
 import plotly.express as px
 import pandas as pd
-from pathlib import Path
+# from pathlib import Path
 
 ############
 # FUNCTION #
@@ -25,25 +25,26 @@ from pathlib import Path
 #     except Exception as e:
 #         raise ValueError(f"An unknown error has occured when saving the process file: {e}")
 
-# def get_metabolites(path):
-#     """
-#     """
-#     return pd.read_csv(path, sep="\t")
-    # for metabolite in dataframe["Precursor Name"].sort_values().unique():
-    #     st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-    #                             "intensity": dataframe["Intensity"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-    #                             "mz": dataframe["MzQuery"].loc[dataframe["Precursor Name"] == metabolite].tolist()}
-   
-
-def session_state_checkbox(metabolites):
+def session_state_checkbox(metabolite):
     """
     Function to check if a key exists in the session state and set its value.
-    """
-    if metabolites not in st.session_state.metabolite_checkbox:
-        st.session_state.metabolite_checkbox[metabolites] = True
-    else:
-        st.session_state.metabolite_checkbox[metabolites] = not st.session_state.metabolite_checkbox[metabolites]
 
+    :param metabolite: The name of the metabolite to check
+    """
+    if metabolite not in st.session_state.metabolite_checkbox:
+        st.session_state.metabolite_checkbox[metabolite] = True
+    else:
+        st.session_state.metabolite_checkbox[metabolite] = not st.session_state.metabolite_checkbox[metabolite]
+
+def highlight_identified_metabolites(row):
+    """
+    Highlight rows in a DataFrame based on whether the 'Precursor Name' 
+    exists in the session state's met_dict keys.
+
+    :param row: The DataFrame row to check
+    """
+    return ['background-color: lightgreen' if row['Precursor Name'] in st.session_state.met_dict.keys() 
+            else 'background-color: lightcoral' for _ in row]
 
 ########
 # MAIN #
@@ -59,29 +60,40 @@ if "met_dict" not in st.session_state:
 if "metabolite_checkbox" not in st.session_state:
     st.session_state.metabolite_checkbox = {}
 
-actualize = st.button("Actualize",
-          key="actualize_metabolites")
+refresh = st.button("Refresh",
+          key="refresh_metabolites")
 
-if actualize:
+if refresh:
     st.rerun()
 
-dataframe=pd.read_csv(f"{st.session_state.cylc_workflow_path}/results/all_features.tsv", sep="\t")
-for metabolite in dataframe["Precursor Name"].sort_values().unique():
+# Store metabolites and their different values
+dataframe=pd.read_csv(f"{st.session_state.cylc_workflow_path}/share/data/all_features.tsv", sep="\t")
+for metabolite in dataframe["Precursor Name"].unique():
     st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
                             "intensity": dataframe["Intensity"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
                             "mz": dataframe["MzQuery"].loc[dataframe["Precursor Name"] == metabolite].tolist()}
 
+metabolite_selection, db_display = st.columns(2)
 
-with st.container(border=True, height=400,key="metabolite_selection_container"):
-    st.subheader("Metabolites")
-    for metabolite, values in st.session_state['met_dict'].items():
-        metabolite_selection = st.checkbox(metabolite, 
-                                            # key=metabolite, 
-                                            value=False if metabolite not in st.session_state.metabolite_checkbox else st.session_state.metabolite_checkbox[metabolite],
-                                            on_change=session_state_checkbox,
-                                            args=(metabolite,)
-                                            )
+with metabolite_selection:
+    # Metabolite selection container 
+    with st.container(border=True, height=450,key="metabolite_selection_container"):
+        st.subheader("Metabolites")
+        for metabolite, values in sorted(st.session_state['met_dict'].items()):
+            metabolite_selection = st.checkbox(metabolite, 
+                                                # key=metabolite, 
+                                                value=False if metabolite not in st.session_state.metabolite_checkbox else st.session_state.metabolite_checkbox[metabolite],
+                                                on_change=session_state_checkbox,
+                                                args=(metabolite,)
+                                                )
+with db_display:
+    with st.expander("Show database", expanded=True):
+        db_style = st.session_state.edited_db.style.apply(highlight_identified_metabolites, axis=1) \
+            if st.session_state.edited_db is not None \
+            else st.session_state.default_db.style.apply(highlight_identified_metabolites, axis=1)
+        st.dataframe(db_style, use_container_width=True, hide_index=True)
 
+# Display results based on metabolite selection
 if st.session_state.metabolite_checkbox:
     st.subheader("Results")
     for i in st.session_state.metabolite_checkbox:
@@ -168,28 +180,3 @@ if st.session_state.metabolite_checkbox:
 # st.write(st.session_state.cylc_workflow_path)
 
 # met_dict = {}
-
-
-
-# dataframe = pd.read_csv("/home/kouakou/cylc-run/bioreactor-workflow/data_test_2/results/all_features.tsv", sep="\t")
-# for metabolite in dataframe["Precursor Name"].unique():
-#     st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-#                             "intensity": dataframe["Intensity"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-#                             "mz": dataframe["MzQuery"].loc[dataframe["Precursor Name"] == metabolite].tolist()}
-
-# actualize = st.button("Actualize",
-#           key="actualize_metabolites",
-#           on_click=store_metabolites)
-
-# if actualize:
-#     st.rerun()
-
-# st.write(st.session_state.met_dict)
-
-    # if "metabolite_checkbox" not in st.session_state:
-    #     st.session_state.metabolite_checkbox = {}
-
-
-                        
-
-    # st.write(st.session_state)

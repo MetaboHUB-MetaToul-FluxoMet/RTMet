@@ -3,6 +3,7 @@ import streamlit as st
 # import pickle
 import plotly.express as px
 import pandas as pd
+import os
 # from pathlib import Path
 
 ############
@@ -60,11 +61,16 @@ if "met_dict" not in st.session_state:
 if "metabolite_checkbox" not in st.session_state:
     st.session_state.metabolite_checkbox = {}
 
+st.write(" ")
+st.info(f"Number of files processed : {len(os.listdir(f"{st.session_state.cylc_workflow_path}/share/cycle"))}",
+        width=300)
+
 refresh = st.button("Refresh",
           key="refresh_metabolites")
 
 if refresh:
     st.rerun()
+
 
 # Store metabolites and their different values
 dataframe=pd.read_csv(f"{st.session_state.cylc_workflow_path}/share/data/all_features.tsv", sep="\t")
@@ -98,29 +104,36 @@ if st.session_state.metabolite_checkbox:
     # st.subheader("Results")
     for selected_metabolite in st.session_state.metabolite_checkbox:
         if st.session_state.metabolite_checkbox[selected_metabolite]:
-            
+            st.divider()
             st.subheader(f"{selected_metabolite}")
 
-            graph, caracteristics = st.columns(2)
+            caracteristics, graph  = st.columns(2)
             df = pd.DataFrame({
                     "Datetime": st.session_state.met_dict[selected_metabolite]["datetime"],
                     "Intensity": st.session_state.met_dict[selected_metabolite]["intensity"]
                 })
-            with graph:
-                fig = px.line(df, x="Datetime", y="Intensity", title=f"{selected_metabolite} Intensity Over Time")
-                st.plotly_chart(fig, use_container_width=True)
-                
+            
             with caracteristics:
-                show_df, operations = st.columns(2)
-                with show_df:
-                    st.subheader("Dataframe")
-                    st.dataframe(df, use_container_width=True, hide_index=True)
+                operations,show_df = st.columns(2)
                 with operations:
-                    st.subheader("Operations")
-                    operation = ["area"]
+                    # st.subheader(" ")
+                    st.write(" ")
+                    operation = ["Relative quantification"]
                     st.selectbox("Select an operation:", 
+                                # index=None,
                                 key=f"operation_{selected_metabolite}",
                                 options=operation)
+                with show_df:
+                    st.dataframe(df, use_container_width=True, hide_index=True)
+                
+            with graph:
+                fig = px.line(df, 
+                              x="Datetime",
+                              y="Intensity",
+                              title=f"{selected_metabolite} Intensity Over Time")
+                st.plotly_chart(fig, use_container_width=False)
+                
+            
 # while True:
 #     if not Path("/home/kouakou/cylc-run/bioreactor-workflow/data_test_2/results/all_features.tsv").exists():
 #         st.error("Results file not found. Please run the workflow to generate results.")

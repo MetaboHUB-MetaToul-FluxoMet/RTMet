@@ -175,7 +175,7 @@ validate_configurations = st.button("Validate configurations",
                                     key="validate_configurations",
                                     disabled= True if not st.session_state.get("folder_selectbox") else False,)
 if st.session_state.validate_configurations:
-    if "edited_db" in st.session_state:
+    if st.session_state.edited_db is not None:
         st.session_state.edited_db.to_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", 
                                                         sep="\t", 
                                                         index=False)

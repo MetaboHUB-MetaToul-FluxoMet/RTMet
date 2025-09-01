@@ -93,36 +93,35 @@ if st.session_state.folder_selectbox:
 with st.container(border=True):
     st.subheader("Configuration Parameters")
 
-    st.session_state.ppm_tol_file = config["template variables"]["cfg__ppm_tol"] if st.session_state.folder_selectbox else None
-    if "ppm_new_tol" not in st.session_state:
-        st.session_state.ppm_new_tol = None
+    st.session_state.ppm_tol = config["template variables"]["cfg__ppm_tol"] if st.session_state.folder_selectbox else None
 
     ppm_tol = st.text_input("ppm tolerance",
-                            value=st.session_state.ppm_tol_file if not st.session_state.ppm_new_tol else st.session_state.ppm_new_tol,
+                            value=st.session_state.ppm_tol,
                             help="ppm tolerance must not exceed 15",
-                            disabled= True if not st.session_state.get("folder_selectbox") else False)
-                            
-    st.session_state.ppm_new_tol = ppm_tol 
-
-    st.session_state.dmz_tol_file = config["template variables"]["cfg__dmz_tol"] if st.session_state.folder_selectbox else None
-    if "dmz_new_tol" not in st.session_state:
-        st.session_state.dmz_new_tol = None
-   
-    dmz_tol = st.text_input("dmz tolerance", 
-                            value=st.session_state.dmz_tol_file if not st.session_state.dmz_new_tol else st.session_state.dmz_new_tol,
-                            disabled= True if not st.session_state.get("folder_selectbox") else False)
-                            
-    st.session_state.dmz_new_tol = dmz_tol
-
-    st.session_state.custom_mz_file = config["template variables"]["cfg__custom_mz"] if st.session_state.folder_selectbox else None
-    if "custom_mz_new" not in st.session_state:
-        st.session_state.custom_mz_new = None
-
-    mz_list = st.text_input("m/z list (comma-separated)", 
-                            value=st.session_state.custom_mz_file if not st.session_state.custom_mz_new else st.session_state.custom_mz_new,
                             disabled= True if not st.session_state.get("folder_selectbox") else False,
                             )
-    st.session_state.custom_mz_new = mz_list
+
+    if ppm_tol != st.session_state.ppm_tol:
+        st.session_state.ppm_tol = ppm_tol                        
+
+    st.session_state.dmz_tol = config["template variables"]["cfg__dmz_tol"] if st.session_state.folder_selectbox else None
+    
+    dmz_tol = st.text_input("dmz tolerance", 
+                            value=st.session_state.dmz_tol,
+                            disabled= True if not st.session_state.get("folder_selectbox") else False)
+
+    if dmz_tol != st.session_state.dmz_tol:
+        st.session_state.dmz_tol = dmz_tol
+
+    st.session_state.custom_mz = config["template variables"]["cfg__custom_mz"] if st.session_state.folder_selectbox else None
+
+    mz_list = st.text_input("m/z list (comma-separated)", 
+                            value=st.session_state.custom_mz,
+                            disabled= True if not st.session_state.get("folder_selectbox") else False,
+                            )
+
+    if mz_list != st.session_state.custom_mz:
+        st.session_state.custom_mz = mz_list
 
 # Load a database or modify the database
     st.subheader("Database")
@@ -183,19 +182,19 @@ if st.session_state.validate_configurations:
         replace_in_config_file(
             f"{st.session_state.cylc_workflow_path}/rose-suite.conf",
             f"cfg__ppm_tol={config['template variables']['cfg__ppm_tol']}",
-            f"cfg__ppm_tol={st.session_state.ppm_new_tol}")
+            f"cfg__ppm_tol={st.session_state.ppm_tol}")
     
     if dmz_tol:
         replace_in_config_file(
             f"{st.session_state.cylc_workflow_path}/rose-suite.conf",
             f"cfg__dmz_tol={config['template variables']['cfg__dmz_tol']}",
-            f"cfg__dmz_tol={st.session_state.dmz_new_tol}")
+            f"cfg__dmz_tol={st.session_state.dmz_tol}")
         
     if mz_list:
         replace_in_config_file(
             f"{st.session_state.cylc_workflow_path}/rose-suite.conf",
             f"cfg__custom_mz={config['template variables']['cfg__custom_mz']}",
-            f"cfg__custom_mz={st.session_state.custom_mz_new}")
+            f"cfg__custom_mz={st.session_state.custom_mz}")
 
 cylc_gui = st.link_button("Go to cylc_gui", 
                           "x")

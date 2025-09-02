@@ -4,6 +4,7 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 import os
+import subprocess
 # from pathlib import Path
 
 ############
@@ -61,15 +62,37 @@ if "met_dict" not in st.session_state:
 if "metabolite_checkbox" not in st.session_state:
     st.session_state.metabolite_checkbox = {}
 
+with st.sidebar:
+    visualize_workflow = st.button("Visualize workflow")
+    
+
+
 st.write(" ")
-st.info(f"Number of files processed : {len(os.listdir(f"{st.session_state.cylc_workflow_path}/share/cycle"))}",
-        width=300)
+info, workflow_control = st.columns(2)
+with info:
+    st.info(f"Number of files processed : {len(os.listdir(f"{st.session_state.cylc_workflow_path}/share/cycle"))}",
+            width=300)
+    refresh = st.button("Refresh",
+        key="refresh_metabolites")
 
-refresh = st.button("Refresh",
-          key="refresh_metabolites")
+    if refresh:
+        st.rerun()
 
-if refresh:
-    st.rerun()
+
+with workflow_control:
+    with st.expander("Workflow control", expanded=True):
+        with st.container(border=False, height=200):
+            command_line = subprocess.run(["cylc", "workflow-state", f"bioreactor-workflow/{st.session_state.folder_selectbox}"], 
+                                          capture_output=True,
+                                          text=True)
+            outputs_list = command_line.stdout.split("\n")
+            for output in outputs_list:
+                # if "succeeded" in output:
+                #     st.success(output)
+                if "failed" in output:
+                    st.error(output)
+                # else:
+                #     st.info(output)
 
 
 # Store metabolites and their different values

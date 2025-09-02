@@ -1,11 +1,12 @@
 import streamlit as st
-import tkinter as tk
-from tkinter import filedialog
+# import tkinter as tk
+# from tkinter import filedialog
 import os
 from pathlib import Path
 # import shutil
 import pandas as pd
 import configparser
+import subprocess
 
 
 ############
@@ -91,7 +92,7 @@ if st.session_state.folder_selectbox:
 
 # Settings configuration and database
 with st.container(border=True):
-    st.subheader("Configuration Parameters")
+    st.subheader("Parameters configuration")
 
     st.session_state.ppm_tol = config["template variables"]["cfg__ppm_tol"] if st.session_state.folder_selectbox else None
 
@@ -154,8 +155,8 @@ with st.container(border=True):
 if st.session_state.modify_button:
     with st.expander("Change the default database", expanded=True):
         db_editor = st.data_editor(st.session_state.default_db,
-                hide_index=True,
-                num_rows= "dynamic",)
+                                    hide_index=True,
+                                    num_rows= "dynamic")
         st.session_state.edited_db = db_editor
         
         validate_db = st.button("Validate database", 
@@ -169,21 +170,29 @@ if st.session_state.modify_button:
 # if st.session_state.get("db_directory_path"):
 #     st.success(f"Database loaded: {st.session_state.db_directory_path}")
 #     shutil.copy(st.session_state.db_directory_path, f"{st.session_state.cylc_workflow_path}/config/")
+
+
+launch_workflow, visualize_workflow = st.columns(2)
+with launch_workflow:
+    start_workflow = st.button("Start workflow", 
+                                key="start_workflow",
+                                disabled= True if not st.session_state.get("folder_selectbox") else False)
+
+with visualize_workflow:
+    cylc_gui = st.link_button("Visualize workflow",
+                              "x")
     
-validate_configurations = st.button("Validate configurations", 
-                                    key="validate_configurations",
-                                    disabled= True if not st.session_state.get("folder_selectbox") else False,)
-if st.session_state.validate_configurations:
+if st.session_state.start_workflow:
     if st.session_state.edited_db is not None:
         st.session_state.edited_db.to_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", 
-                                                        sep="\t", 
-                                                        index=False)
+                                          sep="\t",
+                                          index=False)
     if ppm_tol:
-        replace_in_config_file(
-            f"{st.session_state.cylc_workflow_path}/rose-suite.conf",
-            f"cfg__ppm_tol={config['template variables']['cfg__ppm_tol']}",
-            f"cfg__ppm_tol={st.session_state.ppm_tol}")
-    
+            replace_in_config_file(
+                f"{st.session_state.cylc_workflow_path}/rose-suite.conf",
+                f"cfg__ppm_tol={config['template variables']['cfg__ppm_tol']}",
+                f"cfg__ppm_tol={st.session_state.ppm_tol}")
+        
     if dmz_tol:
         replace_in_config_file(
             f"{st.session_state.cylc_workflow_path}/rose-suite.conf",
@@ -196,8 +205,8 @@ if st.session_state.validate_configurations:
             f"cfg__custom_mz={config['template variables']['cfg__custom_mz']}",
             f"cfg__custom_mz={st.session_state.custom_mz}")
 
-cylc_gui = st.link_button("Go to cylc_gui", 
-                          "x")
+    subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_selectbox}"])
+
 
 # st.write(st.session_state)
 #####################################################################################   

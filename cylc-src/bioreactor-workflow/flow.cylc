@@ -178,7 +178,7 @@
     [[FORMAT_TABLE]]
         post-script = """
             cat ${table} | \
-                sed "1s|^|datetime\t|" | \
+                sed "1s|^|Datetime\t|" | \
                 sed "2,$ s|^|$timestamp\t|" > \
                 ${results_dir}/${table}
         """
@@ -256,21 +256,24 @@
                 --colmass 4 \
                 --mz_delta ppm \
                 --mass_delta ${ppm_tol} \
-                --mzdb 5 \
+                --mzdb ${mzdb_col} \
                 --outputXls ${table} \   
                 --outputTab ${tabulated_format_table}
 
             mzmatch \
                 --query_file ${table} \
                 --profia_file ${query_path} \
-                --ppm ${ppm_tol}
-        
+                --ppm ${ppm_tol} \
+                --precursor_name_col ${precursor_name_col}
+
             mv ${annotated_features} ${MAIN_RESULTS_DIR}
         """
         [[[environment]]]
             db_path = ${USER_CONFIG_DIR}/compounds_db.tsv
             query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.tsv
             ppm_tol = {{ cfg__ppm_tol }}
+            precursor_name_col = {{ cfg__num_col_precursor_name }}
+            mzdb_col = {{ cfg__num_col_mz }}
             tabulated_format_table = ${RAWFILE_STEM}.annotated.tabular
             table = ${RAWFILE_STEM}.annotated.tsv
 

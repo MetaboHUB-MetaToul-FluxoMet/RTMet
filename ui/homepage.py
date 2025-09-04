@@ -29,7 +29,7 @@ import subprocess
 #                                                     filetypes=[("TSV files", "*.tsv")])
 #     st.session_state["user_db_directory"] = user_db_dir
 
-def replace_in_config_file(file_path, old_value, new_value):
+def replace_in_config_file(old_value, new_value):
     """
     Overwrites a value in the ‘rose-suite.conf’ configuration file.
 
@@ -39,12 +39,12 @@ def replace_in_config_file(file_path, old_value, new_value):
     """
     # Read the current content of the configuration file
     # Replace the old value with the new value
-    with open(file_path, 'r') as file:
+    with open( f"{st.session_state.cylc_workflow_path}/rose-suite.conf", 'r') as file:
         content = file.read()
     content = content.replace(old_value, new_value)
 
     # Write the modified content back to the configuration file
-    with open(file_path, 'w') as file:
+    with open( f"{st.session_state.cylc_workflow_path}/rose-suite.conf", 'w') as file:
         content = content.replace(old_value, new_value)
         file.write(content)
    
@@ -125,34 +125,49 @@ with st.container(border=True):
         st.session_state.custom_mz = mz_list
 
 # Load a database or modify the database
+# with st.container(border=True):
     st.subheader("Database")
-    load_database, database_modification  = st.columns(2)
+    # load_database, database_modification  = st.columns(2)
     if st.session_state.folder_selectbox:
         default_db = pd.read_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", sep="\t")
         st.session_state.default_db = default_db
 
     st.session_state.edited_db = None
+    
+    if "database_choice_user" not in st.session_state:
+        st.session_state.database_choice_user = None
 
-    with load_database:
-        input_button = st.button(
-                label="Load a database",
-                key="input_button",
-                # disabled= True if not st.session_state.get("folder_selectbox") else False,
-                disabled=True,
-                help="Database must be in .tsv format.\
-                    \nMz must be in column number 5.")
-                # on_click=get_user_db_dir)
-            
-    with database_modification :
-        if "modify_button" not in st.session_state:
-            st.session_state.modify_button = False
+    database_choice_list = ["Load a database", "Edit the default database"]
 
-        modify_button = st.button(
-                label="Edit the default database",
-                disabled= True if not st.session_state.get("folder_selectbox") else False,
-                on_click=lambda: st.session_state.update({"modify_button": True}),)
+    database_choice = st.radio(
+        label="Database options",
+        options=database_choice_list,
+        index=database_choice_list.index(st.session_state.database_choice_user) if st.session_state.get("database_choice_user") else None,
+        disabled= True if not st.session_state.get("folder_selectbox") else False,
+        # horizontal=True,
+        key="database_choice",
+        label_visibility="collapsed",
+        on_change=lambda: st.session_state.update({"database_choice_user": st.session_state.database_choice}))
+    
+if st.session_state.database_choice == database_choice_list[0]:
+    with st.expander("Load", expanded=True):
+        input_db_button = st.file_uploader(
+                    label="Load a database",
+                    type=["tsv"],
+                    disabled= True if not st.session_state.get("folder_selectbox") else False,
+                    help="Database must be in .tsv format.\
+                        \nMz must be in column number 5.",)
+                    # key="input_db_button",)
+        
+        col_num_mz = st.text_input("Enter number of mz column in the database",
+                                    width=300,
+                                    key="col_num_mz",)
+        
+        col_num_precursor = st.text_input("Enter number of precursor name column in the database",
+                                    width=300,
+                                    key="col_num_precursor",)
 
-if st.session_state.modify_button:
+if st.session_state.database_choice == database_choice_list[1]:
     with st.expander("Change the default database", expanded=True):
         db_editor = st.data_editor(st.session_state.default_db,
                                     hide_index=True,
@@ -166,6 +181,70 @@ if st.session_state.modify_button:
                 st.success("Database updated successfully!")
             else:
                 st.error("Database cannot be empty!")
+    # st.session_state.database_choice = database_choice
+    # with load_database:
+        # if "input_db_button" not in st.session_state:
+        #     st.session_state.input_db_button = False
+        
+        # input_db_button = st.button(
+        #         label="Load a database",
+        #         # key="input_db_button",
+        #         disabled= True if not st.session_state.get("folder_selectbox") else False,
+        #         # disabled=True,
+        #         # help="Database must be in .tsv format.\
+        #             # \nMz must be in column number 5.",
+        #         on_click=lambda: st.session_state.update({"input_db_button": True}))
+        
+        # input_db_button = st.file_uploader(
+        #         label="Load a database",
+        #         type=["tsv"],
+        #         disabled= True if not st.session_state.get("folder_selectbox") else False,
+        #         help="Database must be in .tsv format.\
+        #             \nMz must be in column number 5.",)
+                # key="input_db_button",)
+    
+#     with database_modification :
+#         # if "modify_button" not in st.session_state:
+#         #     st.session_state.modify_button = False
+
+#         # modify_button = st.button(
+#         #         label="Edit the default database",
+#         #         disabled= True if not st.session_state.get("folder_selectbox") else False,
+#         #         on_click=lambda: st.session_state.update({"modify_button": True}),)
+#         modify_radio_button = st.radio(
+#                 label="Edit the default database",
+#                 options=["Load a database", "Edit the default database"],
+#                 index=0,
+#                 horizontal=True,
+#                 disabled= True if not st.session_state.get("folder_selectbox") else False,
+#                 on_change=lambda: st.session_state.update({"modify_button": True if st.session_state.modify_radio_button == "Yes" else False}),)
+
+# if st.session_state.input_db_button:
+#         with st.expander("Instructions to load a database", expanded=True):
+#             st.file_uploader(
+#                 label="Load a database",
+#                 type=["tsv"],
+#                 disabled= True if not st.session_state.get("folder_selectbox") else False,
+#                 )
+#             st.text_input("Enter number of mz column in the database",
+#                           width=300)
+#             # st.write("yes")
+
+# if st.session_state.modify_button:
+#     with st.expander("Change the default database", expanded=True):
+#         db_editor = st.data_editor(st.session_state.default_db,
+#                                     hide_index=True,
+#                                     num_rows= "dynamic")
+#         st.session_state.edited_db = db_editor
+        
+#         validate_db = st.button("Validate database", 
+#                                 key="validate_db",)    
+#         if st.session_state.validate_db:
+#             if db_editor is not None:
+#                 st.success("Database updated successfully!")
+#             else:
+#                 st.error("Database cannot be empty!")
+
 
 # if st.session_state.get("db_directory_path"):
 #     st.success(f"Database loaded: {st.session_state.db_directory_path}")
@@ -188,24 +267,30 @@ if st.session_state.start_workflow:
                                           sep="\t",
                                           index=False)
     if ppm_tol:
-            replace_in_config_file(
-                f"{st.session_state.cylc_workflow_path}/rose-suite.conf",
-                f"cfg__ppm_tol={config['template variables']['cfg__ppm_tol']}",
-                f"cfg__ppm_tol={st.session_state.ppm_tol}")
+        replace_in_config_file(
+            f"cfg__ppm_tol={config['template variables']['cfg__ppm_tol']}",
+            f"cfg__ppm_tol={st.session_state.ppm_tol}")
         
     if dmz_tol:
         replace_in_config_file(
-            f"{st.session_state.cylc_workflow_path}/rose-suite.conf",
             f"cfg__dmz_tol={config['template variables']['cfg__dmz_tol']}",
             f"cfg__dmz_tol={st.session_state.dmz_tol}")
         
     if mz_list:
         replace_in_config_file(
-            f"{st.session_state.cylc_workflow_path}/rose-suite.conf",
             f"cfg__custom_mz={config['template variables']['cfg__custom_mz']}",
             f"cfg__custom_mz={st.session_state.custom_mz}")
 
-    subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_selectbox}"])
+    if st.session_state.database_choice == database_choice_list[0]:
+        replace_in_config_file(
+            f"cfg__num_col_mz={config['template variables']['cfg__num_col_mz']}",
+            f"cfg__num_col_mz={st.session_state.col_num_mz}")
+        
+        replace_in_config_file(
+            f"cfg__num_col_precursor_name={config['template variables']['cfg__num_col_precursor_name']}",
+            f"cfg__num_col_precursor_name={st.session_state.col_num_precursor}")
+
+    # subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_selectbox}"])
 
 
 # st.write(st.session_state)

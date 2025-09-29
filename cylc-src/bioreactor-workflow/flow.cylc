@@ -178,15 +178,15 @@
     [[FORMAT_TABLE]]
         post-script = """
             cat ${table} | \
-                sed "1s|^|Datetime\t|" | \
-                sed "2,$ s|^|$timestamp\t|" > \
+                sed "1s|^|Datetime\tcycle\t|" | \
+                sed "2,$ s|^|$timestamp\t$cycle\t|" > \
                 ${results_dir}/${table}
         """
         [[[environment]]]
             table = _ # Defined in child tasks
             results_dir = ${MAIN_RESULTS_DIR}
             timestamp = ${RUN_TIMESTAMP}
-            # cycle = ${CYLC_TASK_CYCLE_POINT}
+            cycle = ${CYLC_TASK_CYCLE_POINT}
             # instrument_name = $(cat ${ROSE_DATA}/instrument_name.txt)
         [[[meta]]]
             title = FORMAT TABLE (family task)

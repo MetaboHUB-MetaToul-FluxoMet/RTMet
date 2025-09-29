@@ -30,6 +30,7 @@ def match_table(query_file: Path, profia_file:Path, tol_ppm, precursor_name_col)
 
     annotated_file.insert(0, "Datetime", profia_file["Datetime"])
     annotated_file.insert(1, "Sample Name", sample_name)
+    annotated_file.insert(2, "Cycle", profia_file["cycle"])
     annotated_file.insert(3, "Intensity", profia_file["areaIntensity"])
 
     # precursor_name_col + 4 => +4 corresponds to the first 4 columns in the file 

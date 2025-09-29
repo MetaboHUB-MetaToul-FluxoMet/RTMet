@@ -100,7 +100,9 @@ dataframe=pd.read_csv(f"{st.session_state.cylc_workflow_path}/share/data/all_fea
 for metabolite in dataframe["Precursor Name"].unique():
     st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
                             "intensity": dataframe["Intensity"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-                            "mz": dataframe["MzQuery"].loc[dataframe["Precursor Name"] == metabolite].tolist()}
+                            "mz": dataframe["MzQuery"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
+                            "cycle": dataframe["Cycle"].loc[dataframe["Precursor Name"] == metabolite].tolist()
+                            }
 
 metabolite_selection, db_display = st.columns(2)
 
@@ -133,6 +135,7 @@ if st.session_state.metabolite_checkbox:
             caracteristics, graph  = st.columns(2)
             df = pd.DataFrame({
                     "Datetime": st.session_state.met_dict[selected_metabolite]["datetime"],
+                    "Cycle": st.session_state.met_dict[selected_metabolite]["cycle"],
                     "Intensity": st.session_state.met_dict[selected_metabolite]["intensity"]
                 })
             

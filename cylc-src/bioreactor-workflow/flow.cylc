@@ -13,6 +13,7 @@
 [scheduling]
     cycling mode = integer
     initial cycle point = 1
+    runahead limit = P9
     [[xtriggers]]
 {% if cfg__input_strategy == 'internal' %}
         catch_raw = catch_raw_internal('%(point)s', '%(workflow_run_dir)s')
@@ -22,7 +23,7 @@
     [[graph]]
         # R1/^ = validate_cfg => validate_met_model => is_setup
         # R1/+P1 = convert_raw => extract_features
-        P1 = """
+        P1= """
             # is_setup[^] => _catch_raw
             @catch_raw => _catch_raw => convert_raw => get_timestamp => extract_features => annotate => concatenate_files 
         """
@@ -35,12 +36,12 @@
 #             quantify => upload_concentrations
 #         """
 # {endif %}
-    # [[queues]]
-    #     [[[default]]]
-    #         limit = 10
-    #     [[[large_jobs]]]
-    #         limit = 5
-    #         members = extract_features, annotate
+    [[queues]]
+        [[[default]]]
+            limit = 10
+        [[[large_jobs]]]
+            limit = 5
+            members = extract_features, annotate
 
 [runtime]
     [[root]]
@@ -115,6 +116,7 @@
             categories = other
 
     [[convert_raw]]
+        execution retry delays = PT1M, PT1M
         inherit = None, CONDA_TRFP
         script = """
             thermorawfileparser \
@@ -197,6 +199,7 @@
             categories = family task
 
     [[extract_features]]
+        execution retry delays = PT1M, PT1M
         inherit = None, CONDA_PROFIA, FORMAT_TABLE
         script = """
             mkdir -p ${input_dir}
@@ -246,6 +249,7 @@
     #         categories = bioinformatics
 
     [[annotate]]
+        execution retry delays = PT1M, PT1M
         inherit = None, CONDA_BANKINHOUSE, FORMAT_TABLE
         script = """
             perl ${CYLC_WORKFLOW_RUN_DIR}/bin/bank_inhouse/bank_inhouse.pl \
@@ -253,7 +257,7 @@
                 --bank_in ${db_path} \
                 --bank_name compounds_db \
                 --nbheader 1 \
-                --colmass 4 \
+                --colmass 5 \
                 --mz_delta ppm \
                 --mass_delta ${ppm_tol} \
                 --mzdb ${mzdb_col} \
@@ -288,7 +292,7 @@
 
     [[concatenate_files]]
         inherit = None, CONDA_BANKINHOUSE
-
+        execution retry delays = PT1M, PT1M
         script = """
             concatenate \
                 --input ${input} \

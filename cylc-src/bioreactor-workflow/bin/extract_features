@@ -1,0 +1,38 @@
+#!/usr/bin/env Rscript
+library(Spectra)
+library(MsCoreUtils)
+library(ggplot2)
+
+input_path <- Sys.getenv("input_dir")
+output_path <- Sys.getenv("output_path")
+ppm_tol <- as.numeric(Sys.getenv("ppm"))
+
+files <- list.files(input_path, full.names = TRUE, pattern = ".mzML$")
+
+spectra_init <- Spectra(files, backend = MsBackendMzR())
+
+# Combining all the scans to “reconstruct” a spectrum
+combine_spectra <- Spectra::combineSpectra(spectra_init, f= rep(1, length(spectra_init)), FUN = combinePeaksData, intensityFun = base::sum, mzFun = None, ppm = ppm_tol)
+# This function merges multiple spectra into a single spectrum per group. It combines the mass spectrometry data (m/z values and intensities) from each group of spectra according to an aggregation function (by default, combinePeaksData()).
+# The parameter f defines the groups (factor or vector of the same length as the spectra).
+# The metadata of the first spectrum of each group is preserved.
+# The result is a Spectra object with as many elements as there are unique groups.
+
+# Convert to a DataFrame => easier to work with; we retrieve the mz values and intensities.
+df_spectra <- data.frame(
+  mz = mz(combine_spectra)[[1]],
+  intensity = intensity(combine_spectra)[[1]]
+) 
+
+plot_spectra <- ggplot(df_spectra, aes(x = mz, y = intensity)) +
+  geom_segment(aes(xend = mz, yend = 0)) +
+  theme_minimal() +
+  scale_x_continuous(
+    breaks = seq(0, max(df_spectra$mz, na.rm = TRUE), by = 50)
+  ) +
+  labs(title = "FIA HRMS reconstructed spectrum")
+
+ggsave(plot_spectra, filename = "modeled_flowgram.png")
+
+write.table(df_spectra, output_path, sep="\t", row.names = FALSE)
+

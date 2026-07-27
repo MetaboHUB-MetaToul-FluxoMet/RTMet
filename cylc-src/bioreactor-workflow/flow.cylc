@@ -213,7 +213,7 @@
         """
         [[[environment]]]
             mzml = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.mzML
-            qc_dir = ${QC_RESULTS_DIR}
+            # qc_dir = ${QC_RESULTS_DIR}
             # arguments passed to the script 
             input_dir = ${CYLC_TASK_WORK_DIR}/mzml_tmp
             ppm = {{ cfg__ppm_tol }}
@@ -222,7 +222,7 @@
         [[[meta]]]
             title = Extract Features
             description = """
-                Extracts features from the mzML file with ProFIA. The main parameters are the mass.
+                Extracts features from the mzML file.
             """
             categories = bioinformatics
 
@@ -235,7 +235,7 @@
                 --bank_in ${db_path} \
                 --bank_name compounds_db \
                 --nbheader 1 \
-                --colmass ${mzdb_col} \
+                --colmass 3 \
                 --mz_delta ppm \
                 --mass_delta ${ppm_tol} \
                 --mzdb ${mzdb_col} \
@@ -243,9 +243,9 @@
                 --outputTab ${tabulated_format_table}
 
             mzmatch \
-                --query_file ${table} \
-                --profia_file ${query_path} \
-                --ppm ${ppm_tol} \
+                --bih_file ${table} \
+                --extracted_features_file ${query_path} \
+                --ppm ${ppm_tol} 
 
             mv ${annotated_features} ${MAIN_RESULTS_DIR}
         """
@@ -253,7 +253,7 @@
             db_path = ${USER_CONFIG_DIR}/compounds_db.tsv
             query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.tsv
             ppm_tol = {{ cfg__ppm_tol }}
-    
+
             mzdb_col = {{ cfg__num_col_mz }}
             tabulated_format_table = ${RAWFILE_STEM}.annotated.tabular
             table = ${RAWFILE_STEM}.annotated.tsv

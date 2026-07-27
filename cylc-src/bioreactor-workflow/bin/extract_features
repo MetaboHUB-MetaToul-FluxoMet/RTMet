@@ -4,7 +4,7 @@ library(MsCoreUtils)
 library(ggplot2)
 
 input_path <- Sys.getenv("input_dir")
-output_path <- Sys.getenv("output_path")
+output_path <- Sys.getenv("out_tsv")
 ppm_tol <- as.numeric(Sys.getenv("ppm"))
 
 files <- list.files(input_path, full.names = TRUE, pattern = ".mzML$")
@@ -12,7 +12,7 @@ files <- list.files(input_path, full.names = TRUE, pattern = ".mzML$")
 spectra_init <- Spectra(files, backend = MsBackendMzR())
 
 # Combining all the scans to “reconstruct” a spectrum
-combine_spectra <- Spectra::combineSpectra(spectra_init, f= rep(1, length(spectra_init)), FUN = combinePeaksData, intensityFun = base::sum, mzFun = None, ppm = ppm_tol)
+combine_spectra <- Spectra::combineSpectra(spectra_init, f= rep(1, length(spectra_init)), FUN = combinePeaksData, intensityFun = base::sum, ppm = ppm_tol)
 # This function merges multiple spectra into a single spectrum per group. It combines the mass spectrometry data (m/z values and intensities) from each group of spectra according to an aggregation function (by default, combinePeaksData()).
 # The parameter f defines the groups (factor or vector of the same length as the spectra).
 # The metadata of the first spectrum of each group is preserved.

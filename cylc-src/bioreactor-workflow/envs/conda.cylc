@@ -2,7 +2,7 @@
 
 {% set conda_envs = {
     'CONDA_TRFP': 'wf-trfp',
-    'CONDA_PROFIA': 'wf-profia',
+    'CONDA_SPECTRA': 'wf-spectra',
     'CONDA_DATAMUNGING': 'wf-datamunging',
     'CONDA_BANKINHOUSE': 'wf-bank_inhouse',
     'CONDA_INFLUX': 'wf-influx',
@@ -21,7 +21,7 @@
     [[{{FAMILY}}]]
         pre-script = """
             set +eu
-            conda activate {{ conda_env_name }}
+                        conda activate {{ conda_env_name }}
             set -eu
         """
         [[[meta]]]

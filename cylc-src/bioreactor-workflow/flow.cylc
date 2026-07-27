@@ -204,7 +204,7 @@
 
     [[extract_features]]
         execution retry delays = PT1M, PT1M
-        inherit = None, CONDA_PROFIA, FORMAT_TABLE
+        inherit = None, CONDA_SPECTRA, FORMAT_TABLE
         script = """
             mkdir -p ${input_dir}
             cp ${mzml} ${input_dir}

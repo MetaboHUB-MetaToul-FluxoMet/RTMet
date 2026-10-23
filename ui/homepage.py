@@ -1,9 +1,9 @@
 import streamlit as st
-# import tkinter as tk
-# from tkinter import filedialog
+import tkinter as tk
+from tkinter import filedialog
 import os
 from pathlib import Path
-# import shutil
+import shutil
 import pandas as pd
 import configparser
 import subprocess
@@ -13,21 +13,32 @@ import subprocess
 # FUNCTION #
 ############
 
-# def get_user_db_dir():
-#     """ 
-#     Open a file dialog to select a user database directory.
-#     """
-#     # Set up tkinter
-#     root = tk.Tk()
-#     root.withdraw()
+def get_user_db_dir():
+    """ 
+    Open a file dialog to select a user database directory.
+    """
+    # Set up tkinter
+    root = tk.Tk()
+    root.withdraw()
 
-#     # Make folder picker dialog appear on top of other windows
-#     root.wm_attributes('-topmost', 1)
+    # Make folder picker dialog appear on top of other windows
+    root.wm_attributes('-topmost', 1)
 
-#     user_db_dir = filedialog.askopenfilename(master = root,
-#                                                     title = "Select your file",
-#                                                     filetypes=[("TSV files", "*.tsv")])
-#     st.session_state["user_db_directory"] = user_db_dir
+    user_db_dir = filedialog.askopenfilename(master = root,
+                                                    title = "Select your file",
+                                                    filetypes=[("TSV files", "*.tsv")])
+    st.session_state["user_db_directory"] = Path(user_db_dir)
+
+# def refresh_folder_list():
+#     for root, dirs, _ in os.walk("/home/"):
+#         if "cylc-run" in dirs:
+#             if "bioreactor-workflow" in os.listdir(f"{root}/cylc-run"):
+#                 st.session_state.cylc_workflow_path = f"{root}/cylc-run/bioreactor-workflow"
+#                 st.session_state.all_folder = os.listdir(f"{root}/cylc-run/bioreactor-workflow")
+#                 # Remove the "_cylc-install" folder if it exists (directory containing a source symlink to the source directory)
+#                 st.session_state.all_folder.remove("_cylc-install")
+#                 break
+#     return st.session_state.all_folder
 
 def replace_in_config_file(old_value, new_value):
     """
@@ -65,24 +76,24 @@ if "all_folder" not in st.session_state:
     st.session_state.all_folder = []
 
 # Searching for the ‘cylc-run’ workflow in the home directory
-for root, dirs, _ in os.walk("/home/"):
-    if "cylc-run" in dirs:
-        if "bioreactor-workflow" in os.listdir(f"{root}/cylc-run"):
-            st.session_state.cylc_workflow_path = f"{root}/cylc-run/bioreactor-workflow"
-            st.session_state.all_folder = os.listdir(f"{root}/cylc-run/bioreactor-workflow")
-            # Remove the "_cylc-install" folder if it exists (directory containing a source symlink to the source directory)
-            st.session_state.all_folder.remove("_cylc-install")
-            break
+for root, _, _ in os.walk("/home/"):
+    workflow_path = os.path.join(root, "cylc-run", "bioreactor-workflow")
+    if os.path.isdir(workflow_path):
+        st.session_state.cylc_workflow_path = workflow_path
+        st.session_state.all_folder = [folder for folder in os.listdir(workflow_path) if folder != "_cylc-install"]
+        break   
 
 # Storing the selected folder in the session state
 if "folder_selectbox" not in st.session_state:
     st.session_state.folder_selectbox = None 
 
-folder_choice_selectbox = st.selectbox("Select a folder:", 
-                                        options=st.session_state.all_folder,
-                                        key="folder_choice_selectbox",
-                                        index=st.session_state.all_folder.index(st.session_state.folder_selectbox) if st.session_state.folder_selectbox is not None else None,
-                                        on_change=lambda: st.session_state.update({"folder_selectbox": st.session_state.folder_choice_selectbox}))
+
+st.selectbox("Select a folder:", 
+    options=st.session_state.all_folder,
+    key="folder_choice_selectbox",
+    index=st.session_state.all_folder.index(st.session_state.folder_selectbox) if st.session_state.folder_selectbox is not None else None,
+    on_change=lambda: st.session_state.update({"folder_selectbox": st.session_state.folder_choice_selectbox}))
+    
 
 # Update the workflow path and read the configuration file
 if st.session_state.folder_selectbox:
@@ -98,159 +109,51 @@ with st.container(border=True):
 
     ppm_tol = st.text_input("ppm tolerance",
                             value=st.session_state.ppm_tol,
-                            help="ppm tolerance must not exceed 15",
                             disabled= True if not st.session_state.get("folder_selectbox") else False,
                             )
 
     if ppm_tol != st.session_state.ppm_tol:
         st.session_state.ppm_tol = ppm_tol                        
 
-    st.session_state.dmz_tol = config["template variables"]["cfg__dmz_tol"] if st.session_state.folder_selectbox else None
+    # st.session_state.custom_mz = config["template variables"]["cfg__custom_mz"] if st.session_state.folder_selectbox else None
+    # mz_list = st.text_input("m/z list (comma-separated)", 
+    #                         value=st.session_state.custom_mz,
+    #                         disabled= True if not st.session_state.get("folder_selectbox") else False,
+    #                         )
+
+    # if mz_list != st.session_state.custom_mz:
+    #     st.session_state.custom_mz = mz_list
     
-    dmz_tol = st.text_input("dmz tolerance", 
-                            value=st.session_state.dmz_tol,
-                            disabled= True if not st.session_state.get("folder_selectbox") else False)
-
-    if dmz_tol != st.session_state.dmz_tol:
-        st.session_state.dmz_tol = dmz_tol
-
-    st.session_state.custom_mz = config["template variables"]["cfg__custom_mz"] if st.session_state.folder_selectbox else None
-
-    mz_list = st.text_input("m/z list (comma-separated)", 
-                            value=st.session_state.custom_mz,
-                            disabled= True if not st.session_state.get("folder_selectbox") else False,
-                            )
-
-    if mz_list != st.session_state.custom_mz:
-        st.session_state.custom_mz = mz_list
-
-# Load a database or modify the database
-# with st.container(border=True):
+    
+    # DATABASE SECTION
     st.subheader("Database")
-    # load_database, database_modification  = st.columns(2)
-    if st.session_state.folder_selectbox:
-        default_db = pd.read_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", sep="\t")
-        st.session_state.default_db = default_db
 
-    st.session_state.edited_db = None
+    if not "user_db_directory" in st.session_state:
+        st.session_state["user_db_directory"] = None
     
-    if "database_choice_user" not in st.session_state:
-        st.session_state.database_choice_user = None
-
-    database_choice_list = ["Load a database", "Edit the default database"]
-
-    database_choice = st.radio(
-        label="Database options",
-        options=database_choice_list,
-        index=database_choice_list.index(st.session_state.database_choice_user) if st.session_state.get("database_choice_user") else None,
-        disabled= True if not st.session_state.get("folder_selectbox") else False,
-        # horizontal=True,
-        key="database_choice",
-        label_visibility="collapsed",
-        on_change=lambda: st.session_state.update({"database_choice_user": st.session_state.database_choice}))
+    input_db_button = st.button(
+            label="Load a database",
+            # key="input_db_button",
+            disabled= True if not st.session_state.get("folder_selectbox") else False,
+            # disabled=True,
+            # help="Database must be in .tsv format.\
+                # \nMz must be in column number 5.",
+            on_click=get_user_db_dir)
     
-if st.session_state.database_choice == database_choice_list[0]:
-    with st.expander("Load", expanded=True):
-        input_db_button = st.file_uploader(
-                    label="Load a database",
-                    type=["tsv"],
-                    disabled= True if not st.session_state.get("folder_selectbox") else False,
-                    help="Database must be in .tsv format.\
-                        \nMz must be in column number 5.",)
-                    # key="input_db_button",)
-        
-        col_num_mz = st.text_input("Enter number of mz column in the database",
+    if st.session_state["user_db_directory"]:
+        database_df = pd.read_csv(st.session_state["user_db_directory"], sep="\t")
+        st.dataframe(database_df, hide_index=True)
+
+        col_num_mz = st.text_input("Enter the column number for m/z",
+                            width=300,
+                            key="col_num_mz",
+                            value=None)
+
+        col_num_precursor = st.text_input("Enter the column number for the precursor name",
                                     width=300,
-                                    key="col_num_mz",)
-        
-        col_num_precursor = st.text_input("Enter number of precursor name column in the database",
-                                    width=300,
-                                    key="col_num_precursor",)
-
-if st.session_state.database_choice == database_choice_list[1]:
-    with st.expander("Change the default database", expanded=True):
-        db_editor = st.data_editor(st.session_state.default_db,
-                                    hide_index=True,
-                                    num_rows= "dynamic")
-        st.session_state.edited_db = db_editor
-        
-        validate_db = st.button("Validate database", 
-                                key="validate_db",)    
-        if st.session_state.validate_db:
-            if db_editor is not None:
-                st.success("Database updated successfully!")
-            else:
-                st.error("Database cannot be empty!")
-    # st.session_state.database_choice = database_choice
-    # with load_database:
-        # if "input_db_button" not in st.session_state:
-        #     st.session_state.input_db_button = False
-        
-        # input_db_button = st.button(
-        #         label="Load a database",
-        #         # key="input_db_button",
-        #         disabled= True if not st.session_state.get("folder_selectbox") else False,
-        #         # disabled=True,
-        #         # help="Database must be in .tsv format.\
-        #             # \nMz must be in column number 5.",
-        #         on_click=lambda: st.session_state.update({"input_db_button": True}))
-        
-        # input_db_button = st.file_uploader(
-        #         label="Load a database",
-        #         type=["tsv"],
-        #         disabled= True if not st.session_state.get("folder_selectbox") else False,
-        #         help="Database must be in .tsv format.\
-        #             \nMz must be in column number 5.",)
-                # key="input_db_button",)
+                                    key="col_num_precursor",
+                                    value=None)
     
-#     with database_modification :
-#         # if "modify_button" not in st.session_state:
-#         #     st.session_state.modify_button = False
-
-#         # modify_button = st.button(
-#         #         label="Edit the default database",
-#         #         disabled= True if not st.session_state.get("folder_selectbox") else False,
-#         #         on_click=lambda: st.session_state.update({"modify_button": True}),)
-#         modify_radio_button = st.radio(
-#                 label="Edit the default database",
-#                 options=["Load a database", "Edit the default database"],
-#                 index=0,
-#                 horizontal=True,
-#                 disabled= True if not st.session_state.get("folder_selectbox") else False,
-#                 on_change=lambda: st.session_state.update({"modify_button": True if st.session_state.modify_radio_button == "Yes" else False}),)
-
-# if st.session_state.input_db_button:
-#         with st.expander("Instructions to load a database", expanded=True):
-#             st.file_uploader(
-#                 label="Load a database",
-#                 type=["tsv"],
-#                 disabled= True if not st.session_state.get("folder_selectbox") else False,
-#                 )
-#             st.text_input("Enter number of mz column in the database",
-#                           width=300)
-#             # st.write("yes")
-
-# if st.session_state.modify_button:
-#     with st.expander("Change the default database", expanded=True):
-#         db_editor = st.data_editor(st.session_state.default_db,
-#                                     hide_index=True,
-#                                     num_rows= "dynamic")
-#         st.session_state.edited_db = db_editor
-        
-#         validate_db = st.button("Validate database", 
-#                                 key="validate_db",)    
-#         if st.session_state.validate_db:
-#             if db_editor is not None:
-#                 st.success("Database updated successfully!")
-#             else:
-#                 st.error("Database cannot be empty!")
-
-
-# if st.session_state.get("db_directory_path"):
-#     st.success(f"Database loaded: {st.session_state.db_directory_path}")
-#     shutil.copy(st.session_state.db_directory_path, f"{st.session_state.cylc_workflow_path}/config/")
-
-
 launch_workflow, visualize_workflow = st.columns(2)
 with launch_workflow:
     start_workflow = st.button("Start workflow", 
@@ -260,37 +163,30 @@ with launch_workflow:
 with visualize_workflow:
     cylc_gui = st.link_button("Visualize workflow",
                               "x")
-    
+st.session_state.new_path_db = config["template variables"]["cfg__database_path"] if st.session_state.folder_selectbox else None
+
 if st.session_state.start_workflow:
-    if st.session_state.edited_db is not None:
-        st.session_state.edited_db.to_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", 
-                                          sep="\t",
-                                          index=False)
+    st.session_state.new_path_db = f"{st.session_state.cylc_workflow_path}/config/{st.session_state["user_db_directory"].name}"
+    shutil.copy(st.session_state["user_db_directory"], 
+                st.session_state.new_path_db )
     if ppm_tol:
         replace_in_config_file(
             f"cfg__ppm_tol={config['template variables']['cfg__ppm_tol']}",
             f"cfg__ppm_tol={st.session_state.ppm_tol}")
         
-    if dmz_tol:
-        replace_in_config_file(
-            f"cfg__dmz_tol={config['template variables']['cfg__dmz_tol']}",
-            f"cfg__dmz_tol={st.session_state.dmz_tol}")
-        
-    if mz_list:
-        replace_in_config_file(
-            f"cfg__custom_mz={config['template variables']['cfg__custom_mz']}",
-            f"cfg__custom_mz={st.session_state.custom_mz}")
+    replace_in_config_file(
+        f"cfg__database_path={config['template variables']['cfg__database_path']}",
+        f"cfg__database_path={st.session_state.new_path_db}")
+    
+    replace_in_config_file(
+        f"cfg__num_col_mz={config['template variables']['cfg__num_col_mz']}",
+        f"cfg__num_col_mz={st.session_state.col_num_mz}")
+    
+    replace_in_config_file(
+        f"cfg__num_col_precursor_name={config['template variables']['cfg__num_col_precursor_name']}",
+        f"cfg__num_col_precursor_name={st.session_state.col_num_precursor}")
 
-    if st.session_state.database_choice == database_choice_list[0]:
-        replace_in_config_file(
-            f"cfg__num_col_mz={config['template variables']['cfg__num_col_mz']}",
-            f"cfg__num_col_mz={st.session_state.col_num_mz}")
-        
-        replace_in_config_file(
-            f"cfg__num_col_precursor_name={config['template variables']['cfg__num_col_precursor_name']}",
-            f"cfg__num_col_precursor_name={st.session_state.col_num_precursor}")
-
-    # subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_selectbox}"])
+    subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_selectbox}"])
 
 
 # st.write(st.session_state)

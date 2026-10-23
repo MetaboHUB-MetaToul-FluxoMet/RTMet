@@ -142,8 +142,10 @@ with st.container(border=True):
     
     if st.session_state["user_db_directory"]:
         database_df = pd.read_csv(st.session_state["user_db_directory"], sep="\t")
-        st.dataframe(database_df, hide_index=True)
-
+        st.dataframe(database_df, 
+                     hide_index=True,
+                     key="database_df")
+        
         col_num_mz = st.text_input("Enter the column number for m/z",
                             width=300,
                             key="col_num_mz",
@@ -153,7 +155,34 @@ with st.container(border=True):
                                     width=300,
                                     key="col_num_precursor",
                                     value=None)
+
+# QUANTIFICATION SECTION
+with st.expander("Quantification"):
+    st.subheader("Quantification")
+
+    calib_curve = st.radio("'Calibration curve ?' ",
+                options=["Yes","No"],
+                index=None,
+                horizontal=True,
+                key="calib_curve")
     
+    int_std_present = st.radio("Internal standard present ? ",
+                options=["Yes", "No"],
+                index=None,
+                horizontal=True,
+                key="int_std_present")
+
+    conc_is = st.radio("Is the concentration of the internal standard known ?",
+                options=["Yes", "No"],
+                index=None,
+                horizontal=True,
+                key="conc_is")
+
+    if int_std_present == "Yes":
+        st.selectbox("Select IS: ",
+                     options=st.session_state["database_df"].iloc[:, int(st.session_state["col_num_precursor"])],
+                     key="is_selectbox")
+
 launch_workflow, visualize_workflow = st.columns(2)
 with launch_workflow:
     start_workflow = st.button("Start workflow", 
@@ -186,10 +215,10 @@ if st.session_state.start_workflow:
         f"cfg__num_col_precursor_name={config['template variables']['cfg__num_col_precursor_name']}",
         f"cfg__num_col_precursor_name={st.session_state.col_num_precursor}")
 
-    subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_selectbox}"])
+    # subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_selectbox}"])
 
 
-# st.write(st.session_state)
+st.write(st.session_state)
 #####################################################################################   
 #     os.remove(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv")
 #     os.rename(os.listdir(f"{st.session_state.cylc_workflow_path}/config/"), f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv")

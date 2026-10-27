@@ -27,17 +27,6 @@ import subprocess
 #     except Exception as e:
 #         raise ValueError(f"An unknown error has occured when saving the process file: {e}")
 
-def session_state_checkbox(metabolite):
-    """
-    Function to check if a key exists in the session state and set its value.
-
-    :param metabolite: The name of the metabolite to check
-    """
-    if metabolite not in st.session_state.metabolite_checkbox:
-        st.session_state.metabolite_checkbox[metabolite] = True
-    else:
-        st.session_state.metabolite_checkbox[metabolite] = not st.session_state.metabolite_checkbox[metabolite]
-
 def highlight_identified_metabolites(row):
     """
     Highlight rows in a DataFrame based on whether the 'Precursor Name' 
@@ -45,7 +34,7 @@ def highlight_identified_metabolites(row):
 
     :param row: The DataFrame row to check
     """
-    return ['background-color: lightgreen' if row['Precursor Name'] in st.session_state.met_dict.keys() 
+    return ['background-color: lightgreen' if row[st.session_state.metabolites_name_db] in st.session_state.met_dict.keys() 
             else 'background-color: lightcoral' for _ in row]
 
 ########
@@ -79,56 +68,69 @@ with info:
         st.rerun()
 
 
-with workflow_control:
-    with st.expander("Workflow control", expanded=True):
-        with st.container(border=False, height=200):
-            command_line = subprocess.run(["cylc", "workflow-state", f"bioreactor-workflow/{st.session_state.folder_selectbox}"], 
-                                          capture_output=True,
-                                          text=True)
-            outputs_list = command_line.stdout.split("\n")
-            for output in outputs_list:
-                # if "succeeded" in output:
-                #     st.success(output)
-                if "failed" in output:
-                    st.error(output)
-                # else:
-                #     st.info(output)
+# with workflow_control:
+#     with st.expander("Workflow control", expanded=False):
+#         with st.container(border=False, height=200):
+#             command_line = subprocess.run(["cylc", "workflow-state", f"bioreactor-workflow/{st.session_state.folder_choice_selectbox}"], 
+#                                           capture_output=True,
+#                                           text=True)
+#             outputs_list = command_line.stdout.split("\n")
+#             for output in outputs_list:
+#                 # if "succeeded" in output:
+#                 #     st.success(output)
+#                 if "failed" in output:
+#                     st.error(output)
+#                 # else:
+#                 #     st.info(output)
 
+#     st.button("Stop workflow")
+
+# st.divider()
 
 # Store metabolites and their different values
 dataframe=pd.read_csv(f"{st.session_state.cylc_workflow_path}/share/data/all_features.tsv", sep="\t")
-for metabolite in dataframe["Precursor Name"].unique():
-    st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-                            "intensity": dataframe["Intensity"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-                            "mz": dataframe["MzQuery"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-                            "cycle": dataframe["Cycle"].loc[dataframe["Precursor Name"] == metabolite].tolist()
+for metabolite in dataframe[st.session_state.metabolites_name_db].unique():
+    st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist(),
+                            "intensity": dataframe["intensity"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist(),
+                            "mz": dataframe["MzQuery"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist(),
+                            "cycle": dataframe["cycle"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist()
                             }
 
 metabolite_selection, db_display = st.columns(2)
 
 with metabolite_selection:
     # Metabolite selection container 
-    with st.container(border=True, height=450,key="metabolite_selection_container"):
-        st.subheader("Metabolites")
-        for metabolite, values in sorted(st.session_state['met_dict'].items()):
-            metabolite_selection = st.checkbox(metabolite, 
-                                                # key=metabolite, 
-                                                value=False if metabolite not in st.session_state.metabolite_checkbox else st.session_state.metabolite_checkbox[metabolite],
-                                                on_change=session_state_checkbox,
-                                                args=(metabolite,)
-                                                )
+    # with st.container(border=True, height=450,key="metabolite_selection_container"):
+    #     st.subheader("Metabolites")
+    #     print(st.session_state['met_dict'].keys())
+    #     for metabolite, values in sorted(st.session_state['met_dict'].items()):
+    #         metabolite_selection = st.checkbox(metabolite, 
+    #                                             # key=metabolite, 
+    #                                             value=False if metabolite not in st.session_state.metabolite_checkbox else st.session_state.metabolite_checkbox[metabolite],
+    #                                             on_change=session_state_checkbox,
+    #                                             args=(metabolite,)
+    #                                             )
+    
+    st.subheader("Metabolites")
+    st.multiselect("Select metabolites",
+                   options=sorted(st.session_state.met_dict.keys()),
+                   persist_state="session",
+                   key="met_res_multiselect",
+                   label_visibility="collapsed")
+
 with db_display:
     with st.expander("Show database", expanded=True):
-        db_style = st.session_state.edited_db.style.apply(highlight_identified_metabolites, axis=1) \
-            if st.session_state.edited_db is not None \
-            else st.session_state.default_db.style.apply(highlight_identified_metabolites, axis=1)
+        # db_style = st.session_state.edited_db.style.apply(highlight_identified_metabolites, axis=1) \
+        #     if st.session_state.edited_db is not None \
+        #     else st.session_state.default_db.style.apply(highlight_identified_metabolites, axis=1)
+        db_style = st.session_state.database_df.style.apply(highlight_identified_metabolites, axis=1)
         st.dataframe(db_style, use_container_width=True, hide_index=True)
 
 # Display results based on metabolite selection
-if st.session_state.metabolite_checkbox:
+if st.session_state.met_res_multiselect:
     # st.subheader("Results")
-    for selected_metabolite in st.session_state.metabolite_checkbox:
-        if st.session_state.metabolite_checkbox[selected_metabolite]:
+    for selected_metabolite in st.session_state.met_res_multiselect:
+        # if st.session_state.metabolite_checkbox[selected_metabolite]:
             st.divider()
             st.subheader(f"{selected_metabolite}")
 
@@ -150,16 +152,16 @@ if st.session_state.metabolite_checkbox:
                                 key=f"operation_{selected_metabolite}",
                                 options=operation)
                 with show_df:
-                    st.dataframe(df, use_container_width=True, hide_index=True)
-                
+                    df_results = st.dataframe(df, use_container_width=True, hide_index=True, selection_mode="multi-row", on_select="rerun")
+                    
             with graph:
-                fig = px.line(df, 
+                fig = px.line(df.iloc[df_results.selection.rows] if df_results.selection.rows else df, 
                               x="Datetime",
                               y="Intensity",
                               title=f"{selected_metabolite} Intensity Over Time")
                 st.plotly_chart(fig, use_container_width=False)
                 
-            
+#################################################################
 # while True:
 #     if not Path("/home/kouakou/cylc-run/bioreactor-workflow/data_test_2/results/all_features.tsv").exists():
 #         st.error("Results file not found. Please run the workflow to generate results.")
@@ -172,10 +174,10 @@ if st.session_state.metabolite_checkbox:
 
 #         dataframe=pd.read_csv("/home/kouakou/cylc-run/bioreactor-workflow/data_test_2/results/all_features.tsv", sep="\t")
         
-#         for metabolite in dataframe["Precursor Name"].unique():
-#             st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-#                                     "intensity": dataframe["Intensity"].loc[dataframe["Precursor Name"] == metabolite].tolist(),
-#                                     "mz": dataframe["MzQuery"].loc[dataframe["Precursor Name"] == metabolite].tolist()}
+#         for metabolite in dataframe[st.session_state.metabolites_name_db].unique():
+#             st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist(),
+#                                     "intensity": dataframe["Intensity"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist(),
+#                                     "mz": dataframe["MzQuery"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist()}
 
 #         with st.container(border=True, height=400,key="metabolite_selection_container"):
 #             st.subheader("Metabolites")

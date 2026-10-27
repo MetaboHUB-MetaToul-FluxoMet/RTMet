@@ -233,26 +233,29 @@
             perl ${CYLC_WORKFLOW_RUN_DIR}/bin/bank_inhouse/bank_inhouse.pl \
                 --input ${query_path} \
                 --bank_in ${db_path} \
-                --bank_name compounds_db \
+                --bank_name ${db_name} \
                 --nbheader 1 \
                 --colmass 3 \
                 --mz_delta ppm \
                 --mass_delta ${ppm_tol} \
                 --mzdb ${mzdb_col} \
-                --outputXls ${table} \   
+                --outputXls ${table} \  
                 --outputTab ${tabulated_format_table}
 
             mzmatch \
                 --bih_file ${table} \
                 --extracted_features_file ${query_path} \
-                --ppm ${ppm_tol} 
+                --ppm ${ppm_tol} \
+                --met_name_col "${precursor_name_col}"
 
             mv ${annotated_features} ${MAIN_RESULTS_DIR}
         """
         [[[environment]]]
-            db_path = ${USER_CONFIG_DIR}/compounds_db.tsv
+            db_path = {{ cfg__database_path }}
             query_path = ${MAIN_RESULTS_DIR}/${RAWFILE_STEM}.features.tsv
             ppm_tol = {{ cfg__ppm_tol }}
+            precursor_name_col = {{ cfg__metabolites_name_col }}
+            db_name = {{ cfg__database_name }}
 
             mzdb_col = {{ cfg__num_col_mz }}
             tabulated_format_table = ${RAWFILE_STEM}.annotated.tabular

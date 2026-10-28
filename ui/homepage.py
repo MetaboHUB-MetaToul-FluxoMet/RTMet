@@ -235,7 +235,7 @@ if st.session_state.start_workflow:
     
     replace_in_config_file(
         f"cfg__metabolites_name_col={config['template variables']['cfg__metabolites_name_col']}",
-        f"cfg__metabolites_name_col='{st.session_state.metabolites_name_db}")
+        f"cfg__metabolites_name_col='{st.session_state.metabolites_name_db}'")
 
     subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_choice_selectbox}"])
 

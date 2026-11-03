@@ -4,7 +4,7 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 import os
-import subprocess
+# import subprocess
 # from pathlib import Path
 
 ############
@@ -34,7 +34,7 @@ def highlight_identified_metabolites(row):
 
     :param row: The DataFrame row to check
     """
-    return ['background-color: lightgreen' if row[st.session_state.metabolites_name_db] in st.session_state.met_dict.keys() 
+    return ['background-color: lightgreen' if row[st.session_state.metabolites_names_db] in st.session_state.met_dict.keys() 
             else 'background-color: lightcoral' for _ in row]
 
 ########
@@ -89,11 +89,11 @@ with info:
 
 # Store metabolites and their different values
 dataframe=pd.read_csv(f"{st.session_state.cylc_workflow_path}/share/data/all_features.tsv", sep="\t")
-for metabolite in dataframe[st.session_state.metabolites_name_db].unique():
-    st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist(),
-                            "intensity": dataframe["intensity"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist(),
-                            "mz": dataframe["MzQuery"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist(),
-                            "cycle": dataframe["cycle"].loc[dataframe[st.session_state.metabolites_name_db] == metabolite].tolist()
+for metabolite in dataframe[st.session_state.metabolites_names_db].unique():
+    st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist(),
+                            "intensity": dataframe["intensity"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist(),
+                            "mz": dataframe["MzQuery"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist(),
+                            "cycle": dataframe["cycle"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist()
                             }
 
 metabolite_selection, db_display = st.columns(2)
@@ -146,11 +146,28 @@ if st.session_state.met_res_multiselect:
                 with operations:
                     # st.subheader(" ")
                     st.write(" ")
-                    operation = ["Relative quantification"]
+                    operation = ["Quantification"]
                     st.selectbox("Select an operation:", 
                                 # index=None,
                                 key=f"operation_{selected_metabolite}",
-                                options=operation)
+                                options=operation,
+                                persist_state="session",
+                                index=None)
+                    
+                    # quantify_IS()
+                    # if st.session_state[f"operation_{selected_metabolite}"]:
+                    #     int_std_present = st.radio("Internal standard present ? ",
+                    #                                 options=["Yes", "No"],
+                    #                                 index=1,
+                    #                                 horizontal=True,
+                    #                                 key=f"int_std_present_{selected_metabolite}",
+                    #                                 persist_state="session") 
+                    #     if int_std_present == "Yes":
+                    #         is_choice = st.selectbox("Select IS: ",
+                    #                     options=sorted(dataframe[st.session_state.metabolites_names_db].unique()),
+                    #                     index=0,
+                    #                     key=f"is_selectbox_{selected_metabolite}",
+                    #                     persist_state="session")
                 with show_df:
                     df_results = st.dataframe(df, use_container_width=True, hide_index=True, selection_mode="multi-row", on_select="rerun")
                     

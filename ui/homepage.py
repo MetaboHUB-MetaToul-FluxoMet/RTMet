@@ -30,7 +30,7 @@ def get_user_db_dir():
     root.destroy()
     
     if user_db_dir:
-        st.session_state["user_db_directory"] = Path(user_db_dir)
+        st.session_state["user_db_path"] = Path(user_db_dir)
 
 # def refresh_folder_list():
 #     for root, dirs, _ in os.walk("/home/"):
@@ -82,30 +82,28 @@ if "all_folder" not in st.session_state:
 for root, _, _ in os.walk("/home/"):
     workflow_path = os.path.join(root, "cylc-run", "bioreactor-workflow")
     if os.path.isdir(workflow_path):
-        st.session_state.cylc_workflow_path = workflow_path
+        st.session_state.cylc_workflow_path = Path(workflow_path)
         st.session_state.all_folder = [folder for folder in os.listdir(workflow_path) if folder != "_cylc-install"]
         break   
 
-# Storing the selected folder in the session state
-# if "folder_selectbox" not in st.session_state:
-#     st.session_state.folder_selectbox = None 
 
 st.selectbox("Select a folder:", 
     options=st.session_state.all_folder,
     key="folder_choice_selectbox",
     index=None,
     persist_state="session")
-    
-# Update the workflow path and read the configuration file
-if st.session_state.folder_choice_selectbox:
-    st.session_state.cylc_workflow_path = Path(f"{st.session_state.cylc_workflow_path}/{st.session_state.folder_choice_selectbox}")
-    config = configparser.ConfigParser(allow_unnamed_section=True)
-    config.read(f"{st.session_state.cylc_workflow_path}/rose-suite.conf")
 
 # Settings configuration and database
 with st.container(border=True):
+    # Update the workflow path and read the configuration file
+    if st.session_state.folder_choice_selectbox:
+        st.session_state.cylc_workflow_path = os.path.join(f"{st.session_state.cylc_workflow_path}", f"{st.session_state.folder_choice_selectbox}")
+        config = configparser.ConfigParser(allow_unnamed_section=True)
+        config.read(f"{st.session_state.cylc_workflow_path}/rose-suite.conf")
+        
     st.subheader("Parameters configuration")
 
+    # Set the ppm tolerance from the configuration file if a folder is selected
     st.session_state.ppm_tol = config["template variables"]["cfg__ppm_tol"] if st.session_state.folder_choice_selectbox else None
 
     ppm_tol = st.text_input("ppm tolerance",
@@ -116,35 +114,29 @@ with st.container(border=True):
     if ppm_tol != st.session_state.ppm_tol:
         st.session_state.ppm_tol = ppm_tol                        
 
-    # st.session_state.custom_mz = config["template variables"]["cfg__custom_mz"] if st.session_state.folder_selectbox else None
-    # mz_list = st.text_input("m/z list (comma-separated)", 
-    #                         value=st.session_state.custom_mz,
-    #                         disabled= True if not st.session_state.get("folder_selectbox") else False,
-    #                         )
-
-    # if mz_list != st.session_state.custom_mz:
-    #     st.session_state.custom_mz = mz_list
-    
     
     # DATABASE SECTION
     st.subheader("Database")
 
-    if not "user_db_directory" in st.session_state:
-        st.session_state["user_db_directory"] = None
-    
+    if "user_db_path" not in st.session_state:
+        st.session_state.user_db_path = None
+
+    # Useful if the user already selected a database in a previous session
+    for file in Path(st.session_state.cylc_workflow_path).joinpath("config").rglob("*"):
+        if file.is_file():
+            st.session_state.user_db_path = file
+
     input_db_button = st.button(
             label="Load a database",
             disabled= True if not st.session_state.get("folder_choice_selectbox") else False,
             on_click=get_user_db_dir)
-    
-    if st.session_state["user_db_directory"]:
-        if not "database_df" in st.session_state:
-            st.session_state["database_df"] = None
 
-        st.session_state["database_df"] = pd.read_csv(st.session_state["user_db_directory"], sep="\t")
-        st.dataframe(st.session_state["database_df"],
-                     hide_index=True)
+    if st.session_state["user_db_path"]:
+        st.session_state["database_df"] = pd.read_csv(st.session_state["user_db_path"], sep="\t")
         
+        st.dataframe(st.session_state["database_df"],
+                             hide_index=True)
+
         col_mz, col_precursor_name = st.columns(2)
 
         with col_mz:
@@ -158,7 +150,62 @@ with st.container(border=True):
                                     width=300,
                                     key="col_num_precursor",
                                     persist_state="session")
+            
+        col_name = config["template variables"]["cfg__metabolites_name_col"]
 
+        # It will be use in the next page and in the configuration file
+        st.session_state.metabolites_names_db = (
+            col_name.strip("'") if col_name
+            else str(st.session_state.database_df.iloc[:, int(st.session_state.col_num_precursor)-1].name)
+        )
+
+
+launch_workflow, visualize_workflow = st.columns(2)
+with launch_workflow:
+    start_workflow = st.button("Start workflow", 
+                                key="start_workflow",
+                                disabled= True if not st.session_state.get("folder_choice_selectbox") else False)
+
+with visualize_workflow:
+    cylc_gui = st.link_button("Visualize workflow",
+                              "x")
+if st.session_state.start_workflow:
+    # Copy the user database to the workflow config directory
+    shutil.copy(st.session_state["user_db_path"], 
+                os.path.join(st.session_state.cylc_workflow_path, "config", st.session_state["user_db_path"].name))
+    
+    replace_in_config_file(
+        f"cfg__ppm_tol={config['template variables']['cfg__ppm_tol']}",
+        f"cfg__ppm_tol={st.session_state.ppm_tol}")
+        
+    # replace_in_config_file(
+    #     f"cfg__database_path={config['template variables']['cfg__database_path']}",
+    #     f"cfg__database_path={st.session_state.new_db_path}")
+
+    replace_in_config_file(
+            f"cfg__database_name={config['template variables']['cfg__database_name']}",
+            f"cfg__database_name='{st.session_state["user_db_path"].name}'")
+    
+    replace_in_config_file(
+        f"cfg__num_col_mz={config['template variables']['cfg__num_col_mz']}",
+        f"cfg__num_col_mz={st.session_state.col_num_mz}")
+    
+    replace_in_config_file(
+        f"cfg__metabolites_name_col={config['template variables']['cfg__metabolites_name_col']}",
+        f"cfg__metabolites_name_col='{st.session_state.metabolites_names_db}'")
+
+    subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_choice_selectbox}"])
+
+
+# st.write(st.session_state)
+#####################################################################################   
+#     os.remove(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv")
+#     os.rename(os.listdir(f"{st.session_state.cylc_workflow_path}/config/"), f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv")
+# new_db.to_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", 
+#               sep="\t", 
+#               index=False)
+
+                         
 # QUANTIFICATION SECTION
 # with st.expander("Quantification"):
 #     st.subheader("Quantification")
@@ -201,55 +248,6 @@ with st.container(border=True):
     #                options = options_met,
     #                key="met_multiselectbox",
     #                persist_state = "session")
-
-launch_workflow, visualize_workflow = st.columns(2)
-with launch_workflow:
-    start_workflow = st.button("Start workflow", 
-                                key="start_workflow",
-                                disabled= True if not st.session_state.get("folder_choice_selectbox") else False)
-
-with visualize_workflow:
-    cylc_gui = st.link_button("Visualize workflow",
-                              "x")
-if st.session_state.start_workflow:
-    st.session_state.new_db_path = os.path.join(st.session_state.cylc_workflow_path, "config", st.session_state["user_db_directory"].name)
-    shutil.copy(st.session_state["user_db_directory"], 
-                st.session_state.new_db_path )
-    st.session_state.metabolites_name_db = str(st.session_state["database_df"].iloc[:, int(st.session_state["col_num_precursor"])-1].name)
-    if ppm_tol:
-        replace_in_config_file(
-            f"cfg__ppm_tol={config['template variables']['cfg__ppm_tol']}",
-            f"cfg__ppm_tol={st.session_state.ppm_tol}")
-        
-    replace_in_config_file(
-        f"cfg__database_path={config['template variables']['cfg__database_path']}",
-        f"cfg__database_path='{st.session_state.new_db_path}'")
-
-    replace_in_config_file(
-            f"cfg__database_name={config['template variables']['cfg__database_name']}",
-            f"cfg__database_name='{st.session_state["user_db_directory"].name}'")
-    
-    replace_in_config_file(
-        f"cfg__num_col_mz={config['template variables']['cfg__num_col_mz']}",
-        f"cfg__num_col_mz={st.session_state.col_num_mz}")
-    
-    replace_in_config_file(
-        f"cfg__metabolites_name_col={config['template variables']['cfg__metabolites_name_col']}",
-        f"cfg__metabolites_name_col='{st.session_state.metabolites_name_db}'")
-
-    subprocess.Popen(["cylc", "play", f"bioreactor-workflow/{st.session_state.folder_choice_selectbox}"])
-
-
-# st.write(st.session_state)
-#####################################################################################   
-#     os.remove(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv")
-#     os.rename(os.listdir(f"{st.session_state.cylc_workflow_path}/config/"), f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv")
-# new_db.to_csv(f"{st.session_state.cylc_workflow_path}/config/compounds_db.tsv", 
-#               sep="\t", 
-#               index=False)
-
-                         
-
 
 
 

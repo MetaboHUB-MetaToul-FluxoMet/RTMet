@@ -89,12 +89,16 @@ with info:
 
 # Store metabolites and their different values
 dataframe=pd.read_csv(f"{st.session_state.cylc_workflow_path}/share/data/all_features.tsv", sep="\t")
+
+is_norm =  dataframe.loc[dataframe["Precursor Name"] == "penicillin", "intensity"].iloc[0]
+dataframe["Normalized Area"]=dataframe["intensity"] / is_norm
+
 for metabolite in dataframe[st.session_state.metabolites_names_db].unique():
     st.session_state.met_dict[metabolite] = {"datetime": dataframe["Datetime"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist(),
                             "intensity": dataframe["intensity"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist(),
                             "mz": dataframe["MzQuery"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist(),
-                            "cycle": dataframe["cycle"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist()
-                            }
+                            "cycle": dataframe["cycle"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist(),
+                            "Normalized Area": dataframe["Normalized Area"].loc[dataframe[st.session_state.metabolites_names_db] == metabolite].tolist()}
 
 metabolite_selection, db_display = st.columns(2)
 
@@ -135,11 +139,15 @@ if st.session_state.met_res_multiselect:
             st.subheader(f"{selected_metabolite}")
 
             caracteristics, graph  = st.columns(2)
+            met = st.session_state.met_dict[selected_metabolite]
             df = pd.DataFrame({
-                    "Datetime": st.session_state.met_dict[selected_metabolite]["datetime"],
-                    "Cycle": st.session_state.met_dict[selected_metabolite]["cycle"],
-                    "Intensity": st.session_state.met_dict[selected_metabolite]["intensity"]
-                })
+                "Datetime": met["datetime"],
+                "Cycle": met["cycle"],
+                "Area": met["intensity"]
+            })
+
+            df_normalized = df.rename(columns={"Area": "Normalized Area"}).copy()
+            df_normalized["Normalized Area"] = met["Normalized Area"]
             
             with caracteristics:
                 operations,show_df = st.columns(2)
@@ -153,7 +161,7 @@ if st.session_state.met_res_multiselect:
                                 options=operation,
                                 persist_state="session",
                                 index=None)
-                    
+                     
                     # quantify_IS()
                     # if st.session_state[f"operation_{selected_metabolite}"]:
                     #     int_std_present = st.radio("Internal standard present ? ",
@@ -169,13 +177,23 @@ if st.session_state.met_res_multiselect:
                     #                     key=f"is_selectbox_{selected_metabolite}",
                     #                     persist_state="session")
                 with show_df:
-                    df_results = st.dataframe(df, use_container_width=True, hide_index=True, selection_mode="multi-row", on_select="rerun")
+                    df_display = df_normalized if st.session_state[f"operation_{selected_metabolite}"] == "Quantification" else df
+                    df_results = st.dataframe(df_display, 
+                                              use_container_width=True, 
+                                              hide_index=True, 
+                                              selection_mode="multi-row", 
+                                              on_select="rerun")
                     
             with graph:
-                fig = px.line(df.iloc[df_results.selection.rows] if df_results.selection.rows else df, 
-                              x="Datetime",
-                              y="Intensity",
-                              title=f"{selected_metabolite} Intensity Over Time")
+                selected_rows = df_results.selection.rows
+                df_graph = df_display.iloc[list(selected_rows)] if selected_rows else df_display
+
+                fig = px.line(
+                    df_graph,
+                    x="Datetime",
+                    y="Normalized Area" if st.session_state[f"operation_{selected_metabolite}"] == "Quantification" else "Area",
+                    title=f"{selected_metabolite} Area Over Time"
+                )
                 st.plotly_chart(fig, use_container_width=False)
                 
 #################################################################

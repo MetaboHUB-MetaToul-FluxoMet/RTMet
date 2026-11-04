@@ -178,13 +178,13 @@ if st.session_state.start_workflow:
         f"cfg__ppm_tol={config['template variables']['cfg__ppm_tol']}",
         f"cfg__ppm_tol={st.session_state.ppm_tol}")
         
-    # replace_in_config_file(
-    #     f"cfg__database_path={config['template variables']['cfg__database_path']}",
-    #     f"cfg__database_path={st.session_state.new_db_path}")
+    replace_in_config_file(
+        f"cfg__database_path={config['template variables']['cfg__database_path']}",
+        f"cfg__database_path={os.path.join(st.session_state.cylc_workflow_path, 'config', st.session_state['user_db_path'].name)}")
 
     replace_in_config_file(
             f"cfg__database_name={config['template variables']['cfg__database_name']}",
-            f"cfg__database_name='{st.session_state["user_db_path"].name}'")
+            f"cfg__database_name='{st.session_state['user_db_path'].name}'")
     
     replace_in_config_file(
         f"cfg__num_col_mz={config['template variables']['cfg__num_col_mz']}",
